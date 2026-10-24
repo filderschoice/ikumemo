@@ -18,6 +18,9 @@ import kotlinx.coroutines.sync.withLock
 
 /** ホームに重ねて開くシート。 */
 sealed interface HomeSheet {
+    /** 話して追加（F-01）。 */
+    data object Voice : HomeSheet
+
     /** 文字で追加（F-03）。 */
     data object AddByText : HomeSheet
 
@@ -29,6 +32,8 @@ sealed interface HomeSheet {
 
 /** メモ画面の操作（単方向データフロー、PLAN §4.1）。 */
 sealed interface ShoppingListEvent {
+    data object OpenVoice : ShoppingListEvent
+
     data object OpenAddByText : ShoppingListEvent
 
     data class OpenEditor(
@@ -127,6 +132,7 @@ class ShoppingListViewModel(
 
     fun onEvent(event: ShoppingListEvent) {
         when (event) {
+            ShoppingListEvent.OpenVoice -> local.update { it.copy(sheet = HomeSheet.Voice) }
             ShoppingListEvent.OpenAddByText -> local.update { it.copy(sheet = HomeSheet.AddByText) }
             is ShoppingListEvent.OpenEditor -> local.update { it.copy(sheet = HomeSheet.Edit(event.itemId)) }
             ShoppingListEvent.CloseSheet -> local.update { it.copy(sheet = null) }

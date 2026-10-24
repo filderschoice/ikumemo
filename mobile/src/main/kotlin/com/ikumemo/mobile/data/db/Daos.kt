@@ -48,6 +48,10 @@ interface ProductDao {
     @Query("SELECT * FROM product WHERE normalizedName = :normalizedName LIMIT 1")
     suspend fun findByNormalizedName(normalizedName: String): ProductEntity?
 
+    /** 品目の表示名（音声の分割で品名の中の「と」を守るのに使う）。 */
+    @Query("SELECT name FROM product")
+    suspend fun getAllNames(): List<String>
+
     /** 候補に出す品目（非表示を除く）。 */
     @Query("SELECT * FROM product WHERE hidden = 0")
     fun observeVisible(): Flow<List<ProductEntity>>

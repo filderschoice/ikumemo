@@ -57,6 +57,12 @@ class ShoppingRepository(
 
     suspend fun getItem(id: Long): ShoppingItemEntity? = itemDao.getById(id)
 
+    /** 正規化した品名が同じ物がメモにあれば返す（R-01、音声の確認カードの「メモにあります」）。 */
+    suspend fun findInMemo(name: String): ShoppingItemEntity? =
+        productDao.findByNormalizedName(normalizer.normalize(name))?.let { itemDao.findByProductId(it.id) }
+
+    suspend fun productNames(): List<String> = productDao.getAllNames()
+
     /**
      * メモの末尾へ追加する。正規化した品名が同じ物がメモにあれば追加しない（R-01・R-02）。
      * 初めての品名は品目として登録し、その表記を代表名にする（PLAN §4.4）。
@@ -177,6 +183,6 @@ class ShoppingRepository(
         val product = ProductEntity(name = displayName, normalizedName = normalized, createdAt = clock.instant())
         return product.copy(id = productDao.insert(product))
     }
-
-    private fun String?.blankToNull(): String? = this?.trim()?.ifEmpty { null }
 }
+
+private fun String?.blankToNull(): String? = this?.trim()?.ifEmpty { null }

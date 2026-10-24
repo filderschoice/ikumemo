@@ -5,6 +5,46 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 17:40
+  summary: 音声入力部品（話して追加・確認カード・マイクの許可・聞き取れないときの案内）を追加（M2）
+  details:
+    変更内容: >-
+      SpeechEngine（Android 標準の SpeechRecognizer を包む。日本語固定・オンデバイス優先・途中経過あり・候補 5 件）と
+      VoiceInputViewModel・VoiceInputSheet を追加し、ホームに 🎤 話して追加（64dp）を置いた。認識結果は core/voice で分け、
+      確認カードで直す・外すをしてから「追加する」で入れる。メモにある物は「メモにあります」の印を付けて既定で外す（R-01）。
+      何も話さなければ 5 秒で止めて「うまく聞き取れませんでした」と「もう一度話す」「文字で入れる」を出す（R-31）。
+      マイクの許可は初めて使うときに理由（録音は保存しない）を添えて求め、拒否されたら端末の設定を開くボタンと文字入力を案内する。
+      音声認識の機能が無い端末ではマイクを出さず文字入力を案内する。AndroidManifest に RECORD_AUDIO と
+      RecognitionService の queries を宣言した。確認画面のボタンは文字が大きい設定でもはみ出さないよう「追加する」を全幅にした。
+      5 秒のタイマーを認識開始の後に仕掛けていたため、結果がすぐ返ると「聞き取れませんでした」で上書きされる誤りを見つけ、開始前に仕掛ける順へ直した。
+      画面テストは、Robolectric の waitUntil が待つ間にメインスレッドの処理を進めないため waitForIdle で進めながら待つ awaitCondition を
+      testDebug に共通化し、ボトムシート（別ウィンドウ）の中のボタンは座標のタップが届かないため意味操作でクリック処理を呼ぶ形にした
+    変更ファイル:
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/SpeechEngine.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/FakeSpeechEngine.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/testing/ComposeWait.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、画面テストの 3 回連続実行（--rerun-tasks）、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（ViewModel テスト 8 件・画面テスト 2 件。「牛乳2本とたまご」から 2 枚の確認カードが並び追加できる、
+      メモにある物の除外、カードの修正と除外、5 秒の無音、認識エラー、機能の無い端末、途中で閉じたときに何も追加しない）、
+      画面テストは 3 回とも成功、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-021
 - date: 2026-10-25 16:20
   summary: core/voice に音声テキストの分割・数量抽出・不要語除去・誤変換補正を追加（M2）
   details:

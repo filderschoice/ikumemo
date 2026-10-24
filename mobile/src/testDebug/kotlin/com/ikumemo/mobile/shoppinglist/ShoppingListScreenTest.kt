@@ -1,11 +1,12 @@
 package com.ikumemo.mobile.shoppinglist
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -15,8 +16,12 @@ import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.designsystem.IkumemoTheme
+import com.ikumemo.mobile.testing.FakeSpeechEngine
+import com.ikumemo.mobile.testing.awaitCondition
+import com.ikumemo.mobile.testing.awaitTag
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
+import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -45,7 +50,8 @@ class ShoppingListScreenTest {
         db = inMemoryDatabase()
         repository = ShoppingRepository(db, ProductNameNormalizer(), fixedClock())
         val viewModel = ShoppingListViewModel(repository)
-        composeRule.setContent { IkumemoTheme { ShoppingListScreen(viewModel) } }
+        val voiceViewModel = VoiceInputViewModel(repository, FakeSpeechEngine())
+        composeRule.setContent { IkumemoTheme { ShoppingListScreen(viewModel, voiceViewModel) } }
     }
 
     @After
@@ -57,17 +63,14 @@ class ShoppingListScreenTest {
 
     private fun records() = runBlocking { db.purchaseRecordDao().observeBetween(today, today).first() }
 
-    private fun waitUntil(condition: () -> Boolean) = composeRule.waitUntil(timeoutMillis = 5_000, condition)
-
     private fun addByText(name: String) {
         composeRule.onNodeWithTag(TestTags.ADD_BY_TEXT).performClick()
-        waitUntil { composeRule.onAllNodesWithTagExists(TestTags.ADD_SHEET_INPUT) }
-        composeRule.waitForIdle()
+        composeRule.awaitTag(TestTags.ADD_SHEET_INPUT)
         composeRule.onNodeWithTag(TestTags.ADD_SHEET_INPUT).performTextInput(name)
-        // シートが動いている間に座標でボタンを押すと外れるため、キーボードの「完了」で追加する
-        composeRule.onNodeWithTag(TestTags.ADD_SHEET_INPUT).performImeAction()
-        waitUntil { items().any { it.displayName == name } }
-        composeRule.onNodeWithText("閉じる").performClick()
+        // ボトムシートは別のウィンドウに描かれ、Robolectric では座標でのタップが届かないため、クリック処理を直接呼ぶ
+        composeRule.onNodeWithTag(TestTags.ADD_SHEET_SUBMIT).performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.awaitCondition { items().any { it.displayName == name } }
+        composeRule.onNodeWithText("閉じる").performSemanticsAction(SemanticsActions.OnClick)
     }
 
     @Test
@@ -77,22 +80,22 @@ class ShoppingListScreenTest {
         composeRule.onNodeWithText("牛乳").assertIsDisplayed()
 
         composeRule.onNodeWithTag(TestTags.item(id)).performTouchInput { swipeRight() }
-        waitUntil { items().isEmpty() && records().size == 1 }
+        composeRule.awaitCondition { items().isEmpty() && records().size == 1 }
         composeRule.onNodeWithText("買った：牛乳").assertIsDisplayed()
 
         composeRule.onNodeWithText("元に戻す").performClick()
-        waitUntil { items().size == 1 && records().isEmpty() }
+        composeRule.awaitCondition { items().size == 1 && records().isEmpty() }
         composeRule.onNodeWithText("牛乳").assertIsDisplayed()
     }
 
     @Test
     fun swipeLeftDismissesWithoutRecord() {
         val id = runBlocking { (repository.addItem("洗剤") as AddItemResult.Added).itemId }
-        waitUntil { composeRule.onAllNodesWithTagExists(TestTags.item(id)) }
+        composeRule.awaitTag(TestTags.item(id))
 
         composeRule.onNodeWithTag(TestTags.item(id)).performTouchInput { swipeLeft() }
 
-        waitUntil { items().isEmpty() }
+        composeRule.awaitCondition { items().isEmpty() }
         composeRule.onNodeWithText("やめた：洗剤").assertIsDisplayed()
         check(records().isEmpty())
     }
@@ -100,13 +103,10 @@ class ShoppingListScreenTest {
     @Test
     fun tapCircleMarksBought() {
         val id = runBlocking { (repository.addItem("たまご") as AddItemResult.Added).itemId }
-        waitUntil { composeRule.onAllNodesWithTagExists(TestTags.boughtButton(id)) }
+        composeRule.awaitTag(TestTags.boughtButton(id))
 
         composeRule.onNodeWithTag(TestTags.boughtButton(id)).performClick()
 
-        waitUntil { items().isEmpty() && records().size == 1 }
+        composeRule.awaitCondition { items().isEmpty() && records().size == 1 }
     }
-
-    private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTagExists(tag: String): Boolean =
-        onAllNodes(androidx.compose.ui.test.hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
 }

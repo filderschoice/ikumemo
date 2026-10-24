@@ -1,5 +1,6 @@
 package com.ikumemo.mobile.shoppinglist
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Keyboard
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -23,6 +25,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +43,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.UndoableAction
+import com.ikumemo.mobile.voice.VoiceInputSheet
+import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -50,11 +55,21 @@ private const val HIGHLIGHT_MILLIS = 1_200L
 private const val UNDO_MILLIS = 5_000L
 
 @Composable
-fun ShoppingListScreen(viewModel: ShoppingListViewModel = viewModel(factory = AppViewModelFactory.Factory)) {
+fun ShoppingListScreen(
+    viewModel: ShoppingListViewModel = viewModel(factory = AppViewModelFactory.Factory),
+    voiceViewModel: VoiceInputViewModel = viewModel(factory = AppViewModelFactory.Factory),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val onEvent = viewModel::onEvent
-    ShoppingListContent(state = state, onEvent = onEvent)
+    ShoppingListContent(state = state, voiceAvailable = voiceViewModel.isAvailable, onEvent = onEvent)
     when (val sheet = state.sheet) {
+        HomeSheet.Voice ->
+            VoiceInputSheet(
+                viewModel = voiceViewModel,
+                onTypeInstead = { onEvent(ShoppingListEvent.OpenAddByText) },
+                onAdded = { onEvent(ShoppingListEvent.CloseSheet) },
+                onDismiss = { onEvent(ShoppingListEvent.CloseSheet) },
+            )
         HomeSheet.AddByText ->
             AddItemSheet(
                 onAdd = { onEvent(ShoppingListEvent.AddByText(it)) },
@@ -77,6 +92,7 @@ fun ShoppingListScreen(viewModel: ShoppingListViewModel = viewModel(factory = Ap
 @Composable
 fun ShoppingListContent(
     state: ShoppingListUiState,
+    voiceAvailable: Boolean,
     onEvent: (ShoppingListEvent) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -115,7 +131,7 @@ fun ShoppingListContent(
                     }
                 }
             }
-            AddButtons(onAddByTextClick = { onEvent(ShoppingListEvent.OpenAddByText) })
+            AddButtons(voiceAvailable = voiceAvailable, onEvent = onEvent)
         }
         SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).testTag(TestTags.SNACKBAR))
     }
@@ -191,18 +207,50 @@ private fun EmptyMemo(modifier: Modifier = Modifier) {
     }
 }
 
+/** 画面下の追加ボタン。🎤 話して追加（56dp 以上、G-02 で照らす場所）と ⌨ 文字で追加（PLAN §3.1）。 */
 @Composable
-private fun AddButtons(onAddByTextClick: () -> Unit) {
+private fun AddButtons(
+    voiceAvailable: Boolean,
+    onEvent: (ShoppingListEvent) -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Button(
-            onClick = onAddByTextClick,
-            modifier = Modifier.heightIn(min = 56.dp).widthIn(min = 200.dp).testTag(TestTags.ADD_BY_TEXT),
-        ) {
-            Icon(Icons.Rounded.Keyboard, contentDescription = null)
-            Text(stringResource(R.string.memo_add_by_text), modifier = Modifier.padding(start = 8.dp))
+        if (voiceAvailable) {
+            Button(
+                onClick = { onEvent(ShoppingListEvent.OpenVoice) },
+                modifier = Modifier.heightIn(min = 64.dp).widthIn(min = 220.dp).testTag(TestTags.ADD_BY_VOICE),
+            ) {
+                Icon(Icons.Rounded.Mic, contentDescription = null)
+                Text(
+                    stringResource(R.string.memo_add_by_voice),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+            TextButton(
+                onClick = { onEvent(ShoppingListEvent.OpenAddByText) },
+                modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.ADD_BY_TEXT),
+            ) {
+                Icon(Icons.Rounded.Keyboard, contentDescription = null)
+                Text(stringResource(R.string.memo_add_by_text), modifier = Modifier.padding(start = 8.dp))
+            }
+        } else {
+            // 音声入力の機能が無い端末ではマイクを出さず、文字での入力を案内する（PLAN §12）
+            Text(
+                stringResource(R.string.voice_unavailable),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+            Button(
+                onClick = { onEvent(ShoppingListEvent.OpenAddByText) },
+                modifier = Modifier.heightIn(min = 56.dp).widthIn(min = 200.dp).testTag(TestTags.ADD_BY_TEXT),
+            ) {
+                Icon(Icons.Rounded.Keyboard, contentDescription = null)
+                Text(stringResource(R.string.memo_add_by_text), modifier = Modifier.padding(start = 8.dp))
+            }
         }
     }
 }
@@ -211,6 +259,9 @@ private fun AddButtons(onAddByTextClick: () -> Unit) {
 object TestTags {
     const val MEMO_LIST = "memo_list"
     const val ADD_BY_TEXT = "add_by_text"
+
+    /** 🎤 話して追加（G-02 で照らす場所）。 */
+    const val ADD_BY_VOICE = "add_by_voice"
     const val ADD_SHEET_INPUT = "add_sheet_input"
     const val ADD_SHEET_SUBMIT = "add_sheet_submit"
     const val EDIT_NAME = "edit_name"

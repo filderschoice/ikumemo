@@ -5,6 +5,16 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- 音声入力（F-01）。初めてマイクボタンを押した時に求め、拒否されても文字入力で全機能が使える -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Android 11 以降は音声認識サービスを見つけるために宣言が必要（無いと「使えない」と判定される、PLAN §4.1） -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".IkumemoApplication"
         android:allowBackup="true"
