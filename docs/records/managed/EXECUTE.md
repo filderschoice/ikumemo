@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 12:40
+  summary: core/text に品名の正規化（表記ゆれの吸収）と自作の読み辞書を追加（M1）
+  details:
+    変更内容: >-
+      ProductNameNormalizer を追加し、NFKC・英字の小文字化・空白除去のあと、ReadingDictionary で漢字表記を読みへ
+      長い語から優先して置き換え、カタカナをひらがなへ変換する（R-02）。辞書は日常の買い物の品名 166 語を自作した。
+      「酒」と「鮭」のように別の物が同じ読みになる語は辞書に入れない（料理酒は残す）
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/text/ProductNameNormalizer.kt
+      - core/src/main/kotlin/com/ikumemo/core/text/ReadingDictionary.kt
+      - core/src/main/kotlin/com/ikumemo/core/text/DefaultReadings.kt
+      - core/src/test/kotlin/com/ikumemo/core/text/ProductNameNormalizerTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（「たまご」「タマゴ」「卵」「玉子」「半角ﾀﾏｺﾞ」が同じ正規化名になるテストを含む 9 件）、
+      markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-011
 - date: 2026-10-25 12:10
   summary: Room のデータモデル（6 テーブル）・DAO・スキーマ JSON・手動 DI の入れ物を追加（M1）
   details:
