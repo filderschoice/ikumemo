@@ -18,7 +18,7 @@
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
 - 進捗: マイルストーン M0（準備）と M1 の完了条件（手入力で追加 → スワイプで記録 → 元に戻す）を実装済み。
-  記録の修正・削除（F-16）は未実装
+  記録の修正・削除（F-16）は処理のみ実装済みで、画面はカレンダー（M4）で作る
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
 ## 実装済み機能要件
@@ -41,7 +41,8 @@
 | F-13 | 行の左の ○ でも「買った」（○ を隠す設定は未実装） | `SwipeableItemRow.kt` の `ItemRowContent` |
 | F-12・R-04 | 「買った：牛乳 ／ 元に戻す」を 5 秒表示（TalkBack 等の利用時は推奨時間まで延長）。元に戻せるのは最新の 1 件 | `ShoppingListScreen.kt` の `UndoEffect` |
 | R-03・R-10・R-11・R-15 | 「やめた」は記録せず品目を残す。「買った」は端末の今日の日付で記録、同じ日の 2 回目も別記録、写真は同じファイルを参照 | `data/ShoppingRepository.kt` |
-| R-12（一部） | 購入回数・最後に買った日・平均間隔を残っている記録から計算し直す | `core/suggest/PurchaseStats.kt`、`data/ProductStatsUpdater.kt` |
+| R-12 | 購入回数・最後に買った日・平均間隔を残っている記録から計算し直す。記録を消すと紐づくおしらせも消す | `core/suggest/PurchaseStats.kt`、`data/ProductStatsUpdater.kt` |
+| F-16（処理のみ） | 記録の修正（購入日・お店・数量・メモ・写真。日付かお店が変わればお買い物を付け替え）と削除。画面は未実装 | `data/RecordRepository.kt` |
 | PLAN §3 | 下タブ 3 つ（メモ・カレンダー・おしらせ。アイコン＋文字ラベル）。カレンダーとおしらせは見出しと案内文だけ | `IkumemoApp.kt`、`calendar/`、`reminder/` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |

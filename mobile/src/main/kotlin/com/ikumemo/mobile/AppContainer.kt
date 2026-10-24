@@ -2,6 +2,7 @@ package com.ikumemo.mobile
 
 import android.content.Context
 import com.ikumemo.core.text.ProductNameNormalizer
+import com.ikumemo.mobile.data.RecordRepository
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import java.time.Clock
@@ -22,4 +23,6 @@ class AppContainer(
     val normalizer = ProductNameNormalizer()
 
     val shoppingRepository by lazy { ShoppingRepository(database, normalizer, clock) }
+
+    val recordRepository by lazy { RecordRepository(database) }
 }

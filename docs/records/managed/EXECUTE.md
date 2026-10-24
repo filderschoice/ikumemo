@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 15:30
+  summary: 記録の修正・削除と品目の集計の再計算を追加（M1）
+  details:
+    変更内容: >-
+      RecordRepository を追加した。記録の購入日・お店・数量・メモ・写真を修正でき、購入日かお店が変わったときはその日・お店の
+      お買い物へ付け替える。記録を消すと紐づくおしらせも消え（外部キーの CASCADE）、使われなくなったお買い物を消し、
+      品目の購入回数・最後に買った日・平均間隔を計算し直す（F-16・R-12）。修正・削除の画面（記録の編集シート）は日の詳細と一緒に作るため
+      BL-042 へ含めた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordRepositoryTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（DB テスト 3 件。修正での平均間隔の再計算、削除でのおしらせとお買い物の削除と集計の再計算、
+      お店の変更でのお買い物の付け替え）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-014
 - date: 2026-10-25 15:00
   summary: スワイプで買った／やめた、○ で買った、元に戻すを追加（M1 完了）
   details:
