@@ -5,6 +5,29 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 16:20
+  summary: core/voice に音声テキストの分割・数量抽出・不要語除去・誤変換補正を追加（M2）
+  details:
+    変更内容: >-
+      VoiceTextParser を追加した。「と」「、」「。」「それから」「あと」「それと」と空白で分け、品名の中の「と」（いとこんにゃく・とうふ・
+      なっとう等の既定の辞書の読みと過去に入れた品名、ひとつ等の読みの数量）は最長一致で守る。「を買わなきゃ」「が欲しい」
+      「買っといて」などの不要な言葉は取り除き、区切りとしても扱う（「買っといて」の「と」で分けないため）。
+      QuantityParser は品名の後ろの「算用数字・漢数字＋助数詞」「いっこ・ひとつ・にほん」などの読みを取り出し、
+      数量を算用数字＋助数詞へそろえる（いっこ・一個・1個はすべて 1個）。「牛乳日本」「牛乳二本」は 牛乳 2本 に補正する。
+      ひらがなの助数詞は数字が付くときだけ数量として扱い、「いちご」「ねこ」を誤って分けない。
+      認識候補（N-best）から過去の品名と一致する品物が最も多い候補を選ぶ parseBest も用意した
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/voice/VoiceTextParser.kt
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityParser.kt
+      - core/src/test/kotlin/com/ikumemo/core/voice/VoiceTextParserTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（音声分割の単体テスト 14 件。区切り語・品名内の「と」・漢数字と助数詞・不要語・「牛乳日本」の補正・
+      N-best の選択を含む）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-020
 - date: 2026-10-25 15:30
   summary: 記録の修正・削除と品目の集計の再計算を追加（M1）
   details:
