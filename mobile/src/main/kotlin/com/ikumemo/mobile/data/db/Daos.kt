@@ -32,6 +32,9 @@ interface StoreDao {
 
     @Query("SELECT * FROM store")
     fun observeAll(): Flow<List<StoreEntity>>
+
+    @Query("SELECT * FROM store")
+    suspend fun getAll(): List<StoreEntity>
 }
 
 @Dao
@@ -86,6 +89,12 @@ interface ShoppingItemDao {
 
     @Query("SELECT * FROM shopping_item ORDER BY sortOrder, id")
     suspend fun getAll(): List<ShoppingItemEntity>
+
+    @Query("UPDATE shopping_item SET plannedStoreId = :into WHERE plannedStoreId = :from")
+    suspend fun movePlannedStore(
+        from: Long,
+        into: Long,
+    )
 }
 
 @Dao
@@ -99,6 +108,15 @@ interface ShoppingTripDao {
         date: LocalDate,
         storeId: Long?,
     ): ShoppingTripEntity?
+
+    @Query("SELECT * FROM shopping_trip WHERE storeId = :storeId")
+    suspend fun getByStore(storeId: Long): List<ShoppingTripEntity>
+
+    @Query("UPDATE shopping_trip SET storeId = :storeId WHERE id = :tripId")
+    suspend fun updateStore(
+        tripId: Long,
+        storeId: Long,
+    )
 
     /** どの記録からも使われなくなったお買い物を消す。 */
     @Query("DELETE FROM shopping_trip WHERE id NOT IN (SELECT tripId FROM purchase_record)")
@@ -118,6 +136,18 @@ interface PurchaseRecordDao {
 
     @Query("SELECT * FROM purchase_record WHERE id = :id")
     suspend fun getById(id: Long): PurchaseRecordEntity?
+
+    @Query("UPDATE purchase_record SET storeId = :into WHERE storeId = :from")
+    suspend fun moveStore(
+        from: Long,
+        into: Long,
+    )
+
+    @Query("UPDATE purchase_record SET tripId = :into WHERE tripId = :from")
+    suspend fun moveTrip(
+        from: Long,
+        into: Long,
+    )
 
     /** 品目の購入日（古い順）。購入回数・最後に買った日・平均間隔の計算に使う（R-12）。 */
     @Query("SELECT purchasedDate FROM purchase_record WHERE productId = :productId ORDER BY purchasedDate")

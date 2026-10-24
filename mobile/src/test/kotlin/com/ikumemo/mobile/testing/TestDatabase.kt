@@ -1,8 +1,10 @@
 package com.ikumemo.mobile.testing
 
 import android.content.Context
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -12,6 +14,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
+import java.io.File
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -56,4 +59,11 @@ class MainDispatcherRule(
     override fun finished(description: Description) {
         Dispatchers.resetMain()
     }
+}
+
+/** テスト用の設定。テストごとに別の一時ファイルへ保存する。 */
+fun testSettings(): AppSettings {
+    val file = File.createTempFile("ikumemo_settings", ".preferences_pb").apply { delete() }
+    file.deleteOnExit()
+    return AppSettings(PreferenceDataStoreFactory.create { file })
 }

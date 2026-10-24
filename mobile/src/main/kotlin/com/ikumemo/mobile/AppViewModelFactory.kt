@@ -12,7 +12,7 @@ import com.ikumemo.mobile.voice.VoiceInputViewModel
 object AppViewModelFactory {
     val Factory: ViewModelProvider.Factory =
         viewModelFactory {
-            initializer { ShoppingListViewModel(container().shoppingRepository) }
+            initializer { ShoppingListViewModel(container().shoppingRepository, container().storeRepository) }
             initializer { VoiceInputViewModel(container().shoppingRepository, container().speechEngineFactory()) }
         }
 

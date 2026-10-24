@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.ShoppingRepository
+import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.UndoableAction
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
+import com.ikumemo.mobile.data.db.StoreEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +26,9 @@ sealed interface HomeSheet {
     /** 文字で追加（F-03）。 */
     data object AddByText : HomeSheet
 
+    /** いつものお店から選ぶ（F-14）。 */
+    data object StorePicker : HomeSheet
+
     /** 項目の編集（F-04）。 */
     data class Edit(
         val itemId: Long,
@@ -41,6 +46,20 @@ sealed interface ShoppingListEvent {
     ) : ShoppingListEvent
 
     data object CloseSheet : ShoppingListEvent
+
+    data object OpenStorePicker : ShoppingListEvent
+
+    data class SelectStore(
+        val storeId: Long,
+    ) : ShoppingListEvent
+
+    /** 新しいお店を登録して選ぶ（F-30）。 */
+    data class AddStore(
+        val name: String,
+    ) : ShoppingListEvent
+
+    /** 選ばない（選択の解除）。 */
+    data object ClearStore : ShoppingListEvent
 
     /** 文字で追加する。追加できたらシートは開いたまま、続けて入れられるようにする。 */
     data class AddByText(
@@ -100,6 +119,10 @@ data class ShoppingListUiState(
     val highlightedItemId: Long? = null,
     val message: HomeMessage? = null,
     val undo: UndoOffer? = null,
+    /** 選んでいるいつものお店。選んでいなければ null（F-14）。 */
+    val selectedStore: StoreEntity? = null,
+    /** いつものお店の候補（最近使った順、F-31）。 */
+    val stores: List<StoreEntity> = emptyList(),
 )
 
 private data class LocalState(
@@ -111,6 +134,7 @@ private data class LocalState(
 
 class ShoppingListViewModel(
     private val repository: ShoppingRepository,
+    private val storeRepository: StoreRepository,
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
 
@@ -119,7 +143,12 @@ class ShoppingListViewModel(
     private var undoSerial = 0L
 
     val uiState: StateFlow<ShoppingListUiState> =
-        combine(repository.observeItems(), local) { items, state ->
+        combine(
+            repository.observeItems(),
+            local,
+            storeRepository.observeSelectedStore(),
+            storeRepository.observeActiveStores(),
+        ) { items, state, selectedStore, stores ->
             ShoppingListUiState(
                 items = items,
                 loaded = true,
@@ -127,26 +156,61 @@ class ShoppingListViewModel(
                 highlightedItemId = state.highlightedItemId,
                 message = state.message,
                 undo = state.undo,
+                selectedStore = selectedStore,
+                stores = stores,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ShoppingListUiState())
 
     fun onEvent(event: ShoppingListEvent) {
+        if (!handleScreenEvent(event)) handleDataEvent(event)
+    }
+
+    /** 画面だけの状態（シート・光らせる項目・知らせ）を変える操作。扱った場合は true。 */
+    private fun handleScreenEvent(event: ShoppingListEvent): Boolean {
         when (event) {
             ShoppingListEvent.OpenVoice -> local.update { it.copy(sheet = HomeSheet.Voice) }
             ShoppingListEvent.OpenAddByText -> local.update { it.copy(sheet = HomeSheet.AddByText) }
+            ShoppingListEvent.OpenStorePicker -> local.update { it.copy(sheet = HomeSheet.StorePicker) }
             is ShoppingListEvent.OpenEditor -> local.update { it.copy(sheet = HomeSheet.Edit(event.itemId)) }
             ShoppingListEvent.CloseSheet -> local.update { it.copy(sheet = null) }
-            is ShoppingListEvent.AddByText -> write { handle(repository.addItem(event.name)) }
-            is ShoppingListEvent.SaveEdit -> saveEdit(event)
-            is ShoppingListEvent.MarkBought -> writeUndoable { repository.markBought(event.itemId) }
-            is ShoppingListEvent.Dismiss -> writeUndoable { repository.dismiss(event.itemId) }
-            is ShoppingListEvent.Undo -> undo(event.serial)
             is ShoppingListEvent.UndoExpired ->
                 local.update { if (it.undo?.serial == event.serial) it.copy(undo = null) else it }
             ShoppingListEvent.HighlightShown -> local.update { it.copy(highlightedItemId = null) }
             ShoppingListEvent.MessageShown -> local.update { it.copy(message = null) }
+            else -> return false
+        }
+        return true
+    }
+
+    /** DB・設定を書き換える操作。 */
+    private fun handleDataEvent(event: ShoppingListEvent) {
+        when (event) {
+            is ShoppingListEvent.AddByText -> write { handle(repository.addItem(event.name)) }
+            is ShoppingListEvent.SaveEdit -> saveEdit(event)
+            is ShoppingListEvent.MarkBought -> writeUndoable { markBought(event.itemId) }
+            is ShoppingListEvent.Dismiss -> writeUndoable { repository.dismiss(event.itemId) }
+            is ShoppingListEvent.Undo -> undo(event.serial)
+            is ShoppingListEvent.SelectStore -> chooseStore { storeRepository.select(event.storeId) }
+            is ShoppingListEvent.AddStore ->
+                chooseStore { storeRepository.addStore(event.name)?.let { storeRepository.select(it.id) } }
+            ShoppingListEvent.ClearStore -> chooseStore { storeRepository.clearSelection() }
+            else -> Unit
         }
     }
+
+    /** 選んでいるお店を付けて「買った」にする（F-14）。解除の条件を満たしていればお店なしで記録する（R-06）。 */
+    private suspend fun markBought(itemId: Long): UndoableAction? {
+        val storeId = storeRepository.currentStoreIdForPurchase()
+        val action = repository.markBought(itemId, storeId)
+        if (action != null && storeId != null) storeRepository.onBought(storeId)
+        return action
+    }
+
+    private fun chooseStore(block: suspend () -> Unit) =
+        write {
+            block()
+            local.update { it.copy(sheet = null) }
+        }
 
     private fun saveEdit(event: ShoppingListEvent.SaveEdit) =
         write {

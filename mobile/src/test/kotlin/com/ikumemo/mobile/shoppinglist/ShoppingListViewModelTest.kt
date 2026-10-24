@@ -5,10 +5,12 @@ import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.ShoppingRepository
+import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.testing.MainDispatcherRule
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
+import com.ikumemo.mobile.testing.testSettings
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -31,7 +33,13 @@ class ShoppingListViewModelTest {
     @Before
     fun setUp() {
         db = inMemoryDatabase()
-        viewModel = ShoppingListViewModel(ShoppingRepository(db, ProductNameNormalizer(), fixedClock()))
+        val clock = fixedClock()
+        val normalizer = ProductNameNormalizer()
+        viewModel =
+            ShoppingListViewModel(
+                ShoppingRepository(db, normalizer, clock),
+                StoreRepository(db, testSettings(), normalizer, clock),
+            )
     }
 
     @After

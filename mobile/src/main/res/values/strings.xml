@@ -31,6 +31,13 @@
     <string name="memo_dismissed_message">やめた：%1$s</string>
     <string name="memo_undo">元に戻す</string>
     <string name="memo_mark_bought_description">%1$sを買った</string>
+    <string name="store_chip_unselected">買うお店を選ぶ</string>
+    <string name="store_chip_selected">%1$s で買う</string>
+    <string name="store_picker_title">いつものお店から選ぶ</string>
+    <string name="store_picker_other">ほかのお店</string>
+    <string name="store_picker_new">新しいお店</string>
+    <string name="store_picker_add">登録して選ぶ</string>
+    <string name="store_picker_clear">選ばない</string>
     <string name="add_sheet_title">買いたい物を入れてください</string>
     <string name="add_sheet_hint">品名（例: 牛乳）</string>
     <string name="add_sheet_submit">追加する</string>

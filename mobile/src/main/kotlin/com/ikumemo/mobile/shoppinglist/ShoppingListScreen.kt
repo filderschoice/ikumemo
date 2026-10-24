@@ -70,6 +70,12 @@ fun ShoppingListScreen(
                 onAdded = { onEvent(ShoppingListEvent.CloseSheet) },
                 onDismiss = { onEvent(ShoppingListEvent.CloseSheet) },
             )
+        HomeSheet.StorePicker ->
+            StorePickerSheet(
+                stores = state.stores,
+                selectedStoreId = state.selectedStore?.id,
+                onEvent = onEvent,
+            )
         HomeSheet.AddByText ->
             AddItemSheet(
                 onAdd = { onEvent(ShoppingListEvent.AddByText(it)) },
@@ -111,6 +117,11 @@ fun ShoppingListContent(
             TopAppBar(
                 title = { Text(stringResource(R.string.memo_title)) },
                 windowInsets = WindowInsets(0),
+            )
+            StoreChip(
+                selectedStore = state.selectedStore,
+                onClick = { onEvent(ShoppingListEvent.OpenStorePicker) },
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
             if (state.loaded && state.items.isEmpty()) {
                 EmptyMemo(Modifier.weight(1f))
@@ -269,6 +280,14 @@ object TestTags {
     const val EDIT_NOTE = "edit_note"
     const val EDIT_CLOSE = "edit_close"
     const val SNACKBAR = "snackbar"
+
+    /** お店チップ（G-06 で照らす場所）。 */
+    const val STORE_CHIP = "store_chip"
+    const val STORE_NEW_INPUT = "store_new_input"
+    const val STORE_NEW_SUBMIT = "store_new_submit"
+    const val STORE_CLEAR = "store_clear"
+
+    fun store(id: Long) = "store_$id"
 
     fun item(id: Long) = "memo_item_$id"
 

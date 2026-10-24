@@ -14,6 +14,7 @@ import androidx.compose.ui.test.swipeRight
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.ShoppingRepository
+import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.testing.FakeSpeechEngine
@@ -21,6 +22,7 @@ import com.ikumemo.mobile.testing.awaitCondition
 import com.ikumemo.mobile.testing.awaitTag
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
+import com.ikumemo.mobile.testing.testSettings
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -48,8 +50,10 @@ class ShoppingListScreenTest {
     @Before
     fun setUp() {
         db = inMemoryDatabase()
-        repository = ShoppingRepository(db, ProductNameNormalizer(), fixedClock())
-        val viewModel = ShoppingListViewModel(repository)
+        val clock = fixedClock()
+        repository = ShoppingRepository(db, ProductNameNormalizer(), clock)
+        val stores = StoreRepository(db, testSettings(), ProductNameNormalizer(), clock)
+        val viewModel = ShoppingListViewModel(repository, stores)
         val voiceViewModel = VoiceInputViewModel(repository, FakeSpeechEngine())
         composeRule.setContent { IkumemoTheme { ShoppingListScreen(viewModel, voiceViewModel) } }
     }

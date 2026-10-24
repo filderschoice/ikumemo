@@ -5,6 +5,41 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 19:10
+  summary: いつものお店（お店チップ・選ぶシート・登録・自動解除・使わない印と統合）を追加（M3）
+  details:
+    変更内容: >-
+      メモの上部にお店チップ（買うお店を選ぶ／○○ で買う）を置き、いつものお店から選ぶシート（最近使った順の上位 5 件、ほかのお店、
+      新しいお店の登録、選ばない）を追加した（F-14・F-30・F-31）。選んだお店は「買った」の記録とお買い物に付き、お店の最近使った日時を更新する。
+      選んだお店は DataStore（AppSettings）に保存し、選んだ時か最後の「買った」から 3 時間たつか日付が変わったら解除する（R-06）。
+      表示も 1 分ごとに見直す。お店の登録は同じ名前（表記ゆれを含む）があればそれを使い、使わない印があれば外す。
+      お店の管理用に、行を残して使わない印を付ける archive と、記録・メモ・お買い物を移して 1 つにまとめる merge を用意した（R-16。画面は BL-082）。
+      DataStore Preferences 1.1.7 を導入した。detekt の分岐数の上限に合わせ、ViewModel のイベント処理を画面だけの操作と書き換えの操作に分けた
+    変更ファイル:
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppSettings.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/StoreRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/StorePicker.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestDatabase.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/StoreRepositoryTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（お店のテスト 8 件。選んだお店が「買った」に記録される、3 時間で解除、「買った」で 3 時間を数え直す、
+      日付が変わると解除、同じ名前の再利用、最近使った順、使わない印でも過去の記録のお店名が残る、統合でお買い物がまとまる）、
+      markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-031
 - date: 2026-10-25 18:00
   summary: core/suggest に「いつもの」の並び順と入力中の候補の照合を追加（M3）
   details:

@@ -51,6 +51,9 @@
 | R-01（音声） | 確認カードでメモにある物に「メモにあります」の印を付け、既定で外す | `VoiceInputViewModel.showCards` |
 | PLAN §2.10・§5 | マイクの許可は初めて使う時に理由を添えて求める。拒否されたら端末の設定を開くボタンと文字入力の案内。機能の無い端末ではマイクを出さない | `voice/VoiceInputSheet.kt`、`ShoppingListScreen.kt` の `AddButtons` |
 | F-20・F-21（並び順のみ） | いつもの（購入回数 → 最近買った順 → 正規化名）と入力中の候補（正規化名の前方一致を先、部分一致を後）。画面は未実装 | `core/suggest/Suggestions.kt` |
+| F-14・F-30・F-31 | メモ上部のお店チップ → いつものお店から選ぶシート（最近使った順の上位 5 件・ほかのお店・新しいお店・選ばない）。選んだお店は「買った」に付く | `shoppinglist/StorePicker.kt`、`data/StoreRepository.kt` |
+| R-06 | 選んだ時か最後の「買った」から 3 時間、または日付が変わったら選んだお店を解除（表示は 1 分ごとに見直す） | `data/AppSettings.kt` の `StoreSelection`、`StoreRepository` |
+| R-16（処理のみ） | お店は消さずに使わない印、同じお店の統合（記録・メモ・お買い物を移す）。お店の管理の画面は未実装 | `StoreRepository.archive` / `merge` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
@@ -68,13 +71,21 @@
   ViewModel の `onEvent()` 1 つで受ける。ViewModel は `StateFlow<UiState>` を公開し、DB の Flow と画面だけの状態
   （開いているシート・光らせる項目・一度だけ出す知らせ）を `combine` する。知らせは画面が表示したら `messageShown()` で消す
 - ViewModel は `AppViewModelFactory`（`viewModelFactory` と `APPLICATION_KEY` から `AppContainer` を取り出す）で作る
-- ViewModel の書き込み操作は `Mutex` で直列化し、操作した順に反映する
+- ViewModel の書き込み操作は `Mutex` で直列化し、操作した順に反映する。`onEvent` は画面だけの状態を変える操作と
+  DB・設定を書き換える操作の 2 つの関数に分けて扱う（detekt の分岐数・関数数の上限に収めるため）
 - 画面遷移は Navigation Compose の型安全ルート（`@Serializable` の `MemoRoute` / `CalendarRoute` / `ReminderRoute`）。
   下タブは状態を保存して切り替える（`saveState` / `restoreState`）
 - UI は Jetpack Compose + Material 3。DI は手動（`IkumemoApplication` が持つ `AppContainer` から渡す。時刻は
   `AppContainer.clock` の `java.time.Clock` から取り、テストで差し替えられるようにする）
 - 依存の版は sesami-wear と同じ版にそろえる（AGP 8.13.0、Kotlin 2.0.21、Compose BOM 2024.12.01 等。
   `gradle/libs.versions.toml`）。必要になったマイルストーンで追加し、使わない依存は入れない
+
+### 設定の保存方針（DataStore）
+
+- 端末内の設定は `AppSettings`（DataStore Preferences、ファイル名 `ikumemo_settings`）に置く。品目ごとに持たない値だけを入れる
+- 選んでいるお店は `selected_store_id`・`selected_store_at`・`last_bought_at`（epoch ミリ秒）で持ち、解除の判定は読むたびに行う。
+  「買った」に付けるときに解除の条件を満たしていれば保存値も消す
+- テストは `testSettings()`（テストごとに別の一時ファイル）で作る
 
 ### 表記ゆれ方針（core/text）
 
