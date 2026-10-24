@@ -22,3 +22,15 @@
 - 脆弱性チェックは導入しない（オーナー判断）。行は残し `(未導入)` と理由を記載
 - CI を持たず、ローカル実行が唯一の品質ゲートである旨と、人手検証の扱いを追記
 - 導入時の記入方法のコメントは、記入完了に伴い削除
+
+## 2026-10-25（リポジトリ文書の整備）
+
+sesami-wear に合わせてリポジトリ文書を作成しました（BL-005）。
+
+- `README.md`（前提環境・ビルド・テスト・リリースビルドの手順、プロジェクト構成）、`NOTICE`、`SECURITY.md`
+  （報告窓口は GitHub Security Advisories とメール。オーナー指示）、`CONTRIBUTING.local.md`
+- 外部からの Pull Request は受け付けない（オーナー指示、sesami-wear と同じ）。PLAN §12 の「コントリビューションを
+  受けやすくする」は、Issue での報告・要望の受け付けと設計・ビルド手順のドキュメント化で満たす
+- `.github/ISSUE_TEMPLATE/`（不具合・要望・質問・config）。ラベルは PLAN §7.3 の `type:` / `from:` に合わせた
+  （GitHub 上のラベル作成はオーナー作業として BL-009 に追記）
+- `.github/CODEOWNERS` の配布元プレースホルダを `@filderschoice` に置き換え

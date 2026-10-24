@@ -366,11 +366,11 @@
   依存: []
 - id: BL-009
   区分: 人手検証
-  タスク内容: GitHub リポジトリの設定（main 保護と PR 必須、Secret scanning と Push protection の有効化）（PLAN §7）
+  タスク内容: GitHub リポジトリの設定（main 保護と PR 必須、Secret scanning と Push protection の有効化、Private vulnerability reporting の有効化、Issue テンプレートが使うラベル「type 要望／不具合／質問」「from フォーム／レビュー／GitHub」「status 検討中／対応予定／見送り」の作成）（PLAN §7・§7.3）
   優先度: P3
   状態: 未着手
   担当: ユーザー
-  完了条件: 各設定が GitHub 上で有効になっている
+  完了条件: 各設定が GitHub 上で有効になり、.github/ISSUE_TEMPLATE/ のラベル（type：不具合 等。表記は半角コロンと空白を含むテンプレートの記載どおり）が存在する
   依存: []
   根拠: GitHub 上の設定変更は外部操作でエージェントが実行できないため。CI（GitHub Actions）と Dependabot はオーナー指示により sesami-wear に合わせて導入しない（2026-10-24）
 - id: BL-008
@@ -387,7 +387,7 @@
   優先度: P2
   状態: 未着手
   担当: ユーザー
-  完了条件: リポジトリ直下に Apache-2.0 の LICENSE がある
+  完了条件: リポジトリ直下に Apache-2.0 の LICENSE があり、README.md・SECURITY.md・NOTICE からのリンクが有効になっている
   依存: []
   根拠: PLAN D-6 でライセンス配置はオーナー実施と決定済みのため、エージェントは作成しない
 - id: BL-006
@@ -397,14 +397,6 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: docs/design/WIREFRAME.md に下タブ 3 画面・せってい・主要シートの配置が揃い、markdownlint が成功する
-  依存: []
-- id: BL-005
-  区分: 品質ゲート
-  タスク内容: リポジトリ文書の整備（README.md のビルド手順、NOTICE、SECURITY.md、CONTRIBUTING.local.md、.github/ISSUE_TEMPLATE/ 一式）を sesami-wear に合わせて作成する
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: PLAN §7.2 の該当ファイルがそろい、markdownlint が成功する
   依存: []
 ```
 <!-- COPILOT_RECORDS:END -->

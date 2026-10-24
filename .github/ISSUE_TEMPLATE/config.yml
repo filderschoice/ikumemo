@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 脆弱性の報告（非公開）
+    url: https://github.com/filderschoice/ikumemo/security/advisories/new
+    about: セキュリティ上の問題は公開Issueではなく、こちらから非公開でご報告ください（SECURITY.md参照）。
+  - name: 受け付けている報告について
+    url: https://github.com/filderschoice/ikumemo/blob/main/CONTRIBUTING.local.md
+    about: Issueは受け付けていますが、外部からのPull Requestは受け付けていません。実装は開発者が行います。
