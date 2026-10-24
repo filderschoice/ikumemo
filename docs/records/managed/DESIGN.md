@@ -17,7 +17,7 @@
 
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
-- 進捗: マイルストーン M0（準備）を実装済み。画面はテーマ付きの空のホーム画面だけで、機能（M1 以降）は未実装
+- 進捗: マイルストーン M0（準備）を実装済み。M1 はデータ層（Room）まで実装済みで、画面はテーマ付きの空のホーム画面だけ
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
 ## 実装済み機能要件
@@ -31,6 +31,8 @@
 | PLAN §1.3-7 | 文字と背景のコントラスト比 4.5:1 以上を自動テストで保証 | `designsystem/ContrastRatio.kt`、`ThemeContrastTest` |
 | PLAN §1.3-6・F-65 | 文字の大きさ（ふつう 1.0／大きい 1.15／とても大きい 1.3）を端末の文字サイズに掛け、200% で頭打ち | `designsystem/TextSizeSetting.kt`、`IkumemoTheme` の `LocalDensity` 差し替え |
 | PLAN §1.2・§2.7 | アプリアイコン（吹き出し＋お買い物かご）、アダプティブアイコンとテーマアイコン（monochrome） | `mipmap-anydpi-v26/ic_launcher.xml`、`drawable/ic_launcher_foreground.xml` |
+| PLAN §4.3 | Room の 6 テーブル（お店・品目・メモ・お買い物・記録・おしらせ）と DAO、スキーマ JSON の Git 管理 | `data/db/`、`mobile/schemas/` |
+| PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
 
@@ -40,9 +42,10 @@
 
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
-- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/` だけ。予定は PLAN §4.5 の
+- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/` と `data/`。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
-- UI は Jetpack Compose + Material 3。DI は手動（`Application` の `AppContainer`、M1 で導入予定）
+- UI は Jetpack Compose + Material 3。DI は手動（`IkumemoApplication` が持つ `AppContainer` から渡す。時刻は
+  `AppContainer.clock` の `java.time.Clock` から取り、テストで差し替えられるようにする）
 - 依存の版は sesami-wear と同じ版にそろえる（AGP 8.13.0、Kotlin 2.0.21、Compose BOM 2024.12.01 等。
   `gradle/libs.versions.toml`）。必要になったマイルストーンで追加し、使わない依存は入れない
 
@@ -60,7 +63,18 @@
 
 ### データ設計方針
 
-- 未実装（M1 の BL-010 で Room の 6 テーブルを導入する。PLAN §4.3）
+- Room（`IkumemoDatabase`、版 1）。テーブルは `store`・`product`・`shopping_item`・`shopping_trip`・`purchase_record`・
+  `reminder` の 6 つ。列は PLAN §4.3 のとおりで、ID は自動採番の `Long`
+- 型の保存形式: `LocalDate` は epochDay、`Instant` は epoch ミリ秒、おしらせの状態（`PENDING` / `USED_UP` / `DISCARDED`）は列挙名
+- 品目は `normalizedName`（core/text の正規化名）を一意にし、同じ物の判定に使う（R-02）。購入回数・最後に買った日・
+  平均間隔は記録から計算し直す値として持つ（R-12）
+- 外部キー: 記録を消すとおしらせを CASCADE で消す（R-12）。お店は行を消さず `archived` を立てる（R-16）ため、記録・メモ・
+  お買い物からの参照は SET_NULL
+- お買い物（`shopping_trip`）は同じ日・同じお店（お店なし同士も同一、`storeId IS :storeId` で照合）で 1 件
+- いつものお店の候補は `archived = 0` を最近使った順（未使用は最後、次に作成の新しい順）
+- スキーマ JSON は KSP 引数 `room.schemaLocation` で `mobile/schemas/` に出力して Git 管理する。版を上げるときは
+  AutoMigration とマイグレーションテストを足す
+- DAO テストは Robolectric（4.14.1 が targetSdk 36 未対応のため `robolectric.properties` で `sdk=35`）とインメモリ DB で行う
 
 ### UI/UX 方針
 

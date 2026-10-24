@@ -5,6 +5,37 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 12:10
+  summary: Room のデータモデル（6 テーブル）・DAO・スキーマ JSON・手動 DI の入れ物を追加（M1）
+  details:
+    変更内容: >-
+      PLAN §4.3 の Store・Product・ShoppingItem・ShoppingTrip・PurchaseRecord・Reminder を Room のエンティティとして定義し、
+      日付は epochDay、日時は epoch ミリ秒、おしらせの状態は列挙名で保存する型変換を追加した。記録を消すと紐づくおしらせが
+      外部キーの CASCADE で消える（R-12）、お店は archived で使わない印を付けて行を残す（R-16）。
+      KSP（2.0.21-1.0.27）と Room 2.6.1 を導入し、スキーマ JSON を mobile/schemas へ出力して Git 管理する。
+      IkumemoApplication が AppContainer（DB と Clock）を 1 つ持つ手動 DI とした。DAO テスト用に Robolectric 4.14.1 を導入し、
+      Robolectric が targetSdk 36 に未対応のため test resources の robolectric.properties で sdk=35 を指定した
+    変更ファイル:
+      - gradle/libs.versions.toml
+      - build.gradle.kts
+      - mobile/build.gradle.kts
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Entities.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Converters.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/IkumemoDatabase.kt
+      - mobile/schemas/com.ikumemo.mobile.data.db.IkumemoDatabase/1.json
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/db/IkumemoDatabaseTest.kt
+      - mobile/src/test/resources/robolectric.properties
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（DAO テスト 5 件を含む）、markdownlint 0 issues（27 files、対象件数と一致）、記録ファイル OK
+    関連ID:
+      - BL-010
 - date: 2026-10-25 10:40
   summary: バージョン管理とリリースビルドの仕組みを sesami-wear 準拠で追加（M0）
   details:

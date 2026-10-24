@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 // 現在のバージョンは scripts/version.properties が正本（PLAN §4.5）。リリースビルドでは
@@ -91,6 +92,17 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        // Robolectric で Room・リソースを使うテストを JVM 上で動かす（PLAN §11）
+        unitTests.isIncludeAndroidResources = true
+    }
+}
+
+// Room のスキーマ JSON を Git 管理し、AutoMigration とマイグレーションテストの基準にする（PLAN §4.3）
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.generateKotlin", "true")
 }
 
 dependencies {
@@ -104,7 +116,13 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.ui.tooling)
 }
