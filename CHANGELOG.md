@@ -45,3 +45,12 @@ sesami-wear に合わせてリポジトリ文書を作成しました（BL-005�
 
 `docs/records/managed/DESIGN.md` に、M0 で実装した内容（モジュール構成、デザインシステム、バージョン管理と
 リリース署名、品質ゲート、オーナー判断による運用制約）を再実装用の設計書としてまとめました。
+
+## 2026-10-25（LICENSE の配置）
+
+リポジトリ直下に Apache License 2.0 の `LICENSE` を置きました（BL-007）。PLAN D-6 ではオーナーが配置するとしていましたが、
+オーナーの指示で自律ループのタスクに変更しました。
+
+- 本文は apache.org 配布の `LICENSE-2.0.txt` と同一（MD5 `3b83ef96387f14655fc854ddc3c6bd57` で照合）。
+  付録の著作権行は雛形のまま残し、著作権表示は `NOTICE` に書く
+- README.md・SECURITY.md・NOTICE からの `LICENSE` へのリンクが有効になった

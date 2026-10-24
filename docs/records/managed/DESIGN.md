@@ -90,7 +90,8 @@
 - CI（GitHub Actions）と Dependabot は導入しない。Gradle の依存脆弱性スキャンも導入しない（sesami-wear に合わせた
   オーナー判断、2026-10-24）。ローカルの品質ゲートが唯一のゲート
 - 外部からの Pull Request は受け付けない（オーナー判断、`CONTRIBUTING.local.md`）
-- LICENSE（Apache-2.0）の配置はオーナーが行う（PLAN D-6、BL-007）
+- ライセンスは Apache-2.0。リポジトリ直下の `LICENSE` は apache.org 配布の本文と同一（付録の著作権行は雛形のまま）で、
+  著作権表示は `NOTICE` に書く。各ソースファイル先頭へのライセンスヘッダーは付けない（PLAN §7）
 - `PLAN.md` は本文を更新せず、冒頭の `markdownlint-disable-file` で静的解析の対象から外している
 - リリースビルドは `scripts/release-build.bat`。Play への自動アップロードは行わない
 
