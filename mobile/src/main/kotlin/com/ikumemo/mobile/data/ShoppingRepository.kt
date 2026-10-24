@@ -1,6 +1,7 @@
 package com.ikumemo.mobile.data
 
 import androidx.room.withTransaction
+import com.ikumemo.core.suggest.ProductSummary
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.ProductEntity
@@ -8,6 +9,7 @@ import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
 import com.ikumemo.mobile.data.db.ShoppingTripEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.time.Clock
 import java.time.LocalDate
 
@@ -62,6 +64,14 @@ class ShoppingRepository(
         productDao.findByNormalizedName(normalizer.normalize(name))?.let { itemDao.findByProductId(it.id) }
 
     suspend fun productNames(): List<String> = productDao.getAllNames()
+
+    /** 候補の元になる品目（F-20・F-21）。 */
+    fun observeProductSummaries(): Flow<List<ProductSummary>> =
+        productDao.observeAll().map { products ->
+            products.map {
+                ProductSummary(it.id, it.name, it.normalizedName, it.purchaseCount, it.lastPurchasedAt, it.hidden)
+            }
+        }
 
     /**
      * メモの末尾へ追加する。正規化した品名が同じ物がメモにあれば追加しない（R-01・R-02）。

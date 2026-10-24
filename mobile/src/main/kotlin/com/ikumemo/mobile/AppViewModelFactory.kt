@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.shoppinglist.ShoppingListViewModel
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 
@@ -12,7 +13,14 @@ import com.ikumemo.mobile.voice.VoiceInputViewModel
 object AppViewModelFactory {
     val Factory: ViewModelProvider.Factory =
         viewModelFactory {
-            initializer { ShoppingListViewModel(container().shoppingRepository, container().storeRepository) }
+            initializer {
+                val container = container()
+                ShoppingListViewModel(
+                    container.shoppingRepository,
+                    container.storeRepository,
+                    Suggestions(container.normalizer),
+                )
+            }
             initializer { VoiceInputViewModel(container().shoppingRepository, container().speechEngineFactory()) }
         }
 

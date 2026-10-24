@@ -2,6 +2,8 @@ package com.ikumemo.mobile.shoppinglist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikumemo.core.suggest.ProductSummary
+import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
@@ -66,6 +68,16 @@ sealed interface ShoppingListEvent {
         val name: String,
     ) : ShoppingListEvent
 
+    /** 追加シートの入力が変わった（入力中の候補を出し直す、F-20）。 */
+    data class AddQueryChanged(
+        val text: String,
+    ) : ShoppingListEvent
+
+    /** 候補・いつものチップを押した（F-20・F-21）。押すたびに 1 件ずつ入る。 */
+    data class AddProduct(
+        val name: String,
+    ) : ShoppingListEvent
+
     data class SaveEdit(
         val itemId: Long,
         val name: String,
@@ -96,6 +108,13 @@ sealed interface ShoppingListEvent {
 
     data object MessageShown : ShoppingListEvent
 }
+
+/** 追加シートの候補（F-20 入力中の候補、F-21 いつもの）。 */
+data class AddSuggestions(
+    val query: String = "",
+    val candidates: List<ProductSummary> = emptyList(),
+    val usual: List<ProductSummary> = emptyList(),
+)
 
 /** 画面下に一度だけ出す知らせ。 */
 sealed interface HomeMessage {
@@ -135,8 +154,10 @@ private data class LocalState(
 class ShoppingListViewModel(
     private val repository: ShoppingRepository,
     private val storeRepository: StoreRepository,
+    private val suggestions: Suggestions = Suggestions(),
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
+    private val addQuery = MutableStateFlow("")
 
     // 書き込みは操作した順に 1 つずつ行う（続けて追加したときにメモの並びが入れ替わらないように）
     private val writeLock = Mutex()
@@ -161,6 +182,17 @@ class ShoppingListViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ShoppingListUiState())
 
+    /** メモにある物を除いた候補。 */
+    val addSuggestions: StateFlow<AddSuggestions> =
+        combine(addQuery, repository.observeProductSummaries(), repository.observeItems()) { query, products, items ->
+            val inMemo = items.map { it.productId }.toSet()
+            AddSuggestions(
+                query = query,
+                candidates = suggestions.candidates(query, products, inMemo),
+                usual = suggestions.usual(products, inMemo),
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), AddSuggestions())
+
     fun onEvent(event: ShoppingListEvent) {
         if (!handleScreenEvent(event)) handleDataEvent(event)
     }
@@ -172,11 +204,15 @@ class ShoppingListViewModel(
             ShoppingListEvent.OpenAddByText -> local.update { it.copy(sheet = HomeSheet.AddByText) }
             ShoppingListEvent.OpenStorePicker -> local.update { it.copy(sheet = HomeSheet.StorePicker) }
             is ShoppingListEvent.OpenEditor -> local.update { it.copy(sheet = HomeSheet.Edit(event.itemId)) }
-            ShoppingListEvent.CloseSheet -> local.update { it.copy(sheet = null) }
+            ShoppingListEvent.CloseSheet -> {
+                addQuery.value = ""
+                local.update { it.copy(sheet = null) }
+            }
             is ShoppingListEvent.UndoExpired ->
                 local.update { if (it.undo?.serial == event.serial) it.copy(undo = null) else it }
             ShoppingListEvent.HighlightShown -> local.update { it.copy(highlightedItemId = null) }
             ShoppingListEvent.MessageShown -> local.update { it.copy(message = null) }
+            is ShoppingListEvent.AddQueryChanged -> addQuery.value = event.text
             else -> return false
         }
         return true
@@ -185,7 +221,14 @@ class ShoppingListViewModel(
     /** DB・設定を書き換える操作。 */
     private fun handleDataEvent(event: ShoppingListEvent) {
         when (event) {
-            is ShoppingListEvent.AddByText -> write { handle(repository.addItem(event.name)) }
+            is ShoppingListEvent.AddByText -> {
+                addQuery.value = ""
+                write { handle(repository.addItem(event.name)) }
+            }
+            is ShoppingListEvent.AddProduct -> {
+                addQuery.value = ""
+                write { handle(repository.addItem(event.name)) }
+            }
             is ShoppingListEvent.SaveEdit -> saveEdit(event)
             is ShoppingListEvent.MarkBought -> writeUndoable { markBought(event.itemId) }
             is ShoppingListEvent.Dismiss -> writeUndoable { repository.dismiss(event.itemId) }

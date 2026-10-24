@@ -60,6 +60,7 @@ fun ShoppingListScreen(
     voiceViewModel: VoiceInputViewModel = viewModel(factory = AppViewModelFactory.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val addSuggestions by viewModel.addSuggestions.collectAsStateWithLifecycle()
     val onEvent = viewModel::onEvent
     ShoppingListContent(state = state, voiceAvailable = voiceViewModel.isAvailable, onEvent = onEvent)
     when (val sheet = state.sheet) {
@@ -77,10 +78,7 @@ fun ShoppingListScreen(
                 onEvent = onEvent,
             )
         HomeSheet.AddByText ->
-            AddItemSheet(
-                onAdd = { onEvent(ShoppingListEvent.AddByText(it)) },
-                onDismiss = { onEvent(ShoppingListEvent.CloseSheet) },
-            )
+            AddItemSheet(suggestions = addSuggestions, onEvent = onEvent)
         is HomeSheet.Edit ->
             state.items.firstOrNull { it.id == sheet.itemId }?.let { item ->
                 EditItemSheet(
@@ -290,6 +288,10 @@ object TestTags {
     fun store(id: Long) = "store_$id"
 
     fun item(id: Long) = "memo_item_$id"
+
+    fun candidate(productId: Long) = "add_candidate_$productId"
+
+    fun usual(productId: Long) = "add_usual_$productId"
 
     /** ○ ボタン（G-04 で照らす場所）。 */
     fun boughtButton(id: Long) = "memo_item_bought_$id"

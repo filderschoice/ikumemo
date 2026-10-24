@@ -41,6 +41,8 @@
     <string name="add_sheet_title">買いたい物を入れてください</string>
     <string name="add_sheet_hint">品名（例: 牛乳）</string>
     <string name="add_sheet_submit">追加する</string>
+    <string name="add_sheet_usual">いつもの</string>
+    <string name="add_sheet_chip">＋%1$s</string>
     <string name="edit_name">品名</string>
     <string name="edit_quantity">数量</string>
     <string name="edit_note">メモ</string>
