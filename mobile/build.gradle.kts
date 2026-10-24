@@ -1,8 +1,32 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
+
+// 現在のバージョンは scripts/version.properties が正本（PLAN §4.5）。リリースビルドでは
+// scripts/release-build.ps1 が -PappVersionCode / -PappVersionName で次の値を渡し、成功時だけ正本を更新する。
+val versionProperties =
+    Properties().apply {
+        val file = rootProject.file("scripts/version.properties")
+        if (file.exists()) {
+            FileInputStream(file).use { load(it) }
+        }
+    }
+
+// リリース署名の情報は local.properties（.gitignore 対象）から読み込む（PLAN §6、sesami-wear と同じ）。
+// 未設定でも assembleDebug 等の通常ビルドには影響しない（release は署名なしのまま作られる）。
+val releaseKeystoreProperties =
+    Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            FileInputStream(file).use { load(it) }
+        }
+    }
+val hasReleaseSigningConfig = releaseKeystoreProperties.containsKey("RELEASE_STORE_FILE")
 
 android {
     namespace = "com.ikumemo.mobile"
@@ -12,10 +36,27 @@ android {
         applicationId = "com.ikumemo.mobile"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode =
+            (findProperty("appVersionCode") as String?)?.toIntOrNull()
+                ?: versionProperties.getProperty("VERSION_CODE")?.toIntOrNull()
+                ?: 1
+        versionName =
+            findProperty("appVersionName") as String?
+                ?: versionProperties.getProperty("VERSION_NAME")
+                ?: "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (hasReleaseSigningConfig) {
+            create("release") {
+                storeFile = rootProject.file(releaseKeystoreProperties.getProperty("RELEASE_STORE_FILE"))
+                storePassword = releaseKeystoreProperties.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = releaseKeystoreProperties.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = releaseKeystoreProperties.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -32,6 +73,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:40
+  summary: バージョン管理とリリースビルドの仕組みを sesami-wear 準拠で追加（M0）
+  details:
+    変更内容: >-
+      scripts/version.properties（VERSION_CODE=1、VERSION_NAME=0.1.0）を正本とし、mobile の versionCode と versionName を
+      -PappVersionCode と -PappVersionName で上書きできるようにした。scripts/release-build.ps1 と .bat を追加し、
+      versionCode を 1 増やして bundleRelease を実行、成功時だけ version.properties を LF・BOM なしで更新する。
+      リリース署名は sesami-wear と同じく local.properties（.gitignore 対象）の RELEASE_STORE_FILE 等から読み、未設定なら署名なし。
+      PLAN §6 は secrets.properties と記載しているが、オーナー指示（sesami-wear をベースにする）に合わせ local.properties とした
+      （どちらも .gitignore 対象で、鍵がリポジトリへ入らない点は同じ）
+    変更ファイル:
+      - scripts/version.properties
+      - scripts/release-build.ps1
+      - scripts/release-build.bat
+      - mobile/build.gradle.kts
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      aapt2 dump badging（既定値と -PappVersionCode=7 -PappVersionName=9.9.9 の両方）、./gradlew :mobile:bundleRelease、
+      PowerShell の Parser.ParseFile による release-build.ps1 の構文確認、markdownlint、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL、APK は既定で versionCode 1 と 0.1.0-debug、注入時は 7 と 9.9.9-debug、
+      アプリ名「いくメモ（debug）」、署名なしの mobile-release.aab（約 1.7MB）を生成、構文エラー 0 件
+    関連ID:
+      - BL-004
 - date: 2026-10-25 10:10
   summary: デザインシステムの土台（4 テーマ × ライト/ダーク、文字サイズ、コントラスト自動テスト）を追加（M0）
   details:

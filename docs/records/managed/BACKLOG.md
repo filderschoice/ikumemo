@@ -406,13 +406,5 @@
   担当: AIエージェント
   完了条件: PLAN §7.2 の該当ファイルがそろい、markdownlint が成功する
   依存: []
-- id: BL-004
-  区分: 品質ゲート
-  タスク内容: バージョン管理とリリースビルドの仕組み（scripts/version.properties、release-build.ps1 と .bat、-PappVersionCode と -PappVersionName の注入、署名情報は local.properties から読む）
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: version.properties の値が assembleDebug の versionCode と versionName に反映され、署名情報が無い環境でも通常ビルドが成功する
-  依存: []
 ```
 <!-- COPILOT_RECORDS:END -->
