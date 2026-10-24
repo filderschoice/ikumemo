@@ -18,7 +18,7 @@
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
 - 進捗: マイルストーン M0（準備）・M1 の完了条件（手入力で追加 → スワイプで記録 → 元に戻す）・M2 の完了条件
-  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4 のうち写真とカレンダーを実装済み。各入力欄のマイク（F-04）は未実装。
+  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4 のうち写真とカレンダー・M5（おしらせ）を実装済み。各入力欄のマイク（F-04）は未実装。
   記録の修正・削除（F-16）は処理のみ実装済みで、画面はカレンダー（M4）で作る
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
@@ -61,7 +61,10 @@
 | F-14・F-30・F-31 | メモ上部のお店チップ → いつものお店から選ぶシート（最近使った順の上位 5 件・ほかのお店・新しいお店・選ばない）。選んだお店は「買った」に付く | `shoppinglist/StorePicker.kt`、`data/StoreRepository.kt` |
 | R-06 | 選んだ時か最後の「買った」から 3 時間、または日付が変わったら選んだお店を解除（表示は 1 分ごとに見直す） | `data/AppSettings.kt` の `StoreSelection`、`StoreRepository` |
 | R-16（処理のみ） | お店は消さずに使わない印、同じお店の統合（記録・メモ・お買い物を移す）。お店の管理の画面は未実装 | `StoreRepository.archive` / `merge` |
-| R-20〜R-23・R-27・R-28（計算のみ） | 通知日（前日・当日〔オフ可〕・あとでの翌日）、同じ日の 1 通へのまとめ、次の通知日時（電源オフ後はすぐ出す）。通知の予約・表示は未実装 | `core/reminder/ReminderSchedule.kt` |
+| R-20〜R-23・R-27・R-28 | 通知日（前日・当日〔オフ可〕・あとでの翌日）、同じ日の 1 通へのまとめ、次の通知日時（電源オフ後はすぐ出す） | `core/reminder/ReminderSchedule.kt` |
+| F-51・R-24・R-25 | 次の通知時刻を `setAndAllowWhileIdle` で 1 件だけ予約。起動時と再起動・時刻変更・タイムゾーン変更・アプリ更新で予約し直す。チャンネルは「期限のおしらせ」1 種。押すとおしらせのタブ | `reminder/ReminderScheduler.kt`、`ReminderReceivers.kt`、`ReminderNotifier.kt` |
+| F-52・R-26・R-27 | 1 品目の通知だけ「使い切った」「また買う」（メモへ入れて使い切った）「あとで」（翌日にもう一度） | `reminder/ReminderActions.kt` |
+| PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
@@ -98,7 +101,9 @@
 
 ### 設定の保存方針（DataStore）
 
-- 端末内の設定は `AppSettings`（DataStore Preferences、ファイル名 `ikumemo_settings`）に置く。品目ごとに持たない値だけを入れる
+- 端末内の設定は DataStore Preferences（ファイル名 `ikumemo_settings`、`AppSettings.createDataStore` で 1 つだけ作る）に置き、
+  用途ごとのクラスで共有する。お店の選択は `AppSettings`、おしらせ（通知時刻 `reminder_time_minutes`・当日のオン/オフ・最後に通知した日・
+  許可を求めた回数）は `ReminderPrefs`。品目ごとに持たない値だけを入れる
 - 選んでいるお店は `selected_store_id`・`selected_store_at`・`last_bought_at`（epoch ミリ秒）で持ち、解除の判定は読むたびに行う。
   「買った」に付けるときに解除の条件を満たしていれば保存値も消す
 - テストは `testSettings()`（テストごとに別の一時ファイル）で作る
@@ -163,6 +168,7 @@
   画面テストは `testDebug/.../testing/ComposeWait.kt` の `awaitCondition`（`waitForIdle` でメインスレッドを進めながら待つ。
   Robolectric の `waitUntil` は待つ間にメインスレッドの処理を進めない）で待ち、ボトムシートの中のボタンは座標のタップが
   届かないため `performSemanticsAction(SemanticsActions.OnClick)` で押す
+- 単体テストの Application は `TestIkumemoApplication`（`robolectric.properties` で指定。起動時の通知の確認などを行わない）
 - テスト用 DB（`inMemoryDatabase()`）は実行スレッドを DB ごとに持つ（共有プールに前のテストの処理が残って止まるのを避ける）。
   写真の読み書きのテストは `@GraphicsMode(NATIVE)` で動かす
 - DAO テストは Robolectric（4.14.1 が targetSdk 36 未対応のため `robolectric.properties` で `sdk=35`）とインメモリ DB で行う
@@ -180,11 +186,13 @@
 
 - 性能・信頼性: 記録 2 万件で品名検索と月の記録の取得がそれぞれ 1 秒未満（`RecordSearchPerformanceTest`）。
   そのほかの目標（PLAN §8）は BL-089 等で対応
-- セキュリティ／プライバシー: `AndroidManifest.xml` で宣言する権限は `RECORD_AUDIO` だけ（音声認識サービスを見つけるための
+- セキュリティ／プライバシー: `AndroidManifest.xml` で宣言する権限は `RECORD_AUDIO`・`POST_NOTIFICATIONS`・
+  `RECEIVE_BOOT_COMPLETED`（音声認識サービスを見つけるための
   `<queries>` の `android.speech.RecognitionService` も宣言）。INTERNET・位置情報・CAMERA・VIBRATE・SCHEDULE_EXACT_ALARM は
   使わない方針（PLAN §5）。録音は端末の音声認識サービスの中で行われ、本アプリは音声を保存しない。公開している画面は
-  起動用の `MainActivity` だけ。FileProvider（`${applicationId}.fileprovider`、非公開・URI 権限の付与のみ）はカメラの一時ファイル
-  `cacheDir/camera/` だけを渡す
+  起動用の `MainActivity` と、OS からの通知（再起動・時刻変更・タイムゾーン変更・アプリ更新）を受ける `ReminderBootReceiver` だけ。
+  通知時刻とボタンの受信は `exported=false`。PendingIntent はすべて `FLAG_IMMUTABLE`。
+  FileProvider（`${applicationId}.fileprovider`、非公開・URI 権限の付与のみ）はカメラの一時ファイル `cacheDir/camera/` だけを渡す
 - 署名鍵・`local.properties`・`secrets.properties`・`*.jks` / `*.keystore`・`.env*` は `.gitignore` で除外する
 
 ## 実装制約

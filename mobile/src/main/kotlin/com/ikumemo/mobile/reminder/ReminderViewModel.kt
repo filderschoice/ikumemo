@@ -2,6 +2,7 @@ package com.ikumemo.mobile.reminder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ReminderRow
@@ -32,6 +33,8 @@ data class ReminderUiState(
     val notificationsEnabled: Boolean = true,
     val dueTarget: DueTarget? = null,
     val loaded: Boolean = false,
+    /** 通知の許可を求めた回数（2 回断られたら端末の設定を開く、R-29）。 */
+    val permissionRequests: Int = 0,
 )
 
 sealed interface ReminderEvent {
@@ -58,19 +61,28 @@ sealed interface ReminderEvent {
     data class NotificationStateChanged(
         val enabled: Boolean,
     ) : ReminderEvent
+
+    /** 通知の許可を求めた。 */
+    data object PermissionRequested : ReminderEvent
 }
 
 private data class ReminderLocal(
     val notificationsEnabled: Boolean = true,
     val dueTarget: DueTarget? = null,
+    val permissionRequests: Int = 0,
 )
 
 /** おしらせ画面（F-50 期限の設定、F-53 期限が近い順の一覧、R-22 期限切れの片付け、R-29 通知オフの案内）。 */
 class ReminderViewModel(
     private val repository: ReminderRepository,
+    private val prefs: ReminderPrefs,
     private val clock: Clock,
 ) : ViewModel() {
     private val local = MutableStateFlow(ReminderLocal())
+
+    init {
+        viewModelScope.launch { local.update { it.copy(permissionRequests = prefs.permissionRequestCount()) } }
+    }
 
     val uiState: StateFlow<ReminderUiState> =
         combine(
@@ -85,6 +97,7 @@ class ReminderViewModel(
                 notificationsEnabled = state.notificationsEnabled,
                 dueTarget = state.dueTarget,
                 loaded = true,
+                permissionRequests = state.permissionRequests,
             )
         }.stateIn(
             viewModelScope,
@@ -104,6 +117,11 @@ class ReminderViewModel(
             is ReminderEvent.UsedUp -> viewModelScope.launch { repository.markUsedUp(event.reminderId) }
             is ReminderEvent.Discarded -> viewModelScope.launch { repository.markDiscarded(event.reminderId) }
             is ReminderEvent.NotificationStateChanged -> local.update { it.copy(notificationsEnabled = event.enabled) }
+            ReminderEvent.PermissionRequested ->
+                viewModelScope.launch {
+                    prefs.countPermissionRequest()
+                    local.update { it.copy(permissionRequests = prefs.permissionRequestCount()) }
+                }
         }
     }
 

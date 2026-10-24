@@ -49,15 +49,22 @@ import java.time.LocalDate
 fun ReminderScreen(viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory)) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    LifecycleResumeEffect(Unit) {
+    val refresh = {
         val enabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
         viewModel.onEvent(ReminderEvent.NotificationStateChanged(enabled))
+    }
+    LifecycleResumeEffect(Unit) {
+        refresh()
         onPauseOrDispose {}
     }
-    ReminderContent(state = state, onEvent = viewModel::onEvent, onEnableNotifications = {
-        context.openNotificationSettings()
-    })
-    state.dueTarget?.let { DueSheet(target = it, today = state.today, onEvent = viewModel::onEvent) }
+    val permission = rememberNotificationPermission(state, viewModel::onEvent, refresh)
+    val onEvent: (ReminderEvent) -> Unit = { event ->
+        viewModel.onEvent(event)
+        if (event is ReminderEvent.SetDue) permission.askAfterFirstDue()
+    }
+    ReminderContent(state = state, onEvent = onEvent, onEnableNotifications = permission::enable)
+    state.dueTarget?.let { DueSheet(target = it, today = state.today, onEvent = onEvent) }
+    permission.Dialog()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

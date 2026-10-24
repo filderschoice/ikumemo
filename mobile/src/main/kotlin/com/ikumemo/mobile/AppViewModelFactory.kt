@@ -27,7 +27,10 @@ object AppViewModelFactory {
                 val container = container()
                 CalendarViewModel(container.recordRepository, container.storeRepository, container.clock)
             }
-            initializer { ReminderViewModel(container().reminderRepository, container().clock) }
+            initializer {
+                val container = container()
+                ReminderViewModel(container.reminderRepository, container.reminderPrefs, container.clock)
+            }
             initializer { VoiceInputViewModel(container().shoppingRepository, container().speechEngineFactory()) }
         }
 

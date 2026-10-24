@@ -1,7 +1,9 @@
 package com.ikumemo.mobile.testing
 
 import android.content.Context
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.data.AppSettings
@@ -69,9 +71,11 @@ class MainDispatcherRule(
     }
 }
 
-/** テスト用の設定。テストごとに別の一時ファイルへ保存する。 */
-fun testSettings(): AppSettings {
+/** テスト用の設定ファイル。テストごとに別の一時ファイルへ保存する。 */
+fun testDataStore(): DataStore<Preferences> {
     val file = File.createTempFile("ikumemo_settings", ".preferences_pb").apply { delete() }
     file.deleteOnExit()
-    return AppSettings(PreferenceDataStoreFactory.create { file })
+    return PreferenceDataStoreFactory.create { file }
 }
+
+fun testSettings(): AppSettings = AppSettings(testDataStore())

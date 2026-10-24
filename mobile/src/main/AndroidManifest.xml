@@ -8,6 +8,12 @@
     <!-- 音声入力（F-01）。初めてマイクボタンを押した時に求め、拒否されても文字入力で全機能が使える -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- おしらせ（F-51）。Android 13 以降は初めて期限を決めた時に求める。拒否されても期限の設定と一覧は使える（R-29） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 再起動後に次の通知を予約し直す（R-24）。正確なアラーム（SCHEDULE_EXACT_ALARM）は使わない -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- Android 11 以降は音声認識サービスを見つけるために宣言が必要（無いと「使えない」と判定される、PLAN §4.1） -->
     <queries>
         <intent>
@@ -33,6 +39,26 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- 予約した通知時刻と通知のボタン。アプリ内からだけ呼ぶ -->
+        <receiver
+            android:name=".reminder.ReminderAlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".reminder.ReminderActionReceiver"
+            android:exported="false" />
+
+        <!-- OS からの通知（再起動・時刻変更・タイムゾーン変更・アプリ更新）だけを受ける（PLAN §5） -->
+        <receiver
+            android:name=".reminder.ReminderBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".MainActivity"

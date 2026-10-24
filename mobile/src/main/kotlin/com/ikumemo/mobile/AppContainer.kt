@@ -4,10 +4,14 @@ import android.content.Context
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.RecordRepository
+import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
+import com.ikumemo.mobile.reminder.ReminderActions
+import com.ikumemo.mobile.reminder.ReminderNotifier
+import com.ikumemo.mobile.reminder.ReminderScheduler
 import com.ikumemo.mobile.voice.AndroidSpeechEngine
 import com.ikumemo.mobile.voice.SpeechEngine
 import java.time.Clock
@@ -31,9 +35,23 @@ class AppContainer(
 
     val recordRepository by lazy { RecordRepository(database, normalizer) }
 
-    val settings by lazy { AppSettings.create(appContext) }
+    private val dataStore by lazy { AppSettings.createDataStore(appContext) }
 
-    val reminderRepository by lazy { ReminderRepository(database, clock) }
+    val settings by lazy { AppSettings(dataStore) }
+
+    val reminderPrefs by lazy { ReminderPrefs(dataStore) }
+
+    val reminderRepository: ReminderRepository by lazy {
+        ReminderRepository(database, clock) { reminderScheduler.reschedule() }
+    }
+
+    val reminderNotifier by lazy { ReminderNotifier(appContext) }
+
+    val reminderScheduler: ReminderScheduler by lazy {
+        ReminderScheduler(appContext, { reminderRepository }, reminderPrefs, reminderNotifier, clock)
+    }
+
+    val reminderActions by lazy { ReminderActions(reminderRepository, shoppingRepository, reminderNotifier) }
 
     val storeRepository by lazy { StoreRepository(database, settings, normalizer, clock) }
 

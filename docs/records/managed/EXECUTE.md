@@ -5,6 +5,53 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-26 00:40
+  summary: 期限の通知の予約・表示・ボタン操作と、再起動・時刻変更での予約し直しを追加（M5）
+  details:
+    変更内容: >-
+      ReminderScheduler を追加し、core/reminder で求めた「次の通知時刻」を AlarmManager.setAndAllowWhileIdle で 1 件だけ予約する
+      （正確なアラームは使わず SCHEDULE_EXACT_ALARM を宣言しない）。発火したらその日の分を 1 通にまとめて出し、最後に通知した日を
+      DataStore に残す。アプリの起動時と、再起動・時刻変更・タイムゾーン変更・アプリ更新の受信（ReminderBootReceiver、exported=true）で、
+      その日の分をまだ出していなければすぐ出して予約し直す（R-24・R-28）。期限を変えるたびに ReminderRepository から予約し直す。
+      通知チャンネルは「期限のおしらせ」1 種（R-25）。1 品目のときだけ「使い切った」「また買う」「あとで」のボタンを出し（R-27）、
+      また買うはメモへ入れて使い切ったにし（R-26）、あとでは翌日にもう一度（R-23）。通知を押すとおしらせのタブを開く。
+      PendingIntent はすべて FLAG_IMMUTABLE。POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に理由を添えて求め、
+      通知オフの案内からは 2 回まで求め、その後は端末の設定を開く（R-29）。おしらせの設定（通知時刻・当日のオン/オフ）と記録は
+      ReminderPrefs に分け、設定ファイル（DataStore）は 1 つを共有する。単体テストで本物の Application の起動時処理が裏で走って
+      テストを乱したため、robolectric.properties で起動時の処理を行わないテスト用 Application を指定した
+    変更ファイル:
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/res/drawable/ic_notification.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppSettings.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ReminderPrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScheduler.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderNotifier.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderReceivers.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderActions.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/NotificationPermission.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/test/resources/robolectric.properties
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestIkumemoApplication.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestDatabase.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderSchedulerTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（Robolectric テスト 10 件。期限の前日 9:00 の予約、時刻の設定と予約の取り消し、同じ日の 1 通へのまとめと
+      ボタン無し、1 品目のボタン 3 つ、電源オフ後に 1 回だけ出す、時刻前は出さない、許可が無ければ出さない、また買う、あとでと使い切った、
+      マニフェストに正確なアラームの権限が無く再起動等の受信がある）、Lint No issues found、markdownlint 0 issues、記録ファイル OK。
+      実機での確認は BL-053（人手検証）
+    関連ID:
+      - BL-052
 - date: 2026-10-25 23:30
   summary: おしらせ画面（最近買った物の期限設定・期限が近い順の一覧・使い切った／捨てた・通知オフの案内）を追加（M5）
   details:

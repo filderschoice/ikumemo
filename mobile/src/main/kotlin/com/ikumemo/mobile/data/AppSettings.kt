@@ -80,9 +80,8 @@ class AppSettings(
         private val SELECTED_STORE_AT = longPreferencesKey("selected_store_at")
         private val LAST_BOUGHT_AT = longPreferencesKey("last_bought_at")
 
-        fun create(context: Context): AppSettings =
-            AppSettings(
-                PreferenceDataStoreFactory.create { context.applicationContext.preferencesDataStoreFile(FILE_NAME) },
-            )
+        /** 端末内の設定ファイル。アプリで 1 つだけ作り、設定の各クラスで共有する。 */
+        fun createDataStore(context: Context): DataStore<Preferences> =
+            PreferenceDataStoreFactory.create { context.applicationContext.preferencesDataStoreFile(FILE_NAME) }
     }
 }

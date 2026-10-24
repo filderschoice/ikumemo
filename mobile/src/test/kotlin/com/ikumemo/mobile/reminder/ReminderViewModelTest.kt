@@ -5,6 +5,7 @@ import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AddItemResult
+import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.UndoableAction
@@ -14,6 +15,7 @@ import com.ikumemo.mobile.testing.MainDispatcherRule
 import com.ikumemo.mobile.testing.MutableClock
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
+import com.ikumemo.mobile.testing.testDataStore
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -45,7 +47,7 @@ class ReminderViewModelTest {
         db = inMemoryDatabase()
         clock = fixedClock("2026-10-25T01:00:00Z")
         shopping = ShoppingRepository(db, ProductNameNormalizer(), clock)
-        viewModel = ReminderViewModel(ReminderRepository(db, clock), clock)
+        viewModel = ReminderViewModel(ReminderRepository(db, clock), ReminderPrefs(testDataStore()), clock)
     }
 
     @After

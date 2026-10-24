@@ -13,6 +13,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,7 +53,17 @@ private enum class TopLevelTab(
 }
 
 @Composable
-fun IkumemoApp(navController: NavHostController = rememberNavController()) {
+fun IkumemoApp(
+    navController: NavHostController = rememberNavController(),
+    requestedTab: String? = null,
+    onTabOpened: () -> Unit = {},
+) {
+    LaunchedEffect(requestedTab) {
+        if (requestedTab == MainActivity.TAB_REMINDER) {
+            navController.navigate(ReminderRoute) { launchSingleTop = true }
+            onTabOpened()
+        }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = { BottomTabs(navController) },
