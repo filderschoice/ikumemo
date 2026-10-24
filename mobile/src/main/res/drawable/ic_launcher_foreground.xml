@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 108dp の描画領域のうち、中央 66dp（21〜87）の安全領域に収める -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 吹き出し -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,30h40a8,8 0,0 1,8 8v26a8,8 0,0 1,-8 8H50l-10,9v-9h-6a8,8 0,0 1,-8 -8V38a8,8 0,0 1,8 -8z" />
+    <!-- かごの持ち手 -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M45,49a9,9 0,0 1,18 0"
+        android:strokeWidth="3"
+        android:strokeColor="#FF7A6B"
+        android:strokeLineCap="round" />
+    <!-- かご -->
+    <path
+        android:fillColor="#FF7A6B"
+        android:pathData="M39,49h30l-3,15a3,3 0,0 1,-3 2.4H45a3,3 0,0 1,-3 -2.4z" />
+</vector>

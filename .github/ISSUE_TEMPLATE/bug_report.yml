@@ -1,0 +1,98 @@
+name: 不具合の報告
+description: アプリが期待どおりに動かない場合はこちら
+title: "[Bug] "
+labels:
+  - "type: 不具合"
+  - "from: GitHub"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ご報告ありがとうございます。以下の点にご注意ください。
+
+        - **お名前・メールアドレスなどの個人情報は書かないでください。**
+          スクリーンショットを添付する場合も、写り込んでいないか確認してください。
+        - セキュリティ上の脆弱性は公開Issueではなく
+          [SECURITY.md](https://github.com/filderschoice/ikumemo/blob/main/SECURITY.md)
+          の手順に従ってご連絡ください。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 事象の概要
+      description: 何が起きたかを簡潔に書いてください。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 事象が起きるまでの操作を順に書いてください。
+      placeholder: |
+        1. ホームの🎤を押す
+        2. 「牛乳2本とたまご」と話す
+        3. 確認カードで「追加する」を押す
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: アプリのバージョン
+      description: 端末の「設定 > アプリ > いくメモ」で確認できます。
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: 機種とAndroidのバージョン
+      placeholder: "Pixel 8 / Android 15"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: 再現性
+      options:
+        - 毎回発生する
+        - ときどき発生する
+        - 一度だけ発生した
+        - 不明
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 補足情報
+      description: スクリーンショット、気づいた点など。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: 確認事項
+      options:
+        - label: 本文・添付に個人情報が含まれていないことを確認しました
+          required: true
+        - label: 既存のIssueに同じ報告がないことを確認しました
+          required: true

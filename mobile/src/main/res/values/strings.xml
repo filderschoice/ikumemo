@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">いくメモ</string>
+    <string name="home_empty">🎤 を押して、買いたい物を話してみましょう</string>
+    <string name="theme_pop">ポップ</string>
+    <string name="theme_gentle">やさしい</string>
+    <string name="theme_cool">クール</string>
+    <string name="theme_simple">シンプル</string>
+</resources>

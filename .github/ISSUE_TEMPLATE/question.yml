@@ -1,0 +1,41 @@
+name: 使い方の質問
+description: 操作方法について質問する場合はこちら
+title: "[Question] "
+labels:
+  - "type: 質問"
+  - "from: GitHub"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **お名前・メールアドレスなどの個人情報は書かないでください。**
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 質問内容
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 試したこと
+    validations:
+      required: false
+
+  - type: input
+    id: environment
+    attributes:
+      label: 機種とAndroidのバージョン
+      placeholder: "Pixel 8 / Android 15"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: 確認事項
+      options:
+        - label: 本文に個人情報が含まれていないことを確認しました
+          required: true

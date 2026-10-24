@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file -->
 # いくメモ 開発計画書
 
 - 作成日: 2026-10-24

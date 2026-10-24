@@ -1,0 +1,18 @@
+build:
+  maxIssues: 0
+
+style:
+  MagicNumber:
+    active: false
+  UnusedPrivateMember:
+    # Compose の @Preview 関数は IDE のプレビュー専用で、コードからは呼ばれない
+    ignoreAnnotated: ['Preview']
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongMethod:
+    threshold: 60
+
