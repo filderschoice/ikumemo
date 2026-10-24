@@ -50,6 +50,7 @@
 | R-30・R-31 | 日本語固定・オンデバイス優先。何も話さなければ 5 秒で止め「うまく聞き取れませんでした」＋もう一度話す／文字で入れる | `voice/SpeechEngine.kt`、`VoiceInputViewModel.kt` |
 | R-01（音声） | 確認カードでメモにある物に「メモにあります」の印を付け、既定で外す | `VoiceInputViewModel.showCards` |
 | PLAN §2.10・§5 | マイクの許可は初めて使う時に理由を添えて求める。拒否されたら端末の設定を開くボタンと文字入力の案内。機能の無い端末ではマイクを出さない | `voice/VoiceInputSheet.kt`、`ShoppingListScreen.kt` の `AddButtons` |
+| F-20・F-21（並び順のみ） | いつもの（購入回数 → 最近買った順 → 正規化名）と入力中の候補（正規化名の前方一致を先、部分一致を後）。画面は未実装 | `core/suggest/Suggestions.kt` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |

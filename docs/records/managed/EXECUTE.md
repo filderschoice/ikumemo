@@ -5,6 +5,24 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 18:00
+  summary: core/suggest に「いつもの」の並び順と入力中の候補の照合を追加（M3）
+  details:
+    変更内容: >-
+      Suggestions を追加した。いつものは 1 回以上買った物を購入回数の多い順 → 最近買った順 → 正規化名の順に並べ、
+      入力中の候補は正規化名（R-02）が入力で始まる物を先に、含む物を後に並べる（F-20・F-21）。どちらも候補に出さない印の物と
+      メモにある物を除く。DB の品目に依存しないよう ProductSummary を core に置いた
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/suggest/Suggestions.kt
+      - core/src/test/kotlin/com/ikumemo/core/suggest/SuggestionsTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（単体テスト 6 件。並び順、候補に出さない物とメモにある物の除外、表記ゆれの吸収、前方一致の優先）、
+      markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-030
 - date: 2026-10-25 17:40
   summary: 音声入力部品（話して追加・確認カード・マイクの許可・聞き取れないときの案内）を追加（M2）
   details:
