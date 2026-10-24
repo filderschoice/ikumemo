@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.MainActivity
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.ScreenRequest
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.UndoableAction
 import com.ikumemo.mobile.voice.VoiceInputSheet
@@ -66,11 +67,11 @@ private const val UNDO_MILLIS = 5_000L
 
 /**
  * メモ画面とほかの画面のつなぎ。[request] はウィジェット・ショートカットから開いたときの要求
- * （`MainActivity.OPEN_ADD_TEXT` / `OPEN_VOICE`）で、扱ったら [onRequestHandled] を呼ぶ。
+ * （`MainActivity.OPEN_ADD_TEXT` / `OPEN_VOICE` / `OPEN_ITEM`）で、扱ったら [onRequestHandled] を呼ぶ。
  */
 data class HomeNavigation(
     val onOpenSettings: () -> Unit = {},
-    val request: String? = null,
+    val request: ScreenRequest? = null,
     val onRequestHandled: () -> Unit = {},
 )
 
@@ -82,11 +83,17 @@ fun ShoppingListScreen(
     navigation: HomeNavigation = HomeNavigation(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    // ウィジェット・ショートカットからの「文字で追加」「話して追加」（R-44・R-45・F-74）
-    LaunchedEffect(navigation.request) {
-        when (navigation.request) {
+    // ウィジェット・ショートカットからの「文字で追加」「話して追加」「この項目」（R-44・R-45・F-74・R-40）。
+    // 項目まで送るにはメモの読み込みを待つ。項目がもう無ければメモ画面を開くだけ
+    LaunchedEffect(navigation.request, state.loaded) {
+        val request = navigation.request ?: return@LaunchedEffect
+        when (request.screen) {
             MainActivity.OPEN_ADD_TEXT -> viewModel.onEvent(ShoppingListEvent.OpenAddByText)
             MainActivity.OPEN_VOICE -> viewModel.onEvent(ShoppingListEvent.OpenVoice)
+            MainActivity.OPEN_ITEM -> {
+                if (!state.loaded) return@LaunchedEffect
+                request.itemId?.let { viewModel.onEvent(ShoppingListEvent.Highlight(it)) }
+            }
             else -> return@LaunchedEffect
         }
         navigation.onRequestHandled()

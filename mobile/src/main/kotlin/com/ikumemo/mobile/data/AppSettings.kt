@@ -25,10 +25,23 @@ data class StoreSelection(
         now: Instant,
         zone: ZoneId,
     ): Boolean {
-        val base = lastBoughtAt?.takeIf { it.isAfter(selectedAt) } ?: selectedAt
-        val dateChanged = base.atZone(zone).toLocalDate() != now.atZone(zone).toLocalDate()
-        return dateChanged || Duration.between(base, now) >= EXPIRY
+        val dateChanged = base().atZone(zone).toLocalDate() != now.atZone(zone).toLocalDate()
+        return dateChanged || Duration.between(base(), now) >= EXPIRY
     }
+
+    /** 解除される時刻（3 時間後か、日付が変わる時の早いほう）。ウィジェットの描き直しに使う。 */
+    fun expiresAt(zone: ZoneId): Instant {
+        val nextDay =
+            base()
+                .atZone(zone)
+                .toLocalDate()
+                .plusDays(1)
+                .atStartOfDay(zone)
+                .toInstant()
+        return minOf(base().plus(EXPIRY), nextDay)
+    }
+
+    private fun base(): Instant = lastBoughtAt?.takeIf { it.isAfter(selectedAt) } ?: selectedAt
 
     companion object {
         val EXPIRY: Duration = Duration.ofHours(3)

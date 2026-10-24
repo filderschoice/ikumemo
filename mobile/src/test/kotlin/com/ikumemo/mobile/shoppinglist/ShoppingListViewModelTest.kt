@@ -98,6 +98,24 @@ class ShoppingListViewModelTest {
         }
 
     @Test
+    fun highlightFromWidgetMarksThatItemUntilShown() =
+        runTest {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.loaded }
+                viewModel.onEvent(ShoppingListEvent.AddByText("牛乳"))
+                val item = awaitUntil { it.items.size == 1 }.items.single()
+
+                // メモ一覧ウィジェットの行から開いた（R-40）
+                viewModel.onEvent(ShoppingListEvent.Highlight(item.id))
+                assertEquals(item.id, awaitUntil { it.highlightedItemId != null }.highlightedItemId)
+
+                viewModel.onEvent(ShoppingListEvent.HighlightShown)
+                awaitUntil { it.highlightedItemId == null }
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
     fun blankTextIsIgnored() =
         runTest {
             viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {

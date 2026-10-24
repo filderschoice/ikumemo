@@ -5,6 +5,50 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 08:40
+  summary: メモ一覧ウィジェット（W-02、4×2〜4×4、表示専用）と、データ変更・日付の変わり目での描き直しを追加（M7）
+  details:
+    変更内容: >-
+      Glance の MemoListWidget を追加した（SizeMode.Responsive で幅 180/250dp × 高さ 110/180dp の 4 つ）。高さ 2 マスでは見出し
+      （いくメモ・🛒メモ N件・🔔期限が近い N件〔0 件なら出さない〕）と先頭の品名を「・」付きで横に 2〜3 件と「ほかN件」、3 マス以上では
+      選んだお店と品名の縦一覧（数量付き、幅が狭いと数量を品名の下）を出す。空なら「メモは空です」。行を押すとメモ画面でその項目まで
+      送って一瞬光らせ（R-40、項目が無ければメモ画面を開くだけ）、期限が近い件数はおしらせ画面、ほかはメモ画面を開く。
+      MainActivity の開く先を ScreenRequest（画面と項目 ID）で受け取り、開く先ごとに data の URI を変えて PendingIntent の上書きを防ぐ。
+      WidgetUpdater がアプリの動いている間はメモ・おしらせ・お店・見た目の変化で 2 種のウィジェットを描き直し（R-41・R-43）、
+      日付の変わり目と選んだお店の解除時刻（StoreSelection.expiresAt）には省電力のアラームで描き直す。ウィジェットを置いていなければ
+      何もしない。受信処理の共通部品 runAsync を ReceiverAsync.kt へ移した
+    変更ファイル:
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/ReceiverAsync.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/ScreenRequest.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppSettings.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderReceivers.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoWidgetState.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetUpdater.kt
+      - mobile/src/main/res/drawable/widget_memo_preview_background.xml
+      - mobile/src/main/res/layout/widget_memo_preview.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/res/xml/widget_memo_info.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/ScreenRequestTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoWidgetStateTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（単体テスト計 248 件。追加はウィジェットの表示 5 件〔4×2 の横並びと「ほか N件」、幅が狭いときの件数、
+      4×4 のお店と縦一覧、行・期限が近い件数・全体のタップ先、空の表示〕、内容の集計 2 件、開く先の受け渡し 3 件、項目を光らせる 1 件）、
+      Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-071
 - date: 2026-10-25 07:50
   summary: 1×1 ウィジェット「話して追加」（W-01）と、ホーム画面に重ねて開く音声入力シートを追加（M7）
   details:

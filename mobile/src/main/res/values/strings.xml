@@ -130,6 +130,17 @@
     <string name="widget_write_label_short">書く</string>
     <string name="widget_write_description">文字でメモに追加</string>
     <string name="widget_voice_added">%1$dつ メモに入れました</string>
+    <string name="widget_memo_name">いくメモ メモ一覧</string>
+    <string name="widget_memo_picker_description">これから買う物をホーム画面で見られます</string>
+    <string name="widget_memo_title">いくメモ</string>
+    <string name="widget_memo_count">🛒メモ %1$d件</string>
+    <string name="widget_memo_due_soon">🔔期限が近い %1$d件</string>
+    <string name="widget_memo_store">🏪 %1$s で買う</string>
+    <string name="widget_memo_more">ほか%1$d件</string>
+    <string name="widget_memo_empty">メモは空です</string>
+    <string name="widget_memo_bullet">・%1$s</string>
+    <string name="widget_memo_preview_count">🛒メモ 5件</string>
+    <string name="widget_memo_preview_items">・牛乳 2本　・たまご　・食パン　ほか2件</string>
     <string name="theme_pop">ポップ</string>
     <string name="theme_gentle">やさしい</string>
     <string name="theme_cool">クール</string>

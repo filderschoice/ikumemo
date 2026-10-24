@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- メモ一覧ウィジェットの見本の背景（初期テーマ ポップの surface） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFF8F7" />
+    <corners android:radius="16dp" />
+</shape>

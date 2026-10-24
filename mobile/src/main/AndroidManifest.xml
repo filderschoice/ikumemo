@@ -82,6 +82,23 @@
                 android:resource="@xml/widget_voice_info" />
         </receiver>
 
+        <receiver
+            android:name=".widget.MemoListWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_memo_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_memo_info" />
+        </receiver>
+
+        <!-- 日付の変わり目・お店の解除でウィジェットを描き直す（アプリ内からだけ呼ぶ、R-41） -->
+        <receiver
+            android:name=".widget.WidgetRefreshReceiver"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -103,6 +103,11 @@ sealed interface ShoppingListEvent {
         val serial: Long,
     ) : ShoppingListEvent
 
+    /** 項目まで送って一瞬光らせる（メモ一覧ウィジェットの行から開いたとき、R-40）。 */
+    data class Highlight(
+        val itemId: Long,
+    ) : ShoppingListEvent
+
     data object HighlightShown : ShoppingListEvent
 
     data object MessageShown : ShoppingListEvent
@@ -133,7 +138,7 @@ data class ShoppingListUiState(
     val items: List<ShoppingItemEntity> = emptyList(),
     val loaded: Boolean = false,
     val sheet: HomeSheet? = null,
-    /** 一瞬光らせる項目（重複時の既存項目、R-01）。 */
+    /** 一瞬光らせる項目（重複時の既存項目 R-01、ウィジェットで押した項目 R-40）。 */
     val highlightedItemId: Long? = null,
     val message: HomeMessage? = null,
     val undo: UndoOffer? = null,
@@ -209,6 +214,7 @@ class ShoppingListViewModel(
             }
             is ShoppingListEvent.UndoExpired ->
                 local.update { if (it.undo?.serial == event.serial) it.copy(undo = null) else it }
+            is ShoppingListEvent.Highlight -> local.update { it.copy(highlightedItemId = event.itemId) }
             ShoppingListEvent.HighlightShown -> local.update { it.copy(highlightedItemId = null) }
             ShoppingListEvent.MessageShown -> local.update { it.copy(message = null) }
             is ShoppingListEvent.AddQueryChanged -> addQuery.value = event.text

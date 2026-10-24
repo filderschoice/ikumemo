@@ -68,16 +68,19 @@ private enum class TopLevelTab(
 @Composable
 fun IkumemoApp(
     navController: NavHostController = rememberNavController(),
-    requestedTab: String? = null,
+    requestedScreen: ScreenRequest? = null,
     onTabOpened: () -> Unit = {},
 ) {
-    var memoRequest by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(requestedTab) {
+    var memoRequest by remember { mutableStateOf<ScreenRequest?>(null) }
+    LaunchedEffect(requestedScreen) {
+        val request = requestedScreen ?: return@LaunchedEffect
         val route: Any =
-            when (requestedTab) {
+            when (request.screen) {
                 MainActivity.TAB_REMINDER -> ReminderRoute
                 MainActivity.TAB_CALENDAR -> CalendarRoute
-                MainActivity.OPEN_ADD_TEXT, MainActivity.OPEN_VOICE -> MemoRoute.also { memoRequest = requestedTab }
+                MainActivity.OPEN_ADD_TEXT, MainActivity.OPEN_VOICE, MainActivity.OPEN_ITEM ->
+                    MemoRoute.also { memoRequest = request }
+                MainActivity.OPEN_MEMO -> MemoRoute
                 else -> return@LaunchedEffect
             }
         navController.navigate(route) { launchSingleTop = true }

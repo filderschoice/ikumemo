@@ -17,6 +17,7 @@ import com.ikumemo.mobile.reminder.ReminderNotifier
 import com.ikumemo.mobile.reminder.ReminderScheduler
 import com.ikumemo.mobile.voice.AndroidSpeechEngine
 import com.ikumemo.mobile.voice.SpeechEngine
+import com.ikumemo.mobile.widget.WidgetUpdater
 import java.time.Clock
 
 /**
@@ -61,6 +62,8 @@ class AppContainer(
     val reminderActions by lazy { ReminderActions(reminderRepository, shoppingRepository, reminderNotifier) }
 
     val storeRepository by lazy { StoreRepository(database, settings, normalizer, clock) }
+
+    val widgetUpdater by lazy { WidgetUpdater(appContext, this) }
 
     /** 音声認識の窓口を作る。ViewModel ごとに 1 つ作り、ViewModel の破棄で片付ける。 */
     val speechEngineFactory: () -> SpeechEngine = { speechEngine(appContext) }

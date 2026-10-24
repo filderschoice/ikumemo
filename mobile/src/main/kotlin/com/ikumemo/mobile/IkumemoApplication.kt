@@ -22,7 +22,10 @@ open class IkumemoApplication : Application() {
     /** 起動時の処理。単体テストでは本物の DB・設定ファイルに触れないよう何もしない Application に差し替える。 */
     protected open fun onStartup() {
         container.reminderNotifier.ensureChannel()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         // 電源が切れていた間の通知を補い、次の通知を予約し直す（R-24・R-28）
-        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch { container.reminderScheduler.notifyIfDue() }
+        scope.launch { container.reminderScheduler.notifyIfDue() }
+        // データ・見た目が変わったらウィジェットを描き直す（R-41）
+        container.widgetUpdater.start(scope)
     }
 }
