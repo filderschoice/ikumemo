@@ -48,7 +48,10 @@
 | F-40・PLAN §2.7 | 月カレンダー（日曜始まり、日曜は赤・土曜は青の文字色＋曜日名、買い物の日にお店の色のドット最大 3 つ、今日は枠線） | `calendar/MonthGrid.kt`、`designsystem/CalendarColors.kt` |
 | F-41 | 日の詳細（品名・数量・お店・メモ・写真のサムネイル、写真は押すと拡大）。買い物が無い日は「この日のお買い物はありません」 | `calendar/CalendarScreen.kt` |
 | F-42（文字のみ） | 品名検索（正規化名か表示名に含む記録を新しい順に最大 200 件）、結果から該当日へ移る。検索欄の音声入力は未実装 | `RecordRepository.search`、`CalendarViewModel` |
-| PLAN §3 | 下タブ 3 つ（メモ・カレンダー・おしらせ。アイコン＋文字ラベル）。おしらせは見出しと案内文だけ | `IkumemoApp.kt`、`calendar/`、`reminder/` |
+| PLAN §3 | 下タブ 3 つ（メモ・カレンダー・おしらせ。アイコン＋文字ラベル） | `IkumemoApp.kt`、`calendar/`、`reminder/` |
+| F-50 | おしらせ画面の上部に最近買った物（きょうを含む 7 日以内・期限未設定）と「期限を決める」（3日後／1週間後／2週間後／1か月後／日付を選ぶ）。記録画面からの設定は未実装 | `reminder/ReminderScreen.kt`、`DueSheet.kt`、`data/ReminderRepository.kt` |
+| F-53・R-22 | 期限が近い順の一覧。期限切れは error 色＋「期限切れ」、きょう・あしたは文字で示す。「使い切った」「捨てた」で片付け、行を押すと決め直し | `reminder/ReminderScreen.kt` |
+| R-29 | 通知が許可されていなければ「通知がオフのため、おしらせが届きません」＋「通知をオンにする」（端末の通知の設定を開く） | `ReminderScreen.kt` の `NotificationsOffBanner` |
 | F-01・F-02・PLAN §4.4 | 音声テキストの分割・数量抽出・不要語除去・誤変換補正・N-best の選択 | `core/voice/VoiceTextParser.kt`、`QuantityParser.kt` |
 | F-01・PLAN §3.2 | 🎤 話して追加（ホーム下部、64dp）→ 聞いている間は途中の文字を表示 → 確認カード（タップで直す、× で外す）→「追加する」 | `voice/VoiceInputSheet.kt`、`VoiceInputViewModel.kt` |
 | R-30・R-31 | 日本語固定・オンデバイス優先。何も話さなければ 5 秒で止め「うまく聞き取れませんでした」＋もう一度話す／文字で入れる | `voice/SpeechEngine.kt`、`VoiceInputViewModel.kt` |
@@ -70,7 +73,7 @@
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
 - `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
-  `reminder/`（骨格のみ）。予定は PLAN §4.5 の
+  `reminder/`。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
 - 画面は MVVM + 単方向データフロー。画面からの操作は `sealed interface` のイベント（例 `ShoppingListEvent`）を
   ViewModel の `onEvent()` 1 つで受ける。ViewModel は `StateFlow<UiState>` を公開し、DB の Flow と画面だけの状態
@@ -90,6 +93,7 @@
 - 通知の予約は「次の 1 件」だけ。`ReminderSchedule.nextNotificationAt` が、未来の通知日は設定時刻（初期値 9:00）、きょうは
   通知時刻前なら設定時刻、過ぎていて最後に通知した日がきょうでなければ「いま」を返す（R-28）
 - 1 通の見出しは先頭の品名（期限の近い順 → 品名順）と「ほか N つ」。種類は急ぐ順（期限切れ → きょう → あした）で決める
+- 期限を決め直したら状態を未対応へ戻し「あとで」を消す。`ReminderRepository` は書き換えのたびに `onChanged` を呼ぶ
 - 「あとで」は `snoozedUntil` に翌日を入れるだけで期限は変えない。期限を過ぎた分は通知せず一覧に残す（R-22）
 
 ### 設定の保存方針（DataStore）

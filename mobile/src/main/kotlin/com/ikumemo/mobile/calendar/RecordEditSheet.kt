@@ -22,6 +22,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -53,7 +54,7 @@ fun RecordEditSheet(
     photoStore: PhotoStore,
     onEvent: (CalendarEvent) -> Unit,
 ) {
-    var date by rememberSaveable(record.id) { mutableStateOf(record.purchasedDate.toEpochDay()) }
+    var date by rememberSaveable(record.id) { mutableLongStateOf(record.purchasedDate.toEpochDay()) }
     var storeId by rememberSaveable(record.id) { mutableStateOf(record.storeId) }
     var quantity by rememberSaveable(record.id) { mutableStateOf(record.quantity.orEmpty()) }
     var note by rememberSaveable(record.id) { mutableStateOf(record.note.orEmpty()) }

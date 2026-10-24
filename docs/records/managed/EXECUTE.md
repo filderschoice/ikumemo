@@ -5,6 +5,35 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 23:30
+  summary: おしらせ画面（最近買った物の期限設定・期限が近い順の一覧・使い切った／捨てた・通知オフの案内）を追加（M5）
+  details:
+    変更内容: >-
+      ReminderRepository・ReminderViewModel・ReminderScreen・DueSheet を追加した。上部に「最近買った物」（きょうを含む 7 日以内・期限未設定）を
+      並べ、各行の「期限を決める」から「3日後 / 1週間後 / 2週間後 / 1か月後 / 日付を選ぶ」で期限を決める（F-50）。下に期限が近い順の一覧を出し、
+      期限切れは目立つ色と「期限切れ」の文字、きょう・あしたは文字で示す（F-53・R-22）。各行の「使い切った」「捨てた」で片付け、行を押すと期限を
+      決め直せる（決め直すと「あとで」は取り消す）。通知が許可されていなければ「通知がオフのため、おしらせが届きません」と「通知をオンにする」
+      （端末の通知の設定を開く）を出す（R-29、画面に戻るたびに確かめる）。書き換え後に呼ぶ onChanged を用意した（通知の予約の再登録は BL-052）。
+      Lint の AutoboxingStateCreation のヒントに合わせ、記録の編集の日付を mutableLongStateOf にした
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ReminderRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/DueSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（ViewModel テスト 5 件。最近買った物は 7 日以内だけ、期限の設定で一覧へ移り期限順に並ぶ、使い切った・捨てたが
+      DB に残り一覧から消える、1 か月後の計算、通知オフの表示）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-051
 - date: 2026-10-25 22:50
   summary: core/reminder に通知日の計算と同じ日のまとめを追加（M5）
   details:

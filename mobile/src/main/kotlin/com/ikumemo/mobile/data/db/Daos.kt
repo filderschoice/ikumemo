@@ -2,6 +2,7 @@ package com.ikumemo.mobile.data.db
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -169,6 +170,13 @@ interface PurchaseRecordDao {
         limit: Int,
     ): List<PurchaseRecordEntity>
 
+    /** [since] 以降に買い、まだ期限を決めていない記録（新しい順、F-50 の「最近買った物」）。 */
+    @Query(
+        "SELECT r.* FROM purchase_record r LEFT JOIN reminder m ON m.purchaseRecordId = r.id " +
+            "WHERE m.id IS NULL AND r.purchasedDate >= :since ORDER BY r.purchasedDate DESC, r.recordedAt DESC",
+    )
+    fun observeRecentWithoutReminder(since: LocalDate): Flow<List<PurchaseRecordEntity>>
+
     @Query(
         "SELECT * FROM purchase_record WHERE purchasedDate BETWEEN :from AND :to " +
             "ORDER BY purchasedDate, recordedAt",
@@ -178,6 +186,12 @@ interface PurchaseRecordDao {
         to: LocalDate,
     ): Flow<List<PurchaseRecordEntity>>
 }
+
+/** おしらせと、その記録の品名。 */
+data class ReminderRow(
+    @Embedded val reminder: ReminderEntity,
+    val displayName: String,
+)
 
 @Dao
 interface ReminderDao {
@@ -192,6 +206,21 @@ interface ReminderDao {
 
     @Query("SELECT * FROM reminder WHERE purchaseRecordId = :purchaseRecordId")
     suspend fun findByRecord(purchaseRecordId: Long): ReminderEntity?
+
+    /** 未対応のおしらせと品名（期限が近い順 → 品名順、F-53）。 */
+    @Query(
+        "SELECT reminder.*, purchase_record.displayName AS displayName FROM reminder " +
+            "JOIN purchase_record ON purchase_record.id = reminder.purchaseRecordId " +
+            "WHERE reminder.status = 'PENDING' ORDER BY reminder.dueDate, purchase_record.displayName",
+    )
+    fun observePendingRows(): Flow<List<ReminderRow>>
+
+    @Query(
+        "SELECT reminder.*, purchase_record.displayName AS displayName FROM reminder " +
+            "JOIN purchase_record ON purchase_record.id = reminder.purchaseRecordId " +
+            "WHERE reminder.status = 'PENDING'",
+    )
+    suspend fun getPendingRows(): List<ReminderRow>
 
     /** 未対応のおしらせ（期限が近い順、F-53）。 */
     @Query("SELECT * FROM reminder WHERE status = 'PENDING' ORDER BY dueDate, id")

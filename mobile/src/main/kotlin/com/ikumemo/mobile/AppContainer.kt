@@ -4,6 +4,7 @@ import android.content.Context
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.RecordRepository
+import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
@@ -31,6 +32,8 @@ class AppContainer(
     val recordRepository by lazy { RecordRepository(database, normalizer) }
 
     val settings by lazy { AppSettings.create(appContext) }
+
+    val reminderRepository by lazy { ReminderRepository(database, clock) }
 
     val storeRepository by lazy { StoreRepository(database, settings, normalizer, clock) }
 
