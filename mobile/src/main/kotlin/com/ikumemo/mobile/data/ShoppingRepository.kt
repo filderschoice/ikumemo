@@ -4,9 +4,12 @@ import androidx.room.withTransaction
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.ProductEntity
+import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
+import com.ikumemo.mobile.data.db.ShoppingTripEntity
 import kotlinx.coroutines.flow.Flow
 import java.time.Clock
+import java.time.LocalDate
 
 /** メモへ追加した結果。 */
 sealed interface AddItemResult {
@@ -24,6 +27,20 @@ sealed interface AddItemResult {
     data object Blank : AddItemResult
 }
 
+/** 元に戻せる操作（R-04 元に戻せるのは最新の 1 件）。 */
+sealed interface UndoableAction {
+    val item: ShoppingItemEntity
+
+    data class Bought(
+        override val item: ShoppingItemEntity,
+        val recordId: Long,
+    ) : UndoableAction
+
+    data class Dismissed(
+        override val item: ShoppingItemEntity,
+    ) : UndoableAction
+}
+
 /** メモ（これから買う物）の読み書き。品目（候補の元）の作成もここで行う。 */
 class ShoppingRepository(
     private val db: IkumemoDatabase,
@@ -32,6 +49,9 @@ class ShoppingRepository(
 ) {
     private val itemDao = db.shoppingItemDao()
     private val productDao = db.productDao()
+    private val tripDao = db.shoppingTripDao()
+    private val recordDao = db.purchaseRecordDao()
+    private val statsUpdater = ProductStatsUpdater(db)
 
     fun observeItems(): Flow<List<ShoppingItemEntity>> = itemDao.observeAll()
 
@@ -95,6 +115,61 @@ class ShoppingRepository(
             itemDao.update(updated)
             result
         }
+
+    /**
+     * 「買った」にする（F-10・F-13）。今日の日付（R-10）で記録し、メモから消す。同じ日に同じ物を買っても別の記録にする（R-11）。
+     * 写真は同じファイルを記録から参照する（R-15）。[storeId] は選んでいるいつものお店（F-14）。
+     */
+    suspend fun markBought(
+        itemId: Long,
+        storeId: Long? = null,
+    ): UndoableAction? =
+        db.withTransaction {
+            val item = itemDao.getById(itemId) ?: return@withTransaction null
+            val today = LocalDate.now(clock)
+            val tripId =
+                tripDao.find(today, storeId)?.id
+                    ?: tripDao.insert(ShoppingTripEntity(date = today, storeId = storeId))
+            val recordId =
+                recordDao.insert(
+                    PurchaseRecordEntity(
+                        tripId = tripId,
+                        productId = item.productId,
+                        displayName = item.displayName,
+                        quantity = item.quantity,
+                        note = item.note,
+                        photoUri = item.photoUri,
+                        purchasedDate = today,
+                        recordedAt = clock.instant(),
+                        storeId = storeId,
+                    ),
+                )
+            itemDao.delete(item)
+            statsUpdater.recalculate(item.productId)
+            UndoableAction.Bought(item, recordId)
+        }
+
+    /** 「やめた」にする（F-11）。記録には残さず、品目（候補）は残す（R-03）。 */
+    suspend fun dismiss(itemId: Long): UndoableAction? =
+        db.withTransaction {
+            val item = itemDao.getById(itemId) ?: return@withTransaction null
+            itemDao.delete(item)
+            UndoableAction.Dismissed(item)
+        }
+
+    /** 直前の「買った」「やめた」を元に戻す（F-12）。メモの同じ位置へ戻し、「買った」の記録は消す。 */
+    suspend fun undo(action: UndoableAction) {
+        db.withTransaction {
+            if (action is UndoableAction.Bought) {
+                recordDao.getById(action.recordId)?.let { recordDao.delete(it) }
+                tripDao.deleteUnused()
+                statsUpdater.recalculate(action.item.productId)
+            }
+            if (itemDao.getById(action.item.id) == null && itemDao.findByProductId(action.item.productId) == null) {
+                itemDao.insert(action.item)
+            }
+        }
+    }
 
     suspend fun findOrCreateProduct(displayName: String): ProductEntity {
         val normalized = normalizer.normalize(displayName)

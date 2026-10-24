@@ -6,8 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.rules.TestWatcher
@@ -41,10 +41,13 @@ class MutableClock(
     }
 }
 
-/** ViewModel テストで Dispatchers.Main を差し替える。 */
+/**
+ * ViewModel テストで Dispatchers.Main を差し替える。Room の実行スレッドから戻る処理もテストのスレッドで順に動かすため
+ * StandardTestDispatcher を使う。テスト側は終了時に ViewModel のスコープを止めてから差し替えを戻す。
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(
-    val dispatcher: TestDispatcher = UnconfinedTestDispatcher(),
+    val dispatcher: TestDispatcher = StandardTestDispatcher(),
 ) : TestWatcher() {
     override fun starting(description: Description) {
         Dispatchers.setMain(dispatcher)

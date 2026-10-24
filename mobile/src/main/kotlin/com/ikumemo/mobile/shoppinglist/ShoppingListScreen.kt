@@ -1,12 +1,7 @@
 package com.ikumemo.mobile.shoppinglist
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,8 +18,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -33,7 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -42,33 +39,34 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
-import com.ikumemo.mobile.data.db.ShoppingItemEntity
+import com.ikumemo.mobile.data.UndoableAction
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** 一瞬光らせる時間（R-01）。 */
 private const val HIGHLIGHT_MILLIS = 1_200L
 
+/** 「元に戻す」の表示時間（F-12）。TalkBack 等の利用時は端末の推奨時間まで延ばす（R-04）。 */
+private const val UNDO_MILLIS = 5_000L
+
 @Composable
 fun ShoppingListScreen(viewModel: ShoppingListViewModel = viewModel(factory = AppViewModelFactory.Factory)) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ShoppingListContent(
-        state = state,
-        onAddByTextClick = viewModel::openAddByText,
-        onItemClick = viewModel::openEditor,
-        onHighlightShown = viewModel::highlightShown,
-        onMessageShown = viewModel::messageShown,
-    )
+    val onEvent = viewModel::onEvent
+    ShoppingListContent(state = state, onEvent = onEvent)
     when (val sheet = state.sheet) {
         HomeSheet.AddByText ->
             AddItemSheet(
-                onAdd = viewModel::addByText,
-                onDismiss = viewModel::closeSheet,
+                onAdd = { onEvent(ShoppingListEvent.AddByText(it)) },
+                onDismiss = { onEvent(ShoppingListEvent.CloseSheet) },
             )
         is HomeSheet.Edit ->
             state.items.firstOrNull { it.id == sheet.itemId }?.let { item ->
                 EditItemSheet(
                     item = item,
-                    onSave = { name, quantity, note -> viewModel.saveEdit(item.id, name, quantity, note) },
+                    onSave = { name, quantity, note ->
+                        onEvent(ShoppingListEvent.SaveEdit(item.id, name, quantity, note))
+                    },
                 )
             }
         null -> Unit
@@ -79,29 +77,18 @@ fun ShoppingListScreen(viewModel: ShoppingListViewModel = viewModel(factory = Ap
 @Composable
 fun ShoppingListContent(
     state: ShoppingListUiState,
-    onAddByTextClick: () -> Unit,
-    onItemClick: (Long) -> Unit,
-    onHighlightShown: () -> Unit,
-    onMessageShown: () -> Unit,
+    onEvent: (ShoppingListEvent) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    val alreadyInMemoFormat = stringResource(R.string.memo_already_in_memo)
-    LaunchedEffect(state.message) {
-        when (val message = state.message) {
-            is HomeMessage.AlreadyInMemo -> {
-                onMessageShown()
-                snackbarHostState.showSnackbar(alreadyInMemoFormat.format(message.displayName))
-            }
-            null -> Unit
-        }
-    }
+    MessageEffect(state.message, snackbarHostState) { onEvent(ShoppingListEvent.MessageShown) }
+    UndoEffect(state.undo, snackbarHostState, onEvent)
     LaunchedEffect(state.highlightedItemId) {
         val id = state.highlightedItemId ?: return@LaunchedEffect
         val index = state.items.indexOfFirst { it.id == id }
         if (index >= 0) listState.animateScrollToItem(index)
         delay(HIGHLIGHT_MILLIS)
-        onHighlightShown()
+        onEvent(ShoppingListEvent.HighlightShown)
     }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
@@ -117,18 +104,79 @@ fun ShoppingListContent(
                     modifier = Modifier.weight(1f).fillMaxWidth().testTag(TestTags.MEMO_LIST),
                 ) {
                     items(state.items, key = { it.id }) { item ->
-                        ShoppingItemRow(
+                        SwipeableItemRow(
                             item = item,
                             highlighted = item.id == state.highlightedItemId,
-                            onClick = { onItemClick(item.id) },
+                            onClick = { onEvent(ShoppingListEvent.OpenEditor(item.id)) },
+                            onBought = { onEvent(ShoppingListEvent.MarkBought(item.id)) },
+                            onDismissed = { onEvent(ShoppingListEvent.Dismiss(item.id)) },
                         )
                         HorizontalDivider()
                     }
                 }
             }
-            AddButtons(onAddByTextClick = onAddByTextClick)
+            AddButtons(onAddByTextClick = { onEvent(ShoppingListEvent.OpenAddByText) })
         }
-        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).testTag(TestTags.SNACKBAR))
+    }
+}
+
+@Composable
+private fun MessageEffect(
+    message: HomeMessage?,
+    snackbarHostState: SnackbarHostState,
+    onMessageShown: () -> Unit,
+) {
+    val alreadyInMemoFormat = stringResource(R.string.memo_already_in_memo)
+    LaunchedEffect(message) {
+        when (message) {
+            is HomeMessage.AlreadyInMemo -> {
+                onMessageShown()
+                snackbarHostState.showSnackbar(alreadyInMemoFormat.format(message.displayName))
+            }
+            null -> Unit
+        }
+    }
+}
+
+/** 「買った：牛乳 [元に戻す]」を表示する。新しい操作が来たら前の表示は置き換わる（R-04）。 */
+@Composable
+private fun UndoEffect(
+    offer: UndoOffer?,
+    snackbarHostState: SnackbarHostState,
+    onEvent: (ShoppingListEvent) -> Unit,
+) {
+    val boughtFormat = stringResource(R.string.memo_bought_message)
+    val dismissedFormat = stringResource(R.string.memo_dismissed_message)
+    val undoLabel = stringResource(R.string.memo_undo)
+    val accessibilityManager = LocalAccessibilityManager.current
+    LaunchedEffect(offer?.serial) {
+        offer ?: return@LaunchedEffect
+        val text =
+            when (val action = offer.action) {
+                is UndoableAction.Bought -> boughtFormat.format(action.item.displayName)
+                is UndoableAction.Dismissed -> dismissedFormat.format(action.item.displayName)
+            }
+        val timeout =
+            accessibilityManager?.calculateRecommendedTimeoutMillis(
+                UNDO_MILLIS,
+                containsIcons = false,
+                containsText = true,
+                containsControls = true,
+            ) ?: UNDO_MILLIS
+        snackbarHostState.currentSnackbarData?.dismiss()
+        val dismissJob =
+            launch {
+                delay(timeout)
+                snackbarHostState.currentSnackbarData?.dismiss()
+            }
+        val result = snackbarHostState.showSnackbar(text, undoLabel, duration = SnackbarDuration.Indefinite)
+        dismissJob.cancel()
+        if (result == SnackbarResult.ActionPerformed) {
+            onEvent(ShoppingListEvent.Undo(offer.serial))
+        } else {
+            onEvent(ShoppingListEvent.UndoExpired(offer.serial))
+        }
     }
 }
 
@@ -140,43 +188,6 @@ private fun EmptyMemo(modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
-    }
-}
-
-@Composable
-private fun ShoppingItemRow(
-    item: ShoppingItemEntity,
-    highlighted: Boolean,
-    onClick: () -> Unit,
-) {
-    val background by animateColorAsState(
-        targetValue = if (highlighted) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-        label = "highlight",
-    )
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .background(background)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .testTag(TestTags.item(item.id)),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            text = item.displayName,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f),
-        )
-        item.quantity?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
     }
 }
 
@@ -206,6 +217,10 @@ object TestTags {
     const val EDIT_QUANTITY = "edit_quantity"
     const val EDIT_NOTE = "edit_note"
     const val EDIT_CLOSE = "edit_close"
+    const val SNACKBAR = "snackbar"
 
     fun item(id: Long) = "memo_item_$id"
+
+    /** ○ ボタン（G-04 で照らす場所）。 */
+    fun boughtButton(id: Long) = "memo_item_bought_$id"
 }

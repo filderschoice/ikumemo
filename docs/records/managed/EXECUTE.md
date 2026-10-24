@@ -5,6 +5,41 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 15:00
+  summary: スワイプで買った／やめた、○ で買った、元に戻すを追加（M1 完了）
+  details:
+    変更内容: >-
+      メモの行を SwipeToDismissBox にし、右へで「買った」、左へで「やめた」とした（D-4・F-10・F-11）。確定は幅の 40%（R-05）で、
+      しきい値を超えた瞬間に performHapticFeedback で知らせる。行の左の ○ でも「買った」にできる（F-13）。
+      「買った」は端末の今日の日付で記録し（R-10）、同じ日・同じお店のお買い物にまとめ、同じ日の 2 回目も別の記録にする（R-11）。
+      写真は同じファイルを記録へ引き継ぐ（R-15）。「やめた」は記録せず品目は残す（R-03）。
+      操作後に「買った：牛乳 ／ 元に戻す」を 5 秒表示し（TalkBack 等の利用時は推奨時間まで延長）、元に戻せるのは最新の 1 件だけ（F-12・R-04）。
+      元に戻すとメモの同じ位置へ戻し、記録と使われなくなったお買い物を消して購入回数等を計算し直す。
+      購入回数・最後に買った日・平均間隔の計算は core/suggest の PurchaseStats に置いた（R-12）。
+      ViewModel の操作は PLAN §4.1 の UiState / Event に合わせて onEvent に集約した（detekt の TooManyFunctions 対策を兼ねる）。
+      Compose の画面テストは ui-test-manifest が debug にだけ入るため src/testDebug に置いた（release の単体テストでは動かないため）。
+      追加シートの「追加する」を座標で押すテストはシートの動作中に外れて不安定だったため、キーボードの完了操作で追加する形にした
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/suggest/PurchaseStats.kt
+      - core/src/test/kotlin/com/ikumemo/core/suggest/PurchaseStatsTest.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ProductStatsUpdater.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/ShoppingRepositoryTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestDatabase.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、画面テストの 3 回連続実行（--rerun-tasks）、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（画面テスト 3 件で「文字で追加 → 右スワイプで記録 → 元に戻す」「左スワイプでやめた」「○ で買った」を確認、
+      3 回とも成功）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-013
 - date: 2026-10-25 13:30
   summary: メモ画面の基本（文字で追加・編集シート・重複判定）と下タブ 3 つの画面骨格を追加（M1）
   details:
