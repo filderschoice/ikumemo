@@ -154,7 +154,7 @@ class VoiceInputViewModel(
     }
 
     private suspend fun showCards(candidates: List<String>) {
-        val parser = VoiceTextParser(knownNames = repository.productNames())
+        val parser = VoiceTextParser(knownNames = repository.products.names())
         val items = parser.parseBest(candidates)
         if (items.isEmpty()) {
             mutableState.value = VoiceInputState.NotHeard

@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalAccessibilityManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -42,11 +43,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.UndoableAction
 import com.ikumemo.mobile.voice.VoiceInputSheet
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+@Composable
+private fun rememberPhotoStore(): PhotoStore {
+    val context = LocalContext.current
+    return remember(context) { PhotoStore(context) }
+}
 
 /** 一瞬光らせる時間（R-01）。 */
 private const val HIGHLIGHT_MILLIS = 1_200L
@@ -58,6 +66,7 @@ private const val UNDO_MILLIS = 5_000L
 fun ShoppingListScreen(
     viewModel: ShoppingListViewModel = viewModel(factory = AppViewModelFactory.Factory),
     voiceViewModel: VoiceInputViewModel = viewModel(factory = AppViewModelFactory.Factory),
+    photoStore: PhotoStore = rememberPhotoStore(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val addSuggestions by viewModel.addSuggestions.collectAsStateWithLifecycle()
@@ -83,9 +92,9 @@ fun ShoppingListScreen(
             state.items.firstOrNull { it.id == sheet.itemId }?.let { item ->
                 EditItemSheet(
                     item = item,
-                    onSave = { name, quantity, note ->
-                        onEvent(ShoppingListEvent.SaveEdit(item.id, name, quantity, note))
-                    },
+                    stores = state.stores,
+                    photoStore = photoStore,
+                    onSave = { onEvent(ShoppingListEvent.SaveEdit(item.id, it)) },
                 )
             }
         null -> Unit
@@ -277,6 +286,7 @@ object TestTags {
     const val EDIT_QUANTITY = "edit_quantity"
     const val EDIT_NOTE = "edit_note"
     const val EDIT_CLOSE = "edit_close"
+    const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
 
     /** お店チップ（G-06 で照らす場所）。 */

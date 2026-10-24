@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ikumemo.core.suggest.ProductSummary
 import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.data.AddItemResult
+import com.ikumemo.mobile.data.ItemEdit
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.UndoableAction
@@ -80,9 +81,7 @@ sealed interface ShoppingListEvent {
 
     data class SaveEdit(
         val itemId: Long,
-        val name: String,
-        val quantity: String,
-        val note: String,
+        val edit: ItemEdit,
     ) : ShoppingListEvent
 
     /** 「買った」にする（右スワイプ・○、F-10・F-13）。 */
@@ -184,7 +183,7 @@ class ShoppingListViewModel(
 
     /** メモにある物を除いた候補。 */
     val addSuggestions: StateFlow<AddSuggestions> =
-        combine(addQuery, repository.observeProductSummaries(), repository.observeItems()) { query, products, items ->
+        combine(addQuery, repository.products.observeSummaries(), repository.observeItems()) { query, products, items ->
             val inMemo = items.map { it.productId }.toSet()
             AddSuggestions(
                 query = query,
@@ -257,7 +256,7 @@ class ShoppingListViewModel(
 
     private fun saveEdit(event: ShoppingListEvent.SaveEdit) =
         write {
-            handle(repository.updateItem(event.itemId, event.name, event.quantity, event.note))
+            handle(repository.updateItem(event.itemId, event.edit))
             local.update { it.copy(sheet = null) }
         }
 

@@ -5,6 +5,47 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 20:40
+  summary: 写真の添付（撮る・選ぶ・縮小と Exif の除去・記録への引き継ぎ）と編集シートの買うお店を追加（M4）
+  details:
+    変更内容: >-
+      PhotoStore を追加した。Photo Picker（権限不要）と標準カメラアプリ（TakePicture＋FileProvider、CAMERA 権限は宣言しない）から
+      受け取った写真を filesDir/photos/ へ長辺 1600px に縮小して保存し、Exif の向きを画素へ反映したうえで Exif の無い JPEG にする
+      （撮影位置を残さない、F-07・PLAN §4.3）。元の URI は保持せず、カメラの一時ファイル（cacheDir/camera/）は取り込み後に消す。
+      保存は一時ファイルに書いてから置き換える。DB には photos/ からの相対パスを持ち、「買った」では同じファイルを記録から参照する（R-15）。
+      編集シートを EditItemSheet.kt に分け、買うお店（上位 5 件となし）と写真（サムネイル・撮る・選ぶ・外す）を加え、メモの行に写真ありの印を出す。
+      表示は Coil 2.7.0、Exif の読み取りは Lint の指摘（古い Android の既知の不具合）に従い androidx.exifinterface 1.3.7 を使う。
+      ShoppingRepository の関数数を detekt の上限に収めるため、品目の処理を ProductRepository に分けた。
+      テストが間欠的に止まる事象があったため、テスト用 DB の実行スレッドを DB ごとに持たせた（既定の共有プールに前のテストの処理が残るのを避ける）
+    変更ファイル:
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/res/xml/file_paths.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ProductRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/EditItemSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ItemSheets.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/PhotoStoreTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/PhotoSizingTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/ShoppingRepositoryTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestDatabase.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（写真のテスト 7 件。3200×2400 が 1600×1200 になり GPS の Exif が消える、小さい写真は拡大しない、
+      向きの反映、読めないファイルの無視、参照されない写真の削除、縮小の計算、記録への同じファイルの引き継ぎ）、Lint No issues found、
+      markdownlint 0 issues、記録ファイル OK。マニフェストに CAMERA・保存領域の権限は無い
+    関連ID:
+      - BL-040
 - date: 2026-10-25 19:10
   summary: いつものお店（お店チップ・選ぶシート・登録・自動解除・使わない印と統合）を追加（M3）
   details:

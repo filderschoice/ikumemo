@@ -36,7 +36,8 @@
 | PLAN §4.3 | Room の 6 テーブル（お店・品目・メモ・お買い物・記録・おしらせ）と DAO、スキーマ JSON の Git 管理 | `data/db/`、`mobile/schemas/` |
 | R-02・PLAN §4.4 | 品名の正規化（NFKC・小文字化・空白除去 → 漢字を読みへ → カタカナをひらがなへ）と自作の読み辞書 | `core/text/ProductNameNormalizer.kt`、`ReadingDictionary.kt`、`DefaultReadings.kt` |
 | F-03 | 文字で追加（追加シート。追加後もシートを開いたままにして続けて入れられる） | `shoppinglist/ItemSheets.kt` の `AddItemSheet` |
-| F-04（一部） | 項目の編集シート（品名・数量・メモ。閉じると保存）。お店・写真・各欄のマイクは未実装 | `shoppinglist/ItemSheets.kt` の `EditItemSheet` |
+| F-04（一部） | 項目の編集シート（品名・数量・メモ・買うお店・写真。閉じると保存）。各欄のマイクは未実装 | `shoppinglist/EditItemSheet.kt` |
+| F-07・R-15 | 写真は「撮る」（標準カメラ＋FileProvider）と「選ぶ」（Photo Picker）。`filesDir/photos/` へ長辺 1600px・Exif 無しの JPEG で保存し、「買った」では同じファイルを記録から参照。メモの行に写真ありの印 | `data/PhotoStore.kt`、`EditItemSheet.kt` |
 | R-01・R-02 | 同じ物がメモにあれば追加せず、既存の項目を一瞬光らせて「○○はもうメモにあります」 | `data/ShoppingRepository.kt`、`ShoppingListViewModel` |
 | F-10・F-11・D-4・R-05 | 右へスワイプで「買った」、左へで「やめた」。幅の 40% で確定し、超えた瞬間に軽い振動。背景は色＋アイコン＋文字 | `shoppinglist/SwipeableItemRow.kt` |
 | F-13 | 行の左の ○ でも「買った」（○ を隠す設定は未実装） | `SwipeableItemRow.kt` の `ItemRowContent` |
@@ -64,7 +65,7 @@
 
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
-- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`・`shoppinglist/`・`calendar/`・
+- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
   `reminder/`（後ろの 2 つは骨格のみ）。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
 - 画面は MVVM + 単方向データフロー。画面からの操作は `sealed interface` のイベント（例 `ShoppingListEvent`）を
@@ -129,6 +130,8 @@
 - 型の保存形式: `LocalDate` は epochDay、`Instant` は epoch ミリ秒、おしらせの状態（`PENDING` / `USED_UP` / `DISCARDED`）は列挙名
 - 品目は `normalizedName`（core/text の正規化名）を一意にし、同じ物の判定に使う（R-02）。購入回数・最後に買った日・
   平均間隔は記録から計算し直す値として持つ（R-12）
+- 写真の列（`photoUri`）は `photos/<UUID>.jpg` の相対パス。元の URI は保持しない。取り込みは向きを画素へ反映 → 縮小 →
+  Exif を書かない JPEG（品質 85）を一時ファイルへ書いてから置き換える
 - 外部キー: 記録を消すとおしらせを CASCADE で消す（R-12）。お店は行を消さず `archived` を立てる（R-16）ため、記録・メモ・
   お買い物からの参照は SET_NULL
 - お買い物（`shopping_trip`）は同じ日・同じお店（お店なし同士も同一、`storeId IS :storeId` で照合）で 1 件
@@ -143,6 +146,8 @@
   画面テストは `testDebug/.../testing/ComposeWait.kt` の `awaitCondition`（`waitForIdle` でメインスレッドを進めながら待つ。
   Robolectric の `waitUntil` は待つ間にメインスレッドの処理を進めない）で待ち、ボトムシートの中のボタンは座標のタップが
   届かないため `performSemanticsAction(SemanticsActions.OnClick)` で押す
+- テスト用 DB（`inMemoryDatabase()`）は実行スレッドを DB ごとに持つ（共有プールに前のテストの処理が残って止まるのを避ける）。
+  写真の読み書きのテストは `@GraphicsMode(NATIVE)` で動かす
 - DAO テストは Robolectric（4.14.1 が targetSdk 36 未対応のため `robolectric.properties` で `sdk=35`）とインメモリ DB で行う
 
 ### UI/UX 方針
@@ -160,7 +165,8 @@
 - セキュリティ／プライバシー: `AndroidManifest.xml` で宣言する権限は `RECORD_AUDIO` だけ（音声認識サービスを見つけるための
   `<queries>` の `android.speech.RecognitionService` も宣言）。INTERNET・位置情報・CAMERA・VIBRATE・SCHEDULE_EXACT_ALARM は
   使わない方針（PLAN §5）。録音は端末の音声認識サービスの中で行われ、本アプリは音声を保存しない。公開している画面は
-  起動用の `MainActivity` だけ
+  起動用の `MainActivity` だけ。FileProvider（`${applicationId}.fileprovider`、非公開・URI 権限の付与のみ）はカメラの一時ファイル
+  `cacheDir/camera/` だけを渡す
 - 署名鍵・`local.properties`・`secrets.properties`・`*.jks` / `*.keystore`・`.env*` は `.gitignore` で除外する
 
 ## 実装制約

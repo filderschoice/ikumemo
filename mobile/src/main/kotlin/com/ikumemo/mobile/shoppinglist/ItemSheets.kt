@@ -21,10 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -32,7 +28,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.ikumemo.core.suggest.ProductSummary
 import com.ikumemo.mobile.R
-import com.ikumemo.mobile.data.db.ShoppingItemEntity
 
 /**
  * 文字で追加するシート（F-03）。入力中の候補（F-20）と、よく買う物の「いつもの」チップ（F-21）を出す。
@@ -102,56 +97,6 @@ private fun ProductChips(
                 label = { Text(stringResource(R.string.add_sheet_chip, product.name)) },
                 modifier = Modifier.heightIn(min = 48.dp).testTag(tag(product.id)),
             )
-        }
-    }
-}
-
-/** 項目の編集シート（F-04）。閉じたときに内容を保存する（確認ダイアログは出さない、PLAN §1.3-4）。 */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditItemSheet(
-    item: ShoppingItemEntity,
-    onSave: (name: String, quantity: String, note: String) -> Unit,
-) {
-    var name by rememberSaveable(item.id) { mutableStateOf(item.displayName) }
-    var quantity by rememberSaveable(item.id) { mutableStateOf(item.quantity.orEmpty()) }
-    var note by rememberSaveable(item.id) { mutableStateOf(item.note.orEmpty()) }
-    ModalBottomSheet(
-        onDismissRequest = { onSave(name, quantity, note) },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp).imePadding(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(stringResource(R.string.edit_name)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.EDIT_NAME),
-            )
-            OutlinedTextField(
-                value = quantity,
-                onValueChange = { quantity = it },
-                label = { Text(stringResource(R.string.edit_quantity)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.EDIT_QUANTITY),
-            )
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text(stringResource(R.string.edit_note)) },
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.EDIT_NOTE),
-            )
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Button(
-                    onClick = { onSave(name, quantity, note) },
-                    modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EDIT_CLOSE),
-                ) {
-                    Text(stringResource(R.string.common_close))
-                }
-            }
         }
     }
 }

@@ -1,15 +1,12 @@
 package com.ikumemo.mobile.data
 
 import androidx.room.withTransaction
-import com.ikumemo.core.suggest.ProductSummary
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.db.IkumemoDatabase
-import com.ikumemo.mobile.data.db.ProductEntity
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
 import com.ikumemo.mobile.data.db.ShoppingTripEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import java.time.Clock
 import java.time.LocalDate
 
@@ -29,6 +26,15 @@ sealed interface AddItemResult {
     data object Blank : AddItemResult
 }
 
+/** 編集シートで保存する内容（F-04）。 */
+data class ItemEdit(
+    val name: String,
+    val quantity: String?,
+    val note: String?,
+    val plannedStoreId: Long? = null,
+    val photoUri: String? = null,
+)
+
 /** 元に戻せる操作（R-04 元に戻せるのは最新の 1 件）。 */
 sealed interface UndoableAction {
     val item: ShoppingItemEntity
@@ -43,14 +49,14 @@ sealed interface UndoableAction {
     ) : UndoableAction
 }
 
-/** メモ（これから買う物）の読み書き。品目（候補の元）の作成もここで行う。 */
+/** メモ（これから買う物）の読み書き。品目（候補の元）は [products] で扱う。 */
 class ShoppingRepository(
     private val db: IkumemoDatabase,
-    private val normalizer: ProductNameNormalizer,
+    normalizer: ProductNameNormalizer,
     private val clock: Clock,
 ) {
+    val products = ProductRepository(db, normalizer, clock)
     private val itemDao = db.shoppingItemDao()
-    private val productDao = db.productDao()
     private val tripDao = db.shoppingTripDao()
     private val recordDao = db.purchaseRecordDao()
     private val statsUpdater = ProductStatsUpdater(db)
@@ -59,17 +65,7 @@ class ShoppingRepository(
 
     /** 正規化した品名が同じ物がメモにあれば返す（R-01、音声の確認カードの「メモにあります」）。 */
     suspend fun findInMemo(name: String): ShoppingItemEntity? =
-        productDao.findByNormalizedName(normalizer.normalize(name))?.let { itemDao.findByProductId(it.id) }
-
-    suspend fun productNames(): List<String> = productDao.getAllNames()
-
-    /** 候補の元になる品目（F-20・F-21）。 */
-    fun observeProductSummaries(): Flow<List<ProductSummary>> =
-        productDao.observeAll().map { products ->
-            products.map {
-                ProductSummary(it.id, it.name, it.normalizedName, it.purchaseCount, it.lastPurchasedAt, it.hidden)
-            }
-        }
+        products.findByName(name)?.let { itemDao.findByProductId(it.id) }
 
     /**
      * メモの末尾へ追加する。正規化した品名が同じ物がメモにあれば追加しない（R-01・R-02）。
@@ -82,7 +78,7 @@ class ShoppingRepository(
         val displayName = name.trim()
         if (displayName.isEmpty()) return AddItemResult.Blank
         return db.withTransaction {
-            val product = findOrCreateProduct(displayName)
+            val product = products.findOrCreate(displayName)
             val existing = itemDao.findByProductId(product.id)
             if (existing != null) {
                 AddItemResult.AlreadyInMemo(existing.id, existing.displayName)
@@ -108,17 +104,21 @@ class ShoppingRepository(
      */
     suspend fun updateItem(
         itemId: Long,
-        name: String,
-        quantity: String?,
-        note: String?,
+        edit: ItemEdit,
     ): AddItemResult =
         db.withTransaction {
             val item = itemDao.getById(itemId) ?: return@withTransaction AddItemResult.Blank
-            val displayName = name.trim()
+            val displayName = edit.name.trim()
             var result: AddItemResult = AddItemResult.Added(itemId)
-            var updated = item.copy(quantity = quantity.blankToNull(), note = note.blankToNull())
+            var updated =
+                item.copy(
+                    quantity = edit.quantity.blankToNull(),
+                    note = edit.note.blankToNull(),
+                    plannedStoreId = edit.plannedStoreId,
+                    photoUri = edit.photoUri,
+                )
             if (displayName.isNotEmpty() && displayName != item.displayName) {
-                val product = findOrCreateProduct(displayName)
+                val product = products.findOrCreate(displayName)
                 val other = itemDao.findByProductId(product.id)?.takeIf { it.id != itemId }
                 if (other != null) {
                     result = AddItemResult.AlreadyInMemo(other.id, other.displayName)
@@ -183,13 +183,6 @@ class ShoppingRepository(
                 itemDao.insert(action.item)
             }
         }
-    }
-
-    suspend fun findOrCreateProduct(displayName: String): ProductEntity {
-        val normalized = normalizer.normalize(displayName)
-        productDao.findByNormalizedName(normalized)?.let { return it }
-        val product = ProductEntity(name = displayName, normalizedName = normalized, createdAt = clock.instant())
-        return product.copy(id = productDao.insert(product))
     }
 }
 

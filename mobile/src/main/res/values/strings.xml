@@ -46,6 +46,14 @@
     <string name="edit_name">品名</string>
     <string name="edit_quantity">数量</string>
     <string name="edit_note">メモ</string>
+    <string name="edit_planned_store">買うお店</string>
+    <string name="edit_planned_store_none">なし</string>
+    <string name="edit_photo">写真</string>
+    <string name="edit_photo_take">撮る</string>
+    <string name="edit_photo_pick">選ぶ</string>
+    <string name="edit_photo_remove">写真を外す</string>
+    <string name="edit_photo_description">付けた写真</string>
+    <string name="memo_has_photo">写真あり</string>
     <string name="calendar_preparing">買った物は、ここに日付ごとに残ります</string>
     <string name="reminder_preparing">期限を決めた物が、ここに並びます</string>
     <string name="theme_pop">ポップ</string>

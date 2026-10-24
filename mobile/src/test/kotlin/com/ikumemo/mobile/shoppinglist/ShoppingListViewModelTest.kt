@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ikumemo.core.text.ProductNameNormalizer
+import com.ikumemo.mobile.data.ItemEdit
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
@@ -118,7 +119,7 @@ class ShoppingListViewModelTest {
                 viewModel.onEvent(ShoppingListEvent.OpenEditor(item.id))
                 assertEquals(HomeSheet.Edit(item.id), awaitUntil { it.sheet != null }.sheet)
 
-                viewModel.onEvent(ShoppingListEvent.SaveEdit(item.id, "低脂肪乳", " 2本 ", ""))
+                viewModel.onEvent(ShoppingListEvent.SaveEdit(item.id, ItemEdit("低脂肪乳", " 2本 ", "")))
 
                 val state = awaitUntil { it.sheet == null && it.items.single().quantity == "2本" }
                 val edited = state.items.single()
@@ -137,7 +138,7 @@ class ShoppingListViewModelTest {
                 viewModel.onEvent(ShoppingListEvent.AddByText("パン"))
                 val items = awaitUntil { it.items.size == 2 }.items
 
-                viewModel.onEvent(ShoppingListEvent.SaveEdit(items[1].id, "ぎゅうにゅう", "1斤", ""))
+                viewModel.onEvent(ShoppingListEvent.SaveEdit(items[1].id, ItemEdit("ぎゅうにゅう", "1斤", "")))
 
                 val state = awaitUntil { it.message != null && it.items[1].quantity != null }
                 assertEquals(listOf("牛乳", "パン"), state.items.map { it.displayName })

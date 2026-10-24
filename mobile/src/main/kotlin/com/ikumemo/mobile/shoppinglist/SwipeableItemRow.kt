@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -142,6 +143,14 @@ private fun ItemRowContent(
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f).padding(vertical = 12.dp),
         )
+        if (item.photoUri != null) {
+            Icon(
+                Icons.Rounded.PhotoCamera,
+                contentDescription = stringResource(R.string.memo_has_photo),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(end = 8.dp),
+            )
+        }
         item.quantity?.let {
             Text(
                 text = it,

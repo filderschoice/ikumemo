@@ -117,4 +117,15 @@ class ShoppingRepositoryTest {
 
             assertEquals(1, repository.observeItems().first().size)
         }
+
+    @Test
+    fun photoIsCarriedOverToRecordAsSameFile() =
+        runTest {
+            val id = add("牛乳")
+            repository.updateItem(id, ItemEdit("牛乳", null, null, photoUri = "photos/milk.jpg"))
+
+            repository.markBought(id)
+
+            assertEquals("photos/milk.jpg", recordsToday().single().photoUri)
+        }
 }
