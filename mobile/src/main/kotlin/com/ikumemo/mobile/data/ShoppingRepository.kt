@@ -57,8 +57,6 @@ class ShoppingRepository(
 
     fun observeItems(): Flow<List<ShoppingItemEntity>> = itemDao.observeAll()
 
-    suspend fun getItem(id: Long): ShoppingItemEntity? = itemDao.getById(id)
-
     /** 正規化した品名が同じ物がメモにあれば返す（R-01、音声の確認カードの「メモにあります」）。 */
     suspend fun findInMemo(name: String): ShoppingItemEntity? =
         productDao.findByNormalizedName(normalizer.normalize(name))?.let { itemDao.findByProductId(it.id) }
