@@ -96,6 +96,7 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 ## 関連ドキュメント
 
 - [PLAN.md](PLAN.md): 開発開始前の計画書（要件と判断の背景。開発開始後は更新しない）
+- [docs/design/WIREFRAME.md](docs/design/WIREFRAME.md): 主要な画面とシートのワイヤーフレーム
 - [docs/records/managed/DESIGN.md](docs/records/managed/DESIGN.md): 実装済み内容の統合設計書
 - [docs/records/managed/BACKLOG.md](docs/records/managed/BACKLOG.md): 未対応事項・課題・次ステップ
 - [CONTRIBUTING.local.md](CONTRIBUTING.local.md): 報告の受け付け方針（Issue は受付、外部の Pull Request は非受付）と
