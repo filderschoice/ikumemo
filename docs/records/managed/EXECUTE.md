@@ -5,6 +5,37 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-26 01:20
+  summary: きせかえ画面（テーマのプレビュー付きカード・暗い画面・文字の大きさ）とせっていの入口を追加（M6）
+  details:
+    変更内容: >-
+      AppearancePrefs（DataStore）・AppearanceViewModel・AppearanceScreen を追加した。テーマは各テーマの色で描いた小さな画面の見本の
+      カードから選び（F-60）、暗い画面は「端末に合わせる / 明るい / 暗い」（F-63）、文字の大きさは「ふつう / 大きい / とても大きい」（F-65、
+      見本の文字もその大きさで出す）。選んだらすぐ保存し、MainActivity が保存値を読んでアプリ全体の IkumemoTheme に反映する
+      （読み終えるまで描かず、起動直後に既定のテーマが一瞬見えるのを防ぐ）。保存値は storageKey で持ち、未知の値は既定値へ戻す。
+      メモ画面の右上に「⚙ せってい」（文字付き）を置き、せってい画面（今は「きせかえ」だけ。ほかの項目は BL-082）と戻るボタン付きの枠を作った
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/DarkMode.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（ViewModel テスト 4 件。既定値、選んだ値の保存と作り直し後の復元、未知の保存値の既定値への戻し、暗い画面の判定。
+      画面テスト 1 件でカードとチップの選択が届く）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-060
 - date: 2026-10-26 00:40
   summary: 期限の通知の予約・表示・ボタン操作と、再起動・時刻変更での予約し直しを追加（M5）
   details:

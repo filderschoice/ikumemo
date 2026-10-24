@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -67,11 +68,17 @@ fun ShoppingListScreen(
     viewModel: ShoppingListViewModel = viewModel(factory = AppViewModelFactory.Factory),
     voiceViewModel: VoiceInputViewModel = viewModel(factory = AppViewModelFactory.Factory),
     photoStore: PhotoStore = rememberPhotoStore(),
+    onOpenSettings: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val addSuggestions by viewModel.addSuggestions.collectAsStateWithLifecycle()
     val onEvent = viewModel::onEvent
-    ShoppingListContent(state = state, voiceAvailable = voiceViewModel.isAvailable, onEvent = onEvent)
+    ShoppingListContent(
+        state = state,
+        voiceAvailable = voiceViewModel.isAvailable,
+        onEvent = onEvent,
+        onOpenSettings = onOpenSettings,
+    )
     when (val sheet = state.sheet) {
         HomeSheet.Voice ->
             VoiceInputSheet(
@@ -107,6 +114,7 @@ fun ShoppingListContent(
     state: ShoppingListUiState,
     voiceAvailable: Boolean,
     onEvent: (ShoppingListEvent) -> Unit,
+    onOpenSettings: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
@@ -123,6 +131,7 @@ fun ShoppingListContent(
         Column(Modifier.fillMaxSize()) {
             TopAppBar(
                 title = { Text(stringResource(R.string.memo_title)) },
+                actions = { SettingsButton(onOpenSettings) },
                 windowInsets = WindowInsets(0),
             )
             StoreChip(
@@ -214,6 +223,15 @@ private fun UndoEffect(
     }
 }
 
+/** 右上の ⚙ せってい。アイコンだけにせず文字を添える（PLAN §2.7）。 */
+@Composable
+private fun SettingsButton(onClick: () -> Unit) {
+    TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.SETTINGS)) {
+        Icon(Icons.Rounded.Settings, contentDescription = null)
+        Text(stringResource(R.string.settings_title), modifier = Modifier.padding(start = 4.dp))
+    }
+}
+
 @Composable
 private fun EmptyMemo(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
@@ -288,6 +306,7 @@ object TestTags {
     const val EDIT_CLOSE = "edit_close"
     const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
+    const val SETTINGS = "settings"
 
     /** お店チップ（G-06 で照らす場所）。 */
     const val STORE_CHIP = "store_chip"

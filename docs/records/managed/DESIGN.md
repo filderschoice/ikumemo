@@ -18,7 +18,7 @@
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
 - 進捗: マイルストーン M0（準備）・M1 の完了条件（手入力で追加 → スワイプで記録 → 元に戻す）・M2 の完了条件
-  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4 のうち写真とカレンダー・M5（おしらせ）を実装済み。各入力欄のマイク（F-04）は未実装。
+  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4 のうち写真とカレンダー・M5（おしらせ）・M6 のうちテーマ・暗い画面・文字の大きさを実装済み。各入力欄のマイク（F-04）は未実装。
   記録の修正・削除（F-16）は処理のみ実装済みで、画面はカレンダー（M4）で作る
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
@@ -65,6 +65,8 @@
 | F-51・R-24・R-25 | 次の通知時刻を `setAndAllowWhileIdle` で 1 件だけ予約。起動時と再起動・時刻変更・タイムゾーン変更・アプリ更新で予約し直す。チャンネルは「期限のおしらせ」1 種。押すとおしらせのタブ | `reminder/ReminderScheduler.kt`、`ReminderReceivers.kt`、`ReminderNotifier.kt` |
 | F-52・R-26・R-27 | 1 品目の通知だけ「使い切った」「また買う」（メモへ入れて使い切った）「あとで」（翌日にもう一度） | `reminder/ReminderActions.kt` |
 | PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
+| F-60・F-63・F-65 | きせかえ（各テーマの色で描いた見本のカードでテーマを選ぶ、暗い画面「端末に合わせる / 明るい / 暗い」、文字の大きさ 3 段階）。選んだらすぐ保存しアプリ全体へ反映 | `settings/AppearanceScreen.kt`、`data/AppearancePrefs.kt`、`MainActivity.kt` |
+| PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。せってい画面の項目は今は「きせかえ」だけ | `settings/SettingsScreen.kt` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
@@ -75,7 +77,7 @@
 
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
-- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
+- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `settings/`（せっていの枠ときせかえ）・`designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
   `reminder/`。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
 - 画面は MVVM + 単方向データフロー。画面からの操作は `sealed interface` のイベント（例 `ShoppingListEvent`）を
@@ -137,9 +139,11 @@
 - カレンダーの曜日の色とお店のドットの色は `CalendarColors`（テーマに依らない固定値）。全テーマの surface・background の上で
   曜日の文字 4.5:1、ドット 3:1 以上を `CalendarColorsTest` で確かめる。お店の色はお店の ID から 6 色を順に割り当てる（F-32 は v1.x）
 - 角の丸み: ポップ・やさしい 12/20/28dp、クール 4/8/12dp、シンプル 8/12/16dp（small/medium/large）
-- 初期テーマはポップ（PLAN に既定値の指定が無いため D-8 の並びの先頭。きせかえ画面 BL-060 で変更可能）
-- テーマと文字の大きさは `storageKey`（`pop` / `gentle` / `cool` / `simple`、`normal` / `large` / `extra_large`）で
-  保存する前提。未知の値は既定値へ戻す
+- 初期テーマはポップ（PLAN に既定値の指定が無いため D-8 の並びの先頭）。暗い画面の初期値は「端末に合わせる」、文字の大きさは「ふつう」
+- 見た目の設定は `AppearancePrefs`（`appearance_theme`・`appearance_dark_mode`・`appearance_text_size`）。`MainActivity` は保存値を
+  読み終えてから描く（起動直後に既定のテーマが一瞬見えるのを防ぐ）
+- テーマ・暗い画面・文字の大きさは `storageKey`（`pop` / `gentle` / `cool` / `simple`、`system` / `light` / `dark`、
+  `normal` / `large` / `extra_large`）で保存し、未知の値は既定値へ戻す
 - フォントは端末標準を使い、同梱しない（PLAN §2.7）
 
 ### データ設計方針

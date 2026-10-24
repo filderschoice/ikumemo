@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.calendar.CalendarViewModel
 import com.ikumemo.mobile.reminder.ReminderViewModel
+import com.ikumemo.mobile.settings.AppearanceViewModel
 import com.ikumemo.mobile.shoppinglist.ShoppingListViewModel
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 
@@ -31,6 +32,7 @@ object AppViewModelFactory {
                 val container = container()
                 ReminderViewModel(container.reminderRepository, container.reminderPrefs, container.clock)
             }
+            initializer { AppearanceViewModel(container().appearancePrefs) }
             initializer { VoiceInputViewModel(container().shoppingRepository, container().speechEngineFactory()) }
         }
 

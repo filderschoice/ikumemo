@@ -3,6 +3,7 @@ package com.ikumemo.mobile
 import android.content.Context
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
+import com.ikumemo.mobile.data.AppearancePrefs
 import com.ikumemo.mobile.data.RecordRepository
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
@@ -40,6 +41,8 @@ class AppContainer(
     val settings by lazy { AppSettings(dataStore) }
 
     val reminderPrefs by lazy { ReminderPrefs(dataStore) }
+
+    val appearancePrefs by lazy { AppearancePrefs(dataStore) }
 
     val reminderRepository: ReminderRepository by lazy {
         ReminderRepository(database, clock) { reminderScheduler.reschedule() }
