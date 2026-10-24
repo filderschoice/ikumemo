@@ -47,7 +47,8 @@
 
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
-- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`・`shoppinglist/`・`calendar/`・`reminder/`（後ろの 2 つは骨格のみ）。予定は PLAN §4.5 の
+- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`・`shoppinglist/`・`calendar/`・
+  `reminder/`（後ろの 2 つは骨格のみ）。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
 - 画面は MVVM + 単方向データフロー。ViewModel は `StateFlow<UiState>` を公開し、DB の Flow と画面だけの状態
   （開いているシート・光らせる項目・一度だけ出す知らせ）を `combine` する。知らせは画面が表示したら `messageShown()` で消す
