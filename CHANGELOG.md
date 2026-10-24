@@ -54,3 +54,11 @@ sesami-wear に合わせてリポジトリ文書を作成しました（BL-005�
 - 本文は apache.org 配布の `LICENSE-2.0.txt` と同一（MD5 `3b83ef96387f14655fc854ddc3c6bd57` で照合）。
   付録の著作権行は雛形のまま残し、著作権表示は `NOTICE` に書く
 - README.md・SECURITY.md・NOTICE からの `LICENSE` へのリンクが有効になった
+
+## 2026-10-25（LICENSE と公式本文の照合）
+
+`LICENSE` を apache.org 公式の <https://www.apache.org/licenses/LICENSE-2.0.txt>（HTTP 200 で取得）と照合し、
+バイト単位で一致することを確認しました（BL-092）。`LICENSE` の変更はありません。
+
+- サイズ 11,358 バイト、MD5 `3b83ef96387f14655fc854ddc3c6bd57`、
+  SHA-256 `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`（`cmp` で差分なし）
