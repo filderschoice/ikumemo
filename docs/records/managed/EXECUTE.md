@@ -5,6 +5,40 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 09:40
+  summary: せっていに そうさ（○ の表示・振動）と おしらせ（時刻・当日のおしらせ）の画面を追加（M6）
+  details:
+    変更内容: >-
+      せっていの項目に「そうさ」「おしらせ」を足した。そうさは ○ の表示（F-13）と振動（R-05）のオン/オフで、OperationPrefs（DataStore）に
+      保存し、ShoppingListViewModel の状態から LocalOperationSettings でメモの行へ渡す（○ を消した行は左に余白、振動オフなら
+      performHapticFeedback を呼ばない）。おしらせは通知の時刻（TimePicker のダイアログ、24 時間表示）と期限当日のおしらせのオン/オフで、
+      保存のたびに ReminderScheduler.reschedule で次の通知を予約し直す（続けて変えても古い値で上書きしないよう Mutex で 1 つずつ保存）。
+      切り替えの行は SettingsSwitchRow として共通にした。元の BL-082 は大きいため BL-082・BL-092・BL-093 に分けた
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/OperationPrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/OperationScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/OperationViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/OperationViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/OperationContentTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（単体テスト計 254 件。追加は設定の保存と作り直し後の復元・続けて変えたときの保存と予約し直し 2 件、
+      切り替えが届くこと・○ を消すと行から消えること 2 件）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-082
 - date: 2026-10-25 08:40
   summary: メモ一覧ウィジェット（W-02、4×2〜4×4、表示専用）と、データ変更・日付の変わり目での描き直しを追加（M7）
   details:

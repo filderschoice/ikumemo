@@ -9,6 +9,8 @@ import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.calendar.CalendarViewModel
 import com.ikumemo.mobile.reminder.ReminderViewModel
 import com.ikumemo.mobile.settings.AppearanceViewModel
+import com.ikumemo.mobile.settings.OperationViewModel
+import com.ikumemo.mobile.settings.ReminderSettingsViewModel
 import com.ikumemo.mobile.shoppinglist.ShoppingListViewModel
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 
@@ -22,6 +24,7 @@ object AppViewModelFactory {
                     container.shoppingRepository,
                     container.storeRepository,
                     Suggestions(container.normalizer),
+                    container.operationPrefs.settings,
                 )
             }
             initializer {
@@ -33,6 +36,11 @@ object AppViewModelFactory {
                 ReminderViewModel(container.reminderRepository, container.reminderPrefs, container.clock)
             }
             initializer { AppearanceViewModel(container().appearancePrefs) }
+            initializer { OperationViewModel(container().operationPrefs) }
+            initializer {
+                val container = container()
+                ReminderSettingsViewModel(container.reminderPrefs) { container.reminderScheduler.reschedule() }
+            }
             initializer { VoiceInputViewModel(container().shoppingRepository, container().speechEngineFactory()) }
         }
 

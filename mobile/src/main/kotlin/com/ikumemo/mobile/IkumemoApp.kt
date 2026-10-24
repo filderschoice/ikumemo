@@ -31,6 +31,8 @@ import androidx.navigation.compose.rememberNavController
 import com.ikumemo.mobile.calendar.CalendarScreen
 import com.ikumemo.mobile.reminder.ReminderScreen
 import com.ikumemo.mobile.settings.AppearanceScreen
+import com.ikumemo.mobile.settings.OperationScreen
+import com.ikumemo.mobile.settings.ReminderSettingsScreen
 import com.ikumemo.mobile.settings.SettingsItem
 import com.ikumemo.mobile.settings.SettingsScreen
 import com.ikumemo.mobile.shoppinglist.HomeNavigation
@@ -52,6 +54,12 @@ object SettingsRoute
 
 @Serializable
 object AppearanceRoute
+
+@Serializable
+object OperationRoute
+
+@Serializable
+object ReminderSettingsRoute
 
 /** 下タブ 3 つ（アイコン＋文字ラベル、PLAN §3）。 */
 private enum class TopLevelTab(
@@ -113,11 +121,15 @@ fun IkumemoApp(
                     onOpen = { item ->
                         when (item) {
                             SettingsItem.APPEARANCE -> navController.navigate(AppearanceRoute)
+                            SettingsItem.OPERATION -> navController.navigate(OperationRoute)
+                            SettingsItem.REMINDER -> navController.navigate(ReminderSettingsRoute)
                         }
                     },
                 )
             }
             composable<AppearanceRoute> { AppearanceScreen(onBack = { navController.popBackStack() }) }
+            composable<OperationRoute> { OperationScreen(onBack = { navController.popBackStack() }) }
+            composable<ReminderSettingsRoute> { ReminderSettingsScreen(onBack = { navController.popBackStack() }) }
         }
     }
 }

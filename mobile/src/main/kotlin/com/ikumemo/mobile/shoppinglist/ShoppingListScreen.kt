@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -174,13 +175,15 @@ fun ShoppingListContent(
                     modifier = Modifier.weight(1f).fillMaxWidth().testTag(TestTags.MEMO_LIST),
                 ) {
                     items(state.items, key = { it.id }) { item ->
-                        SwipeableItemRow(
-                            item = item,
-                            highlighted = item.id == state.highlightedItemId,
-                            onClick = { onEvent(ShoppingListEvent.OpenEditor(item.id)) },
-                            onBought = { onEvent(ShoppingListEvent.MarkBought(item.id)) },
-                            onDismissed = { onEvent(ShoppingListEvent.Dismiss(item.id)) },
-                        )
+                        CompositionLocalProvider(LocalOperationSettings provides state.operation) {
+                            SwipeableItemRow(
+                                item = item,
+                                highlighted = item.id == state.highlightedItemId,
+                                onClick = { onEvent(ShoppingListEvent.OpenEditor(item.id)) },
+                                onBought = { onEvent(ShoppingListEvent.MarkBought(item.id)) },
+                                onDismissed = { onEvent(ShoppingListEvent.Dismiss(item.id)) },
+                            )
+                        }
                         HorizontalDivider()
                     }
                 }

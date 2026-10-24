@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.AppearancePrefs
+import com.ikumemo.mobile.data.OperationPrefs
 import com.ikumemo.mobile.data.RecordRepository
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
@@ -48,6 +49,8 @@ class AppContainer(
     val reminderPrefs by lazy { ReminderPrefs(dataStore) }
 
     val appearancePrefs by lazy { AppearancePrefs(dataStore) }
+
+    val operationPrefs by lazy { OperationPrefs(dataStore) }
 
     val reminderRepository: ReminderRepository by lazy {
         ReminderRepository(database, clock) { reminderScheduler.reschedule() }

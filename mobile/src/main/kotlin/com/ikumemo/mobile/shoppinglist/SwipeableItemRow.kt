@@ -5,10 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
@@ -25,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,14 +37,19 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.data.OperationSettings
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
 
 /** スワイプで確定する距離（画面幅の 40%、R-05）。 */
 private const val SWIPE_THRESHOLD_FRACTION = 0.4f
 
+/** そうさの設定（○ の表示・振動）。メモ画面が渡す。 */
+val LocalOperationSettings = staticCompositionLocalOf { OperationSettings() }
+
 /**
  * メモの 1 行。右へスワイプで「買った」、左へスワイプで「やめた」（D-4・F-10・F-11）。左の ○ を押しても「買った」（F-13）。
  * しきい値を超えた瞬間に軽く振動させる（`performHapticFeedback` のため VIBRATE 権限は不要、R-05）。
+ * ○ と振動は そうさ の設定で消せる（[LocalOperationSettings]）。
  */
 @Composable
 fun SwipeableItemRow(
@@ -54,6 +62,7 @@ fun SwipeableItemRow(
     val currentOnBought by rememberUpdatedState(onBought)
     val currentOnDismissed by rememberUpdatedState(onDismissed)
     val haptics = LocalHapticFeedback.current
+    val vibration = LocalOperationSettings.current.vibration
     val dismissState =
         rememberSwipeToDismissBoxState(
             confirmValueChange = { value ->
@@ -67,7 +76,7 @@ fun SwipeableItemRow(
             positionalThreshold = { totalDistance -> totalDistance * SWIPE_THRESHOLD_FRACTION },
         )
     LaunchedEffect(dismissState.targetValue) {
-        if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
+        if (vibration && dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
@@ -132,11 +141,15 @@ private fun ItemRowContent(
                 .padding(end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBoughtClick, modifier = Modifier.testTag(TestTags.boughtButton(item.id))) {
-            Icon(
-                Icons.Rounded.RadioButtonUnchecked,
-                contentDescription = stringResource(R.string.memo_mark_bought_description, item.displayName),
-            )
+        if (LocalOperationSettings.current.showBoughtButton) {
+            IconButton(onClick = onBoughtClick, modifier = Modifier.testTag(TestTags.boughtButton(item.id))) {
+                Icon(
+                    Icons.Rounded.RadioButtonUnchecked,
+                    contentDescription = stringResource(R.string.memo_mark_bought_description, item.displayName),
+                )
+            }
+        } else {
+            Spacer(Modifier.width(16.dp))
         }
         Text(
             text = item.displayName,

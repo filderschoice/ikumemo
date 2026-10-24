@@ -6,15 +6,18 @@ import com.ikumemo.core.suggest.ProductSummary
 import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.ItemEdit
+import com.ikumemo.mobile.data.OperationSettings
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.UndoableAction
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
 import com.ikumemo.mobile.data.db.StoreEntity
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -146,6 +149,8 @@ data class ShoppingListUiState(
     val selectedStore: StoreEntity? = null,
     /** いつものお店の候補（最近使った順、F-31）。 */
     val stores: List<StoreEntity> = emptyList(),
+    /** そうさの設定（○ の表示・振動）。 */
+    val operation: OperationSettings = OperationSettings(),
 )
 
 private data class LocalState(
@@ -159,6 +164,7 @@ class ShoppingListViewModel(
     private val repository: ShoppingRepository,
     private val storeRepository: StoreRepository,
     private val suggestions: Suggestions = Suggestions(),
+    operation: Flow<OperationSettings> = flowOf(OperationSettings()),
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private val addQuery = MutableStateFlow("")
@@ -173,7 +179,8 @@ class ShoppingListViewModel(
             local,
             storeRepository.observeSelectedStore(),
             storeRepository.observeActiveStores(),
-        ) { items, state, selectedStore, stores ->
+            operation,
+        ) { items, state, selectedStore, stores, operationSettings ->
             ShoppingListUiState(
                 items = items,
                 loaded = true,
@@ -183,6 +190,7 @@ class ShoppingListViewModel(
                 undo = state.undo,
                 selectedStore = selectedStore,
                 stores = stores,
+                operation = operationSettings,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ShoppingListUiState())
 
