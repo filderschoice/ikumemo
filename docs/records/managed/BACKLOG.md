@@ -356,8 +356,7 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: 「たまご」「タマゴ」「卵」が同じ正規化名になる単体テストが成功する
-  依存:
-    - BL-001
+  依存: []
 - id: BL-010
   区分: 機能追加
   タスク内容: Room のデータモデル（PLAN §4.3 の 6 テーブル）、DAO、スキーマ JSON の Git 管理、AppContainer による手動 DI
@@ -365,8 +364,7 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: Robolectric の DAO テストが成功し、スキーマ JSON が mobile/schemas に出力される
-  依存:
-    - BL-001
+  依存: []
 - id: BL-009
   区分: 人手検証
   タスク内容: GitHub リポジトリの設定（main 保護と PR 必須、Secret scanning と Push protection の有効化）（PLAN §7）
@@ -418,8 +416,7 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: version.properties の値が assembleDebug の versionCode と versionName に反映され、署名情報が無い環境でも通常ビルドが成功する
-  依存:
-    - BL-001
+  依存: []
 - id: BL-003
   区分: 機能追加
   タスク内容: デザインシステムの土台（IkumemoTheme、プリセット 4 テーマ × ライト/ダークの配色、文字サイズ倍率と 200% 上限、コントラスト比 4.5:1 の自動テスト）
@@ -427,8 +424,7 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: 4 テーマ × 明暗の主要な文字色と背景色の組み合わせがすべてコントラスト比 4.5:1 以上であることを単体テストで確認し、アプリがテーマ付きで起動する
-  依存:
-    - BL-001
+  依存: []
 - id: BL-002
   区分: 品質ゲート
   タスク内容: CLAUDE.md「本リポジトリの品質ゲート定義」を sesami-wear に合わせて確定する（ktlintCheck・detekt・lintDebug・testDebugUnitTest test・assembleDebug、脆弱性チェックは未導入と明記）
@@ -436,17 +432,7 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: replace-me が残っておらず、定義したコマンドがすべて成功する
-  依存:
-    - BL-001
-  根拠: オーナー指示（2026-10-24）により sesami-wear と同じ定義とし、Gradle の依存脆弱性スキャンは導入しない
-- id: BL-001
-  区分: 機能追加
-  タスク内容: Gradle プロジェクトの雛形（sesami-wear 準拠。Gradle Wrapper 8.13、Version Catalog、core（純 Kotlin/JVM）と mobile（com.ikumemo.mobile）の 2 モジュール、ktlint と detekt、.gitignore、.editorconfig、debug の applicationIdSuffix とアプリ名、edge-to-edge の空画面）
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: assembleDebug・ktlintCheck・detekt・lintDebug・testDebugUnitTest test が成功する（PLAN M0「空のアプリがビルドされる」。CI は導入しないためローカル実行で判定）
   依存: []
-  根拠: PLAN M0 の完了条件は「CI でビルド」だが、オーナー指示（2026-10-24）で sesami-wear に合わせ CI を導入しないため、ローカルの品質ゲートで判定する
+  根拠: オーナー指示（2026-10-24）により sesami-wear と同じ定義とし、Gradle の依存脆弱性スキャンは導入しない
 ```
 <!-- COPILOT_RECORDS:END -->

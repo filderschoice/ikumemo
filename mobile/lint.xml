@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!--
+        アダプティブアイコンは aapt2 が -v26 の付いたフォルダでしか解決しないため、minSdk 26 でも
+        mipmap-anydpi-v26 に置く（-v26 を外すと mipmap/ic_launcher が見つからずビルドに失敗する）
+    -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
+</lint>

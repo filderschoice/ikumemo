@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 画面の色は Compose の IkumemoTheme で決める。ここは起動直後のウィンドウ用の土台だけ -->
+    <style name="Theme.Ikumemo" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
