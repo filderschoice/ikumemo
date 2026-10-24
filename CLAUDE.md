@@ -18,22 +18,21 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 
 全エージェント共通で使用する正本です。`区分: 人手検証` のBACKLOGタスクは合否判定から除外します。
 
-<!-- 導入時の記入方法（本ファイルは常時読み込まれるため、導入完了後はこのコメントごと削除してよい）:
-- 本リポジトリの技術スタックへ合わせて下表を書き換える。表のプレースホルダを残さないこと、括弧内の例を削除する
-  ことが導入の完了条件（`docs/guidelines/ADOPTION.md`「2. クイックスタート」）。
-- 該当するゲートが無い場合も行は削除せず、コマンド欄へ `(対象外)`、合否基準欄へ理由を書く。
-  「実行コードを持たないため」のように現状の事実として書き、未確認のまま空欄にしない。
-- ローカル実行手順が未定義のゲートは「未定義（未確認）」と明記する。推測でコマンドを書かない。
--->
-
 | ゲート | コマンド | 合否基準 |
 | --- | --- | --- |
-| フォーマット/静的解析 | `replace-me`（例 `npm run lint` / `cargo fmt --check && cargo clippy` / `./gradlew ktlintCheck`） | 終了コード0、指摘0件 |
-| 型検査 | `replace-me`（例 `npx tsc --noEmit` / `./gradlew compileKotlin`） | 終了コード0 |
-| 単体テスト | `replace-me`（例 `npm test` / `cargo test` / `./gradlew test`） | 全件成功 |
-| 脆弱性チェック | `replace-me`（例 `npm audit` / `cargo audit`） | 新規の高危険度の指摘が0件 |
+| コードスタイル（ktlint） | `./gradlew ktlintCheck` | 終了コード0 |
+| 静的解析（detekt） | `./gradlew detekt` | 終了コード0（`config/detekt/detekt.yml` の `maxIssues: 0`） |
+| Android Lint | `./gradlew lintDebug` | 終了コード0 |
+| 単体テスト | `./gradlew testDebugUnitTest test` | 終了コード0（`core` / `mobile` 全モジュール） |
+| ビルド（型検査を兼ねる） | `./gradlew assembleDebug` | 終了コード0 |
+| 脆弱性チェック | (未導入) | Gradle の依存脆弱性スキャン（`dependencyCheck` 等）は導入しない（sesami-wear に合わせたオーナー判断、2026-10-24）。導入した場合は本節を更新する |
 | Markdown の静的解析 | `npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml` | `Summary: 0 issues`、かつ出力の `Linting: N files` が `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致（対象漏れの検出） |
 | 記録ファイルの検証 | `python scripts/validate-records.py`（PyYAMLが必要） | 終了コード0 |
+
+- Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug` で一度に実行できる。
+  ktlint の違反は `./gradlew ktlintFormat` で自動修正できる（品質ゲートには含めない）
+- 本リポジトリに CI はなく（sesami-wear に合わせたオーナー判断）、上記コマンドのローカル実行が唯一の品質ゲート
+- 実機・エミュレータでの確認は自動実行の対象外とし、`BACKLOG.md` へ `区分: 人手検証` として記録する
 
 ## 記録ファイルの権限設定（MUST）
 

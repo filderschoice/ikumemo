@@ -13,3 +13,12 @@
 - LICENSE の配置は PLAN D-6 によりオーナーが行う（BL-007）
 - `PLAN.md` の冒頭へ `<!-- markdownlint-disable-file -->` を追加（オーナー指示）。PLAN は D-16 により開発開始後は
   本文を更新しない資料のため、書式の指摘は直さず Markdown の静的解析の対象から外す
+
+## 2026-10-25（品質ゲートの確定）
+
+`CLAUDE.md`「本リポジトリの品質ゲート定義」の `replace-me` を、sesami-wear と同じ Gradle 系の5ゲート
+（`ktlintCheck` / `detekt` / `lintDebug` / `testDebugUnitTest test` / `assembleDebug`）で確定しました（BL-002）。
+
+- 脆弱性チェックは導入しない（オーナー判断）。行は残し `(未導入)` と理由を記載
+- CI を持たず、ローカル実行が唯一の品質ゲートである旨と、人手検証の扱いを追記
+- 導入時の記入方法のコメントは、記入完了に伴い削除

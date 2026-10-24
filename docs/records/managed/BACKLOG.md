@@ -407,8 +407,7 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: PLAN §7.2 の該当ファイルがそろい、markdownlint が成功する
-  依存:
-    - BL-002
+  依存: []
 - id: BL-004
   区分: 品質ゲート
   タスク内容: バージョン管理とリリースビルドの仕組み（scripts/version.properties、release-build.ps1 と .bat、-PappVersionCode と -PappVersionName の注入、署名情報は local.properties から読む）
@@ -425,14 +424,5 @@
   担当: AIエージェント
   完了条件: 4 テーマ × 明暗の主要な文字色と背景色の組み合わせがすべてコントラスト比 4.5:1 以上であることを単体テストで確認し、アプリがテーマ付きで起動する
   依存: []
-- id: BL-002
-  区分: 品質ゲート
-  タスク内容: CLAUDE.md「本リポジトリの品質ゲート定義」を sesami-wear に合わせて確定する（ktlintCheck・detekt・lintDebug・testDebugUnitTest test・assembleDebug、脆弱性チェックは未導入と明記）
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: replace-me が残っておらず、定義したコマンドがすべて成功する
-  依存: []
-  根拠: オーナー指示（2026-10-24）により sesami-wear と同じ定義とし、Gradle の依存脆弱性スキャンは導入しない
 ```
 <!-- COPILOT_RECORDS:END -->
