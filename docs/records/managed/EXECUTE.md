@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:10
+  summary: デザインシステムの土台（4 テーマ × ライト/ダーク、文字サイズ、コントラスト自動テスト）を追加（M0）
+  details:
+    変更内容: >-
+      mobile/designsystem に IkumemoTheme・ThemePreset（ポップ／やさしい／クール／シンプルの 4 種、各ライト/ダークの配色と
+      角の丸み）・IkumemoPalette（ARGB の Long で持ち Compose 非依存で検査可能）・ContrastRatio（WCAG の計算）・
+      TextSizeSetting（ふつう 1.0／大きい 1.15／とても大きい 1.3、端末の文字サイズとの積を 200% で頭打ち）を追加。
+      初期テーマは PLAN に指定が無いため D-8 の並びの先頭（ポップ）とした。MainActivity を IkumemoTheme で表示するよう変更
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/IkumemoTheme.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemePreset.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/IkumemoPalette.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ContrastRatio.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/TextSizeSetting.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeContrastTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ContrastRatioTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/TextSizeSettingTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL、単体テスト 12 件成功（4 テーマ × 明暗の文字と背景の 15 組すべてが 4.5:1 以上）、
+      Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-003
 - date: 2026-10-25 09:30
   summary: Gradle プロジェクトの雛形を sesami-wear 準拠で作成（M0）
   details:

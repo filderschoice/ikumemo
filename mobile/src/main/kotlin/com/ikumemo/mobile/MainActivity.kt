@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.ikumemo.mobile.designsystem.IkumemoTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +23,7 @@ class MainActivity : ComponentActivity() {
         // targetSdk 35 以降は画面端までの表示が必須（PLAN §4.2）。余白は Scaffold の innerPadding で取る
         enableEdgeToEdge()
         setContent {
-            MaterialTheme {
+            IkumemoTheme {
                 HomeScreen()
             }
         }
@@ -47,7 +48,7 @@ fun HomeScreen() {
 @Preview(showBackground = true)
 @Composable
 private fun HomeScreenPreview() {
-    MaterialTheme {
+    IkumemoTheme {
         HomeScreen()
     }
 }
