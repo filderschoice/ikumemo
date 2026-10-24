@@ -101,7 +101,7 @@ fun EditItemSheet(
 }
 
 @Composable
-private fun EditField(
+internal fun EditField(
     value: String,
     onValueChange: (String) -> Unit,
     label: Int,
@@ -117,16 +117,17 @@ private fun EditField(
     )
 }
 
-/** 買うお店（F-04）。最近使った順の上位のお店と「なし」から選ぶ。 */
+/** 買うお店（F-04）。最近使った順の上位のお店と「なし」から選ぶ。記録の編集（F-16）でも使う。 */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PlannedStore(
+internal fun PlannedStore(
     stores: List<StoreEntity>,
     selectedId: Long?,
     onSelect: (Long?) -> Unit,
+    title: Int = R.string.edit_planned_store,
 ) {
     if (stores.isEmpty()) return
-    Text(stringResource(R.string.edit_planned_store), style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(
             selected = selectedId == null,
@@ -150,7 +151,7 @@ private fun PlannedStore(
  * 取り込んだ写真はアプリ専用領域へ縮小・Exif を消して保存する（[PhotoStore]）。
  */
 @Composable
-private fun PhotoSection(
+internal fun PhotoSection(
     photo: String?,
     photoStore: PhotoStore,
     onPhotoChange: (String?) -> Unit,

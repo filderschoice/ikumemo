@@ -27,6 +27,9 @@ class StoreRepository(
     /** 使わない印の無いお店（最近使った順）。お店を選ぶシートは先頭 [TOP_STORE_COUNT] 件をチップで出す（F-31）。 */
     fun observeActiveStores(): Flow<List<StoreEntity>> = storeDao.observeActive()
 
+    /** 使わない印のお店も含む全部のお店（過去の記録のお店名を出すため、R-16）。 */
+    fun observeAllStores(): Flow<List<StoreEntity>> = storeDao.observeAll()
+
     /**
      * 選んでいるお店。解除の条件（R-06）は時間の経過でも満たされるため、1 分ごとに見直す。
      */
@@ -119,16 +122,17 @@ class StoreRepository(
         if (settings.storeSelection.first()?.storeId == from) select(into)
     }
 
-    private fun minuteTicks(): Flow<Unit> =
-        flow {
-            while (true) {
-                emit(Unit)
-                delay(TICK_MILLIS)
-            }
-        }
-
     companion object {
         const val TOP_STORE_COUNT = 5
-        private const val TICK_MILLIS = 60_000L
     }
 }
+
+private const val TICK_MILLIS = 60_000L
+
+private fun minuteTicks(): Flow<Unit> =
+    flow {
+        while (true) {
+            emit(Unit)
+            delay(TICK_MILLIS)
+        }
+    }

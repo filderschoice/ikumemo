@@ -153,6 +153,22 @@ interface PurchaseRecordDao {
     @Query("SELECT purchasedDate FROM purchase_record WHERE productId = :productId ORDER BY purchasedDate")
     suspend fun purchaseDatesOf(productId: Long): List<LocalDate>
 
+    /**
+     * 品名で記録を探す（F-42）。品目の正規化名（表記ゆれを吸収、R-02）か表示名に含まれる物を、新しい日付から返す。
+     * [normalizedQuery] と [rawQuery] は LIKE の特殊文字（% と _）を取り除いてから渡す。
+     */
+    @Query(
+        "SELECT r.* FROM purchase_record r JOIN product p ON p.id = r.productId " +
+            "WHERE p.normalizedName LIKE '%' || :normalizedQuery || '%' " +
+            "OR r.displayName LIKE '%' || :rawQuery || '%' " +
+            "ORDER BY r.purchasedDate DESC, r.recordedAt DESC LIMIT :limit",
+    )
+    suspend fun search(
+        normalizedQuery: String,
+        rawQuery: String,
+        limit: Int,
+    ): List<PurchaseRecordEntity>
+
     @Query(
         "SELECT * FROM purchase_record WHERE purchasedDate BETWEEN :from AND :to " +
             "ORDER BY purchasedDate, recordedAt",

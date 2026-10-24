@@ -18,7 +18,7 @@
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
 - 進捗: マイルストーン M0（準備）・M1 の完了条件（手入力で追加 → スワイプで記録 → 元に戻す）・M2 の完了条件
-  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）を実装済み。各入力欄のマイク（F-04）は未実装。
+  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4 のうち写真とカレンダーを実装済み。各入力欄のマイク（F-04）は未実装。
   記録の修正・削除（F-16）は処理のみ実装済みで、画面はカレンダー（M4）で作る
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
@@ -44,8 +44,11 @@
 | F-12・R-04 | 「買った：牛乳 ／ 元に戻す」を 5 秒表示（TalkBack 等の利用時は推奨時間まで延長）。元に戻せるのは最新の 1 件 | `ShoppingListScreen.kt` の `UndoEffect` |
 | R-03・R-10・R-11・R-15 | 「やめた」は記録せず品目を残す。「買った」は端末の今日の日付で記録、同じ日の 2 回目も別記録、写真は同じファイルを参照 | `data/ShoppingRepository.kt` |
 | R-12 | 購入回数・最後に買った日・平均間隔を残っている記録から計算し直す。記録を消すと紐づくおしらせも消す | `core/suggest/PurchaseStats.kt`、`data/ProductStatsUpdater.kt` |
-| F-16（処理のみ） | 記録の修正（購入日・お店・数量・メモ・写真。日付かお店が変わればお買い物を付け替え）と削除。画面は未実装 | `data/RecordRepository.kt` |
-| PLAN §3 | 下タブ 3 つ（メモ・カレンダー・おしらせ。アイコン＋文字ラベル）。カレンダーとおしらせは見出しと案内文だけ | `IkumemoApp.kt`、`calendar/`、`reminder/` |
+| F-16 | 記録の修正（購入日・お店・数量・メモ・写真。日付かお店が変わればお買い物を付け替え）と削除。日の詳細の記録を押すと編集シート | `data/RecordRepository.kt`、`calendar/RecordEditSheet.kt` |
+| F-40・PLAN §2.7 | 月カレンダー（日曜始まり、日曜は赤・土曜は青の文字色＋曜日名、買い物の日にお店の色のドット最大 3 つ、今日は枠線） | `calendar/MonthGrid.kt`、`designsystem/CalendarColors.kt` |
+| F-41 | 日の詳細（品名・数量・お店・メモ・写真のサムネイル、写真は押すと拡大）。買い物が無い日は「この日のお買い物はありません」 | `calendar/CalendarScreen.kt` |
+| F-42（文字のみ） | 品名検索（正規化名か表示名に含む記録を新しい順に最大 200 件）、結果から該当日へ移る。検索欄の音声入力は未実装 | `RecordRepository.search`、`CalendarViewModel` |
+| PLAN §3 | 下タブ 3 つ（メモ・カレンダー・おしらせ。アイコン＋文字ラベル）。おしらせは見出しと案内文だけ | `IkumemoApp.kt`、`calendar/`、`reminder/` |
 | F-01・F-02・PLAN §4.4 | 音声テキストの分割・数量抽出・不要語除去・誤変換補正・N-best の選択 | `core/voice/VoiceTextParser.kt`、`QuantityParser.kt` |
 | F-01・PLAN §3.2 | 🎤 話して追加（ホーム下部、64dp）→ 聞いている間は途中の文字を表示 → 確認カード（タップで直す、× で外す）→「追加する」 | `voice/VoiceInputSheet.kt`、`VoiceInputViewModel.kt` |
 | R-30・R-31 | 日本語固定・オンデバイス優先。何も話さなければ 5 秒で止め「うまく聞き取れませんでした」＋もう一度話す／文字で入れる | `voice/SpeechEngine.kt`、`VoiceInputViewModel.kt` |
@@ -66,7 +69,7 @@
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
 - `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
-  `reminder/`（後ろの 2 つは骨格のみ）。予定は PLAN §4.5 の
+  `reminder/`（骨格のみ）。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
 - 画面は MVVM + 単方向データフロー。画面からの操作は `sealed interface` のイベント（例 `ShoppingListEvent`）を
   ViewModel の `onEvent()` 1 つで受ける。ViewModel は `StateFlow<UiState>` を公開し、DB の Flow と画面だけの状態
@@ -114,6 +117,8 @@
   Compose の `Color` に依存させないことで、コントラスト比を Android 実行環境なしの単体テストで検査できる
 - 検査する組み合わせは `IkumemoPalette.textPairs()`（on 系と対応する背景、補助文字 onSurfaceVariant を surface と
   background の両方、primary と error を surface 上の文字として）。配色を追加・変更したら必ずこの検査を通す
+- カレンダーの曜日の色とお店のドットの色は `CalendarColors`（テーマに依らない固定値）。全テーマの surface・background の上で
+  曜日の文字 4.5:1、ドット 3:1 以上を `CalendarColorsTest` で確かめる。お店の色はお店の ID から 6 色を順に割り当てる（F-32 は v1.x）
 - 角の丸み: ポップ・やさしい 12/20/28dp、クール 4/8/12dp、シンプル 8/12/16dp（small/medium/large）
 - 初期テーマはポップ（PLAN に既定値の指定が無いため D-8 の並びの先頭。きせかえ画面 BL-060 で変更可能）
 - テーマと文字の大きさは `storageKey`（`pop` / `gentle` / `cool` / `simple`、`normal` / `large` / `extra_large`）で
@@ -161,7 +166,8 @@
 
 ## 非機能要件
 
-- 性能・信頼性: 未実装（PLAN §8 の目標は BL-089 等で対応）
+- 性能・信頼性: 記録 2 万件で品名検索と月の記録の取得がそれぞれ 1 秒未満（`RecordSearchPerformanceTest`）。
+  そのほかの目標（PLAN §8）は BL-089 等で対応
 - セキュリティ／プライバシー: `AndroidManifest.xml` で宣言する権限は `RECORD_AUDIO` だけ（音声認識サービスを見つけるための
   `<queries>` の `android.speech.RecognitionService` も宣言）。INTERNET・位置情報・CAMERA・VIBRATE・SCHEDULE_EXACT_ALARM は
   使わない方針（PLAN §5）。録音は端末の音声認識サービスの中で行われ、本アプリは音声を保存しない。公開している画面は

@@ -5,6 +5,42 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 22:30
+  summary: カレンダー（月表示・お店色のドット・日の詳細・品名検索・記録の編集シート）を追加（M4）
+  details:
+    変更内容: >-
+      CalendarViewModel と CalendarScreen を追加した。日曜始まりの月表示で、日曜は赤・土曜は青の文字色と曜日名、
+      買い物のあった日にお店ごとの色のドット（最大 3 つ）を出す（F-40）。日付を押すとその日の記録（品名・数量・お店・メモ・写真の
+      サムネイル。写真は押すと大きく見られる）を下に出す（F-41）。右上の「さがす」で品名検索（品目の正規化名か表示名を含む物を新しい順に
+      最大 200 件）し、結果から該当日へ移る（F-42）。日の詳細の記録を押すと記録の編集シート（買った日・お店・数量・メモ・写真を直す、
+      記録を消す、F-16）を開く。曜日の色とお店のドットは CalendarColors に置き、全テーマの surface・background で文字 4.5:1・
+      図形 3:1 以上を単体テストで確かめる。編集シートの部品（お店の選択・写真・入力欄）を記録の編集でも使えるようにした。
+      detekt の上限は設定を変えずに部品を分けて収める方針をオーナーに確認した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/StoreRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/CalendarColors.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/EditItemSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordSearchPerformanceTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/CalendarColorsTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（ViewModel テスト 4 件。日付選択で記録とお店名が出る、検索結果から別の月の該当日へ移る、月の切り替え、
+      記録の修正と削除。DB テストで記録 2 万件の品名検索と月の記録の取得がそれぞれ 1 秒未満。色のコントラスト 2 件）、
+      Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-042
 - date: 2026-10-25 20:40
   summary: 写真の添付（撮る・選ぶ・縮小と Exif の除去・記録への引き継ぎ）と編集シートの買うお店を追加（M4）
   details:
