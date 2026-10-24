@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
+import com.ikumemo.mobile.MainActivity
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.UndoableAction
@@ -63,21 +64,40 @@ private const val HIGHLIGHT_MILLIS = 1_200L
 /** 「元に戻す」の表示時間（F-12）。TalkBack 等の利用時は端末の推奨時間まで延ばす（R-04）。 */
 private const val UNDO_MILLIS = 5_000L
 
+/**
+ * メモ画面とほかの画面のつなぎ。[request] はウィジェット・ショートカットから開いたときの要求
+ * （`MainActivity.OPEN_ADD_TEXT` / `OPEN_VOICE`）で、扱ったら [onRequestHandled] を呼ぶ。
+ */
+data class HomeNavigation(
+    val onOpenSettings: () -> Unit = {},
+    val request: String? = null,
+    val onRequestHandled: () -> Unit = {},
+)
+
 @Composable
 fun ShoppingListScreen(
     viewModel: ShoppingListViewModel = viewModel(factory = AppViewModelFactory.Factory),
     voiceViewModel: VoiceInputViewModel = viewModel(factory = AppViewModelFactory.Factory),
     photoStore: PhotoStore = rememberPhotoStore(),
-    onOpenSettings: () -> Unit = {},
+    navigation: HomeNavigation = HomeNavigation(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // ウィジェット・ショートカットからの「文字で追加」「話して追加」（R-44・R-45・F-74）
+    LaunchedEffect(navigation.request) {
+        when (navigation.request) {
+            MainActivity.OPEN_ADD_TEXT -> viewModel.onEvent(ShoppingListEvent.OpenAddByText)
+            MainActivity.OPEN_VOICE -> viewModel.onEvent(ShoppingListEvent.OpenVoice)
+            else -> return@LaunchedEffect
+        }
+        navigation.onRequestHandled()
+    }
     val addSuggestions by viewModel.addSuggestions.collectAsStateWithLifecycle()
     val onEvent = viewModel::onEvent
     ShoppingListContent(
         state = state,
         voiceAvailable = voiceViewModel.isAvailable,
         onEvent = onEvent,
-        onOpenSettings = onOpenSettings,
+        onOpenSettings = navigation.onOpenSettings,
     )
     when (val sheet = state.sheet) {
         HomeSheet.Voice ->

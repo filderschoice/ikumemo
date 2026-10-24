@@ -67,6 +67,7 @@
 | PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
 | F-60・F-63・F-65 | きせかえ（各テーマの色で描いた見本のカードでテーマを選ぶ、暗い画面「端末に合わせる / 明るい / 暗い」、文字の大きさ 3 段階）。選んだらすぐ保存しアプリ全体へ反映 | `settings/AppearanceScreen.kt`、`data/AppearancePrefs.kt`、`MainActivity.kt` |
 | PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。せってい画面の項目は今は「きせかえ」だけ | `settings/SettingsScreen.kt` |
+| W-01・R-42・R-44・R-45 | 1×1 ウィジェット「話して追加」（横 2 マス以上で文字を横並び）。押すと透明な専用 Activity で音声入力シートが重なって開き、追加したらトーストを出して閉じる。途中で閉じたら何も追加しない。音声入力が使えない端末では「書いて追加」でアプリの追加シートを開く。色はきせかえのテーマと暗い画面の設定に合わせる | `widget/VoiceWidget.kt`、`widget/WidgetColors.kt`、`voice/VoiceSheetActivity.kt` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
@@ -78,7 +79,7 @@
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
 - `mobile` 内は画面ごとのパッケージに分ける。実装済みは `settings/`（せっていの枠ときせかえ）・`designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
-  `reminder/`。予定は PLAN §4.5 の
+  `reminder/`・`voice/`・`widget/`。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
 - 画面は MVVM + 単方向データフロー。画面からの操作は `sealed interface` のイベント（例 `ShoppingListEvent`）を
   ViewModel の `onEvent()` 1 つで受ける。ViewModel は `StateFlow<UiState>` を公開し、DB の Flow と画面だけの状態
@@ -145,6 +146,8 @@
 - テーマ・暗い画面・文字の大きさは `storageKey`（`pop` / `gentle` / `cool` / `simple`、`system` / `light` / `dark`、
   `normal` / `large` / `extra_large`）で保存し、未知の値は既定値へ戻す
 - フォントは端末標準を使い、同梱しない（PLAN §2.7）
+- ウィジェットは Glance（`glance-appwidget`）。アプリと同じパレットの昼・夜の色を `ColorProvider` で渡し、背景画像は使わない
+- ウィジェットやショートカットから開く画面は `MainActivity.intent(context, screen)` の `EXTRA_OPEN_TAB` で指定する
 
 ### データ設計方針
 

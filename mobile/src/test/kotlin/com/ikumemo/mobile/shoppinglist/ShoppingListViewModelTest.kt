@@ -9,6 +9,7 @@ import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.testing.MainDispatcherRule
+import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
 import com.ikumemo.mobile.testing.testSettings
@@ -61,7 +62,7 @@ class ShoppingListViewModelTest {
     @Test
     fun addByTextAppendsItemsInOrder() =
         runTest {
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 awaitUntil { it.loaded }
                 viewModel.onEvent(ShoppingListEvent.AddByText("牛乳"))
                 viewModel.onEvent(ShoppingListEvent.AddByText(" たまご "))
@@ -76,7 +77,7 @@ class ShoppingListViewModelTest {
     @Test
     fun addingSameProductHighlightsExistingItemAndShowsMessage() =
         runTest {
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 awaitUntil { it.loaded }
                 viewModel.onEvent(ShoppingListEvent.AddByText("卵"))
                 val existing = awaitUntil { it.items.size == 1 }.items.single()
@@ -99,7 +100,7 @@ class ShoppingListViewModelTest {
     @Test
     fun blankTextIsIgnored() =
         runTest {
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 awaitUntil { it.loaded }
                 viewModel.onEvent(ShoppingListEvent.AddByText("   "))
                 viewModel.onEvent(ShoppingListEvent.AddByText("牛乳"))
@@ -112,7 +113,7 @@ class ShoppingListViewModelTest {
     @Test
     fun editSavesFieldsAndClosesSheet() =
         runTest {
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 awaitUntil { it.loaded }
                 viewModel.onEvent(ShoppingListEvent.AddByText("牛乳"))
                 val item = awaitUntil { it.items.size == 1 }.items.single()
@@ -132,7 +133,7 @@ class ShoppingListViewModelTest {
     @Test
     fun renamingToProductAlreadyInMemoKeepsNameAndPointsToExisting() =
         runTest {
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 awaitUntil { it.loaded }
                 viewModel.onEvent(ShoppingListEvent.AddByText("牛乳"))
                 viewModel.onEvent(ShoppingListEvent.AddByText("パン"))

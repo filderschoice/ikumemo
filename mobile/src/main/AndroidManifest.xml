@@ -60,6 +60,28 @@
             </intent-filter>
         </receiver>
 
+        <!-- 音声入力シート（W-01）。ホーム画面の上に重ねて開き、履歴に残さず別のタスクで動かす。外部には公開しない -->
+        <activity
+            android:name=".voice.VoiceSheetActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.voice"
+            android:theme="@style/Theme.Ikumemo.VoiceSheet" />
+
+        <!-- ウィジェット W-01（OS からの更新を受けるため exported=true が必要） -->
+        <receiver
+            android:name=".widget.VoiceWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_voice_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_voice_info" />
+        </receiver>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

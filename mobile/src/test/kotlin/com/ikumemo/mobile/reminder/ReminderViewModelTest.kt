@@ -13,6 +13,7 @@ import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.ReminderStatus
 import com.ikumemo.mobile.testing.MainDispatcherRule
 import com.ikumemo.mobile.testing.MutableClock
+import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
 import com.ikumemo.mobile.testing.testDataStore
@@ -84,7 +85,7 @@ class ReminderViewModelTest {
             buy("パン", today.minusDays(6))
             buy("古い物", today.minusDays(7))
 
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 val state = awaitUntil { it.loaded && it.recent.size == 2 }
                 assertEquals(listOf("牛乳", "パン"), state.recent.map { it.displayName })
                 cancelAndIgnoreRemainingEvents()
@@ -97,7 +98,7 @@ class ReminderViewModelTest {
             val milk = buy("牛乳")
             val bread = buy("パン")
 
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 awaitUntil { it.recent.size == 2 }
                 viewModel.onEvent(ReminderEvent.OpenDue(DueTarget(milk, "牛乳")))
                 assertEquals(milk, awaitUntil { it.dueTarget != null }.dueTarget?.recordId)
@@ -123,7 +124,7 @@ class ReminderViewModelTest {
             val milk = buy("牛乳")
             val bread = buy("パン")
 
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 viewModel.onEvent(ReminderEvent.SetDue(milk, today.minusDays(1)))
                 viewModel.onEvent(ReminderEvent.SetDue(bread, today.plusDays(2)))
                 val pending = awaitUntil { it.pending.size == 2 }.pending
@@ -148,7 +149,7 @@ class ReminderViewModelTest {
     @Test
     fun notificationStateIsShown() =
         runTest {
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 viewModel.onEvent(ReminderEvent.NotificationStateChanged(false))
                 assertEquals(false, awaitUntil { it.loaded && !it.notificationsEnabled }.notificationsEnabled)
                 cancelAndIgnoreRemainingEvents()

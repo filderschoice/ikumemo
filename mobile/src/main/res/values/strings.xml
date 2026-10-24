@@ -121,6 +121,15 @@
     <string name="appearance_text_extra_large">とても大きい</string>
     <string name="appearance_sample_item">牛乳　2本</string>
     <string name="appearance_sample_chip">＋たまご</string>
+    <string name="widget_voice_name">いくメモ 話して追加</string>
+    <string name="widget_voice_picker_description">押すとすぐ話してメモに追加できます</string>
+    <string name="widget_voice_label">話す</string>
+    <string name="widget_voice_label_wide">話して追加</string>
+    <string name="widget_voice_description">話してメモに追加</string>
+    <string name="widget_write_label">書いて追加</string>
+    <string name="widget_write_label_short">書く</string>
+    <string name="widget_write_description">文字でメモに追加</string>
+    <string name="widget_voice_added">%1$dつ メモに入れました</string>
     <string name="theme_pop">ポップ</string>
     <string name="theme_gentle">やさしい</string>
     <string name="theme_cool">クール</string>

@@ -12,6 +12,7 @@ import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.testing.MainDispatcherRule
 import com.ikumemo.mobile.testing.MutableClock
+import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
 import com.ikumemo.mobile.testing.testSettings
@@ -87,7 +88,7 @@ class CalendarViewModelTest {
             buy("たまご", LocalDate.of(2026, 10, 8))
             buy("パン", LocalDate.of(2026, 10, 12))
 
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 val month = awaitUntil { it.shoppingDays.size == 2 }
                 assertEquals(YearMonth.of(2026, 10), month.month)
                 assertEquals(LocalDate.of(2026, 10, 25), month.selectedDate)
@@ -110,7 +111,7 @@ class CalendarViewModelTest {
             buy("卵", LocalDate.of(2026, 8, 3))
             buy("牛乳", LocalDate.of(2026, 10, 1))
 
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 viewModel.onEvent(CalendarEvent.OpenSearch)
                 viewModel.onEvent(CalendarEvent.QueryChanged("タマゴ"))
                 val found = awaitUntil { it.searchResults.isNotEmpty() }
@@ -129,7 +130,7 @@ class CalendarViewModelTest {
     @Test
     fun monthNavigationSelectsFirstDayExceptCurrentMonth() =
         runTest {
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 viewModel.onEvent(CalendarEvent.PreviousMonth)
                 assertEquals(LocalDate.of(2026, 9, 1), awaitUntil { it.month == YearMonth.of(2026, 9) }.selectedDate)
                 viewModel.onEvent(CalendarEvent.NextMonth)
@@ -143,7 +144,7 @@ class CalendarViewModelTest {
         runTest {
             val record = buy("牛乳", LocalDate.of(2026, 10, 25))
 
-            viewModel.uiState.test {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 awaitUntil { it.selectedRecords.size == 1 }
                 viewModel.onEvent(CalendarEvent.EditRecord(record))
                 assertEquals(record, awaitUntil { it.editing != null }.editing?.id)

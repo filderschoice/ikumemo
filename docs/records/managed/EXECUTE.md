@@ -5,6 +5,55 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 07:50
+  summary: 1×1 ウィジェット「話して追加」（W-01）と、ホーム画面に重ねて開く音声入力シートを追加（M7）
+  details:
+    変更内容: >-
+      Glance（glance-appwidget 1.2.0）で VoiceWidget を追加した。1×1 では 🎤 と「話して」、横 2 マス以上では「🎤 話して追加」を横に並べる
+      （SizeMode.Responsive）。押すと透明なテーマの VoiceSheetActivity（exported=false、履歴に残さない）が開き、BL-021 の音声入力シートを
+      そのまま使う。確認カードから追加したら「Nつ メモに入れました」のトーストを出して閉じ、途中で閉じたら何も追加しない（R-42）。
+      音声入力が使えない端末では「書いて追加」としてアプリの追加シートを開く（R-44・R-45）。色はきせかえのテーマと暗い画面の設定から
+      昼と夜の ColorProvider を作る（WidgetColors）。MainActivity に EXTRA_OPEN_TAB と intent(context, screen) を加え、ウィジェットから
+      追加シートや音声入力を開けるようにした。テーマの適用は AppThemeHost に切り出して両方の Activity で使う。
+      テストのため AppContainer に DataStore と音声認識の差し替え口を設け、TestIkumemoApplication で差し替える。負荷が高いときに
+      Turbine の既定の待ち時間（3 秒）を超える間欠的な失敗があったため、ViewModel テストの待ち時間を 15 秒にそろえた
+    変更ファイル:
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceSheetActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/VoiceWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+      - mobile/src/main/res/drawable/ic_widget_keyboard.xml
+      - mobile/src/main/res/drawable/ic_widget_mic.xml
+      - mobile/src/main/res/drawable/widget_preview_background.xml
+      - mobile/src/main/res/layout/widget_voice_preview.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/res/values/themes.xml
+      - mobile/src/main/res/values-night/themes.xml
+      - mobile/src/main/res/xml/widget_voice_info.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/AddSuggestionsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestDatabase.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestIkumemoApplication.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceSheetActivityTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（単体テスト計 226 件。追加は画面テスト 4 件で、ウィジェットのタップ先〔音声が使えるとき・使えないとき〕、
+      確認カードからの追加とトースト、途中で閉じると何も追加されないこと）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-070
 - date: 2026-10-26 01:20
   summary: きせかえ画面（テーマのプレビュー付きカード・暗い画面・文字の大きさ）とせっていの入口を追加（M6）
   details:

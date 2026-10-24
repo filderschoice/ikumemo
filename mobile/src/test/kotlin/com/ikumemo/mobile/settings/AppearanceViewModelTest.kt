@@ -11,6 +11,7 @@ import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
 import com.ikumemo.mobile.testing.MainDispatcherRule
+import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
 import com.ikumemo.mobile.testing.testDataStore
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -60,7 +61,7 @@ class AppearanceViewModelTest {
     @Test
     fun selectionsAreSavedAndShown() =
         runTest {
-            viewModel.appearance.test {
+            viewModel.appearance.test(timeout = TURBINE_TIMEOUT) {
                 viewModel.onEvent(AppearanceEvent.SelectTheme(ThemePreset.COOL))
                 viewModel.onEvent(AppearanceEvent.SelectDarkMode(DarkMode.DARK))
                 viewModel.onEvent(AppearanceEvent.SelectTextSize(TextSizeSetting.EXTRA_LARGE))

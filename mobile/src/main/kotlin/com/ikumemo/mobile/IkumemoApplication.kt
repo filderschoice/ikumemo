@@ -12,9 +12,12 @@ open class IkumemoApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        container = AppContainer(this)
+        container = createContainer()
         onStartup()
     }
+
+    /** 単体テストでは DB・設定ファイル・音声認識をテスト用に差し替える。 */
+    protected open fun createContainer(): AppContainer = AppContainer(this)
 
     /** 起動時の処理。単体テストでは本物の DB・設定ファイルに触れないよう何もしない Application に差し替える。 */
     protected open fun onStartup() {

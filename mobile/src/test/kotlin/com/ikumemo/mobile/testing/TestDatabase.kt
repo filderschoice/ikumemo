@@ -21,6 +21,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.Executors
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * テスト用のインメモリ DB。Flow の反映は非同期のため、テストでは Turbine で目的の状態まで待つ。
@@ -79,3 +80,6 @@ fun testDataStore(): DataStore<Preferences> {
 }
 
 fun testSettings(): AppSettings = AppSettings(testDataStore())
+
+/** Turbine で状態を待つ時間。Robolectric のテストを続けて動かすと Room の反映が遅れることがあるため既定の 3 秒より長くする。 */
+val TURBINE_TIMEOUT = 15.seconds

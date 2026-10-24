@@ -15,6 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -30,6 +33,7 @@ import com.ikumemo.mobile.reminder.ReminderScreen
 import com.ikumemo.mobile.settings.AppearanceScreen
 import com.ikumemo.mobile.settings.SettingsItem
 import com.ikumemo.mobile.settings.SettingsScreen
+import com.ikumemo.mobile.shoppinglist.HomeNavigation
 import com.ikumemo.mobile.shoppinglist.ShoppingListScreen
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
@@ -67,11 +71,17 @@ fun IkumemoApp(
     requestedTab: String? = null,
     onTabOpened: () -> Unit = {},
 ) {
+    var memoRequest by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(requestedTab) {
-        if (requestedTab == MainActivity.TAB_REMINDER) {
-            navController.navigate(ReminderRoute) { launchSingleTop = true }
-            onTabOpened()
-        }
+        val route: Any =
+            when (requestedTab) {
+                MainActivity.TAB_REMINDER -> ReminderRoute
+                MainActivity.TAB_CALENDAR -> CalendarRoute
+                MainActivity.OPEN_ADD_TEXT, MainActivity.OPEN_VOICE -> MemoRoute.also { memoRequest = requestedTab }
+                else -> return@LaunchedEffect
+            }
+        navController.navigate(route) { launchSingleTop = true }
+        onTabOpened()
     }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -82,7 +92,16 @@ fun IkumemoApp(
             startDestination = MemoRoute,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable<MemoRoute> { ShoppingListScreen(onOpenSettings = { navController.navigate(SettingsRoute) }) }
+            composable<MemoRoute> {
+                ShoppingListScreen(
+                    navigation =
+                        HomeNavigation(
+                            onOpenSettings = { navController.navigate(SettingsRoute) },
+                            request = memoRequest,
+                            onRequestHandled = { memoRequest = null },
+                        ),
+                )
+            }
             composable<CalendarRoute> { CalendarScreen() }
             composable<ReminderRoute> { ReminderScreen() }
             composable<SettingsRoute> {

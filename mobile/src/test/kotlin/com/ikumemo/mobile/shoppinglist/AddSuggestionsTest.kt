@@ -10,6 +10,7 @@ import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.testing.MainDispatcherRule
+import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
 import com.ikumemo.mobile.testing.testSettings
@@ -79,7 +80,7 @@ class AddSuggestionsTest {
             boughtBefore("卵", 2)
             boughtBefore("玉ねぎ", 1)
 
-            viewModel.addSuggestions.test {
+            viewModel.addSuggestions.test(timeout = TURBINE_TIMEOUT) {
                 listOf("たまご", "タマゴ", "卵").forEach { query ->
                     viewModel.onEvent(ShoppingListEvent.AddQueryChanged(query))
                     val suggestions = awaitUntil { it.query == query && it.candidates.isNotEmpty() }
@@ -96,7 +97,7 @@ class AddSuggestionsTest {
             boughtBefore("パン", 2)
             boughtBefore("洗剤", 1)
 
-            viewModel.addSuggestions.test {
+            viewModel.addSuggestions.test(timeout = TURBINE_TIMEOUT) {
                 val usual = awaitUntil { it.usual.size == 3 }.usual
                 assertEquals(listOf("牛乳", "パン", "洗剤"), usual.map { it.name })
 
@@ -113,7 +114,7 @@ class AddSuggestionsTest {
     @Test
     fun addingByTextClearsQuery() =
         runTest {
-            viewModel.addSuggestions.test {
+            viewModel.addSuggestions.test(timeout = TURBINE_TIMEOUT) {
                 viewModel.onEvent(ShoppingListEvent.AddQueryChanged("みかん"))
                 awaitUntil { it.query == "みかん" }
 

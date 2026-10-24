@@ -1,6 +1,8 @@
 package com.ikumemo.mobile
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.AppearancePrefs
@@ -19,12 +21,14 @@ import java.time.Clock
 
 /**
  * 手動 DI の入れ物（PLAN §4.1）。[IkumemoApplication] が 1 つだけ持ち、ViewModel・Worker・受信処理へ渡す。
- * テストでは [database] と [clock] を差し替えて作る。
+ * テストでは DB・設定ファイル・音声認識・時計を差し替えて作る。
  */
 class AppContainer(
     context: Context,
     val clock: Clock = Clock.systemDefaultZone(),
     databaseFactory: (Context) -> IkumemoDatabase = IkumemoDatabase::create,
+    dataStoreFactory: (Context) -> DataStore<Preferences> = AppSettings::createDataStore,
+    private val speechEngine: (Context) -> SpeechEngine = ::AndroidSpeechEngine,
 ) {
     private val appContext = context.applicationContext
 
@@ -36,7 +40,7 @@ class AppContainer(
 
     val recordRepository by lazy { RecordRepository(database, normalizer) }
 
-    private val dataStore by lazy { AppSettings.createDataStore(appContext) }
+    private val dataStore by lazy { dataStoreFactory(appContext) }
 
     val settings by lazy { AppSettings(dataStore) }
 
@@ -59,5 +63,5 @@ class AppContainer(
     val storeRepository by lazy { StoreRepository(database, settings, normalizer, clock) }
 
     /** 音声認識の窓口を作る。ViewModel ごとに 1 つ作り、ViewModel の破棄で片付ける。 */
-    val speechEngineFactory: () -> SpeechEngine = { AndroidSpeechEngine(appContext) }
+    val speechEngineFactory: () -> SpeechEngine = { speechEngine(appContext) }
 }

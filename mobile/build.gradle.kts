@@ -125,6 +125,10 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose)
     implementation(libs.androidx.exifinterface)
+    // ホーム画面ウィジェット（W-01・W-02、PLAN §4.1）。Glance が推移的に持ち込む古い work-runtime は
+    // sesami-wear と同じく 2.10 系へ明示して引き上げる（写真の掃除 R-14 でも使う）
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
@@ -134,6 +138,7 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.androidx.glance.appwidget.testing)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.test.manifest)
