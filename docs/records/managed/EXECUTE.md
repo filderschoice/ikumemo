@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 22:50
+  summary: core/reminder に通知日の計算と同じ日のまとめを追加（M5）
+  details:
+    変更内容: >-
+      ReminderSchedule を追加した。1 品目につき期限の前日と期限当日（設定でオフ可）の最大 2 回、「あとで」を押したら翌日にもう一度
+      （期限は変えない）知らせる（R-20・R-23）。同じ日の分は期限の近い順にまとめて 1 通にし、見出し用に先頭の品名と残りの件数、
+      急ぐ順（期限切れ → きょう → あした）の種類を返す。対象が 1 品目のときだけボタンを出す（R-21・R-27）。次の通知日時は 1 件だけ返し、
+      きょうの分をまだ出していなければ通知時刻を過ぎていてもすぐ出す（R-28）。過ぎた日の分は出さない（R-22）。
+      一覧の並び・期限切れ・期限が近い（前日・当日・期限切れ）の判定は ReminderList に置いた
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/reminder/ReminderSchedule.kt
+      - core/src/test/kotlin/com/ikumemo/core/reminder/ReminderScheduleTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（単体テスト 14 件。前日と当日、当日オフ、月末・年末・うるう年の前日、同じ日のまとめ、1 品目のボタン、
+      種類の混在、あとで、通知時刻前・電源オフ後の即時・当日分の通知後、時刻の設定、期限切れ、期限が近い判定）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-050
 - date: 2026-10-25 22:30
   summary: カレンダー（月表示・お店色のドット・日の詳細・品名検索・記録の編集シート）を追加（M4）
   details:

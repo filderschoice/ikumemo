@@ -58,6 +58,7 @@
 | F-14・F-30・F-31 | メモ上部のお店チップ → いつものお店から選ぶシート（最近使った順の上位 5 件・ほかのお店・新しいお店・選ばない）。選んだお店は「買った」に付く | `shoppinglist/StorePicker.kt`、`data/StoreRepository.kt` |
 | R-06 | 選んだ時か最後の「買った」から 3 時間、または日付が変わったら選んだお店を解除（表示は 1 分ごとに見直す） | `data/AppSettings.kt` の `StoreSelection`、`StoreRepository` |
 | R-16（処理のみ） | お店は消さずに使わない印、同じお店の統合（記録・メモ・お買い物を移す）。お店の管理の画面は未実装 | `StoreRepository.archive` / `merge` |
+| R-20〜R-23・R-27・R-28（計算のみ） | 通知日（前日・当日〔オフ可〕・あとでの翌日）、同じ日の 1 通へのまとめ、次の通知日時（電源オフ後はすぐ出す）。通知の予約・表示は未実装 | `core/reminder/ReminderSchedule.kt` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
@@ -83,6 +84,13 @@
   `AppContainer.clock` の `java.time.Clock` から取り、テストで差し替えられるようにする）
 - 依存の版は sesami-wear と同じ版にそろえる（AGP 8.13.0、Kotlin 2.0.21、Compose BOM 2024.12.01 等。
   `gradle/libs.versions.toml`）。必要になったマイルストーンで追加し、使わない依存は入れない
+
+### おしらせの計算方針（core/reminder）
+
+- 通知の予約は「次の 1 件」だけ。`ReminderSchedule.nextNotificationAt` が、未来の通知日は設定時刻（初期値 9:00）、きょうは
+  通知時刻前なら設定時刻、過ぎていて最後に通知した日がきょうでなければ「いま」を返す（R-28）
+- 1 通の見出しは先頭の品名（期限の近い順 → 品名順）と「ほか N つ」。種類は急ぐ順（期限切れ → きょう → あした）で決める
+- 「あとで」は `snoozedUntil` に翌日を入れるだけで期限は変えない。期限を過ぎた分は通知せず一覧に残す（R-22）
 
 ### 設定の保存方針（DataStore）
 
