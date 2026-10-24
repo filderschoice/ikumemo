@@ -17,7 +17,7 @@
 
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
-- 進捗: マイルストーン M0（準備）を実装済み。M1 はデータ層（Room）まで実装済みで、画面はテーマ付きの空のホーム画面だけ
+- 進捗: マイルストーン M0（準備）を実装済み。M1 はデータ層とメモ画面の基本（文字で追加・編集・重複判定）まで実装済み
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
 ## 実装済み機能要件
@@ -33,6 +33,10 @@
 | PLAN §1.2・§2.7 | アプリアイコン（吹き出し＋お買い物かご）、アダプティブアイコンとテーマアイコン（monochrome） | `mipmap-anydpi-v26/ic_launcher.xml`、`drawable/ic_launcher_foreground.xml` |
 | PLAN §4.3 | Room の 6 テーブル（お店・品目・メモ・お買い物・記録・おしらせ）と DAO、スキーマ JSON の Git 管理 | `data/db/`、`mobile/schemas/` |
 | R-02・PLAN §4.4 | 品名の正規化（NFKC・小文字化・空白除去 → 漢字を読みへ → カタカナをひらがなへ）と自作の読み辞書 | `core/text/ProductNameNormalizer.kt`、`ReadingDictionary.kt`、`DefaultReadings.kt` |
+| F-03 | 文字で追加（追加シート。追加後もシートを開いたままにして続けて入れられる） | `shoppinglist/ItemSheets.kt` の `AddItemSheet` |
+| F-04（一部） | 項目の編集シート（品名・数量・メモ。閉じると保存）。お店・写真・各欄のマイクは未実装 | `shoppinglist/ItemSheets.kt` の `EditItemSheet` |
+| R-01・R-02 | 同じ物がメモにあれば追加せず、既存の項目を一瞬光らせて「○○はもうメモにあります」 | `data/ShoppingRepository.kt`、`ShoppingListViewModel` |
+| PLAN §3 | 下タブ 3 つ（メモ・カレンダー・おしらせ。アイコン＋文字ラベル）。カレンダーとおしらせは見出しと案内文だけ | `IkumemoApp.kt`、`calendar/`、`reminder/` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
@@ -43,8 +47,14 @@
 
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
-- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/` と `data/`。予定は PLAN §4.5 の
+- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/`・`data/`・`shoppinglist/`・`calendar/`・`reminder/`（後ろの 2 つは骨格のみ）。予定は PLAN §4.5 の
   `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
+- 画面は MVVM + 単方向データフロー。ViewModel は `StateFlow<UiState>` を公開し、DB の Flow と画面だけの状態
+  （開いているシート・光らせる項目・一度だけ出す知らせ）を `combine` する。知らせは画面が表示したら `messageShown()` で消す
+- ViewModel は `AppViewModelFactory`（`viewModelFactory` と `APPLICATION_KEY` から `AppContainer` を取り出す）で作る
+- ViewModel の書き込み操作は `Mutex` で直列化し、操作した順に反映する
+- 画面遷移は Navigation Compose の型安全ルート（`@Serializable` の `MemoRoute` / `CalendarRoute` / `ReminderRoute`）。
+  下タブは状態を保存して切り替える（`saveState` / `restoreState`）
 - UI は Jetpack Compose + Material 3。DI は手動（`IkumemoApplication` が持つ `AppContainer` から渡す。時刻は
   `AppContainer.clock` の `java.time.Clock` から取り、テストで差し替えられるようにする）
 - 依存の版は sesami-wear と同じ版にそろえる（AGP 8.13.0、Kotlin 2.0.21、Compose BOM 2024.12.01 等。
@@ -89,6 +99,10 @@
 
 - 画面の配置は `docs/design/WIREFRAME.md`（主要画面・シートの配置と、その場のガイドで照らす場所の目印）
 - 文言はすべて `strings.xml` に置く（日本語のみでも。PLAN §4.1）
+- 各画面の `TopAppBar` は `windowInsets = WindowInsets(0)` とし、システムバーの余白は外側の `Scaffold`（下タブを持つ）の
+  `innerPadding` で取る
+- UI テストとその場のガイドの目印は `testTag` で付け、名前は各画面の `TestTags` に集める
+- 押せる部分は最小 48dp、主要ボタンは 56dp 以上（PLAN §1.3-2）
 
 ## 非機能要件
 

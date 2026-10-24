@@ -2,6 +2,21 @@
 <resources>
     <string name="app_name">いくメモ</string>
     <string name="home_empty">🎤 を押して、買いたい物を話してみましょう</string>
+    <string name="tab_memo">メモ</string>
+    <string name="tab_calendar">カレンダー</string>
+    <string name="tab_reminder">おしらせ</string>
+    <string name="common_close">閉じる</string>
+    <string name="memo_title">かいものメモ</string>
+    <string name="memo_add_by_text">文字で追加</string>
+    <string name="memo_already_in_memo">%1$sはもうメモにあります</string>
+    <string name="add_sheet_title">買いたい物を入れてください</string>
+    <string name="add_sheet_hint">品名（例: 牛乳）</string>
+    <string name="add_sheet_submit">追加する</string>
+    <string name="edit_name">品名</string>
+    <string name="edit_quantity">数量</string>
+    <string name="edit_note">メモ</string>
+    <string name="calendar_preparing">買った物は、ここに日付ごとに残ります</string>
+    <string name="reminder_preparing">期限を決めた物が、ここに並びます</string>
     <string name="theme_pop">ポップ</string>
     <string name="theme_gentle">やさしい</string>
     <string name="theme_cool">クール</string>

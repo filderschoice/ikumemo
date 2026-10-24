@@ -1,0 +1,56 @@
+package com.ikumemo.mobile.testing
+
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.ikumemo.mobile.data.db.IkumemoDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+
+/** テスト用のインメモリ DB。Flow の反映は非同期のため、テストでは Turbine で目的の状態まで待つ。 */
+fun inMemoryDatabase(): IkumemoDatabase =
+    Room
+        .inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), IkumemoDatabase::class.java)
+        .allowMainThreadQueries()
+        .build()
+
+/** 日本時間の固定時計。 */
+fun fixedClock(instant: String = "2026-10-25T01:00:00Z"): MutableClock = MutableClock(Instant.parse(instant))
+
+class MutableClock(
+    var now: Instant,
+    private val zoneId: ZoneId = ZoneId.of("Asia/Tokyo"),
+) : Clock() {
+    override fun getZone(): ZoneId = zoneId
+
+    override fun withZone(zone: ZoneId): Clock = MutableClock(now, zone)
+
+    override fun instant(): Instant = now
+
+    fun advanceSeconds(seconds: Long) {
+        now = now.plusSeconds(seconds)
+    }
+}
+
+/** ViewModel テストで Dispatchers.Main を差し替える。 */
+@OptIn(ExperimentalCoroutinesApi::class)
+class MainDispatcherRule(
+    val dispatcher: TestDispatcher = UnconfinedTestDispatcher(),
+) : TestWatcher() {
+    override fun starting(description: Description) {
+        Dispatchers.setMain(dispatcher)
+    }
+
+    override fun finished(description: Description) {
+        Dispatchers.resetMain()
+    }
+}

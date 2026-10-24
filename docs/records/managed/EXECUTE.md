@@ -5,6 +5,41 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 13:30
+  summary: メモ画面の基本（文字で追加・編集シート・重複判定）と下タブ 3 つの画面骨格を追加（M1）
+  details:
+    変更内容: >-
+      ShoppingRepository（品目の作成・メモへの追加・編集の保存）と ShoppingListViewModel を追加した。正規化した品名が同じ物が
+      メモにあれば追加せず、既存の項目を一瞬光らせて「○○はもうメモにあります」を出す（R-01・R-02）。編集で別の項目と同じ品名に
+      変えた場合も品名だけは変えず同じ知らせを出す。続けて追加したときに並びが入れ替わらないよう、書き込みは Mutex で直列化した。
+      Navigation Compose（型安全ルート）で下タブ（メモ・カレンダー・おしらせ）を作り、カレンダーとおしらせは見出しと案内文だけの
+      骨格とした。手動 DI の ViewModel 生成は AppViewModelFactory に集約した。依存に Navigation Compose 2.8.6、
+      lifecycle-viewmodel-compose、kotlinx-serialization-json 1.7.3、material-icons-extended、Turbine 1.2.0、Compose UI Test を追加した
+    変更ファイル:
+      - gradle/libs.versions.toml
+      - build.gradle.kts
+      - mobile/build.gradle.kts
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ItemSheets.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestDatabase.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（ViewModel テスト 5 件。追加・重複時の既存項目の提示・空文字の無視・編集の保存・
+      編集での重複を確認）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-012
 - date: 2026-10-25 12:40
   summary: core/text に品名の正規化（表記ゆれの吸収）と自作の読み辞書を追加（M1）
   details:
