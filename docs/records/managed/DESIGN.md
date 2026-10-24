@@ -4,4 +4,102 @@
 <!-- schema: records.design.v1 -->
 
 <!-- COPILOT_RECORDS:BEGIN -->
+# 実装用プロンプト設計書
+
+## 目的
+
+- 本書は、Android 向け買い物メモアプリ「いくメモ」を、現時点の実装と同じ内容で AI エージェントに再実装させるための
+  実装用プロンプト設計書である。履歴は積み上げず、常に最新の実装を表す
+- 要件の全体像と判断の背景は `PLAN.md`（開発開始前の計画書。開発開始後は更新しない）、未実装の作業は
+  `docs/records/managed/BACKLOG.md` を参照する。本書には**実装済み**の内容だけを書く
+
+## 対象システム概要
+
+- 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
+  ソースは GitHub で Apache-2.0 公開）
+- 進捗: マイルストーン M0（準備）を実装済み。画面はテーマ付きの空のホーム画面だけで、機能（M1 以降）は未実装
+- 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
+
+## 実装済み機能要件
+
+| 要件 ID | 内容 | 実装 |
+| --- | --- | --- |
+| M0 雛形 | core / mobile の 2 モジュールでビルドできる | `settings.gradle.kts`、`core/`、`mobile/` |
+| PLAN §4.5 | applicationId `com.ikumemo.mobile`、debug は `.debug` と `-debug`、debug のアプリ名「いくメモ（debug）」 | `mobile/build.gradle.kts`、`mobile/src/debug/res/values/strings.xml` |
+| PLAN §4.2 | targetSdk 35 以降の画面端までの表示（edge-to-edge） | `MainActivity` の `enableEdgeToEdge()` と `Scaffold` の余白 |
+| PLAN D-8・§2.7 | プリセットテーマ 4 種（ポップ／やさしい／クール／シンプル）× ライト／ダーク、テーマごとの角の丸み | `designsystem/ThemePreset.kt`、`IkumemoTheme.kt` |
+| PLAN §1.3-7 | 文字と背景のコントラスト比 4.5:1 以上を自動テストで保証 | `designsystem/ContrastRatio.kt`、`ThemeContrastTest` |
+| PLAN §1.3-6・F-65 | 文字の大きさ（ふつう 1.0／大きい 1.15／とても大きい 1.3）を端末の文字サイズに掛け、200% で頭打ち | `designsystem/TextSizeSetting.kt`、`IkumemoTheme` の `LocalDensity` 差し替え |
+| PLAN §1.2・§2.7 | アプリアイコン（吹き出し＋お買い物かご）、アダプティブアイコンとテーマアイコン（monochrome） | `mipmap-anydpi-v26/ic_launcher.xml`、`drawable/ic_launcher_foreground.xml` |
+| PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
+| PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
+
+## 設計方針
+
+### アーキテクチャ方針
+
+- モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
+  `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
+- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `designsystem/` だけ。予定は PLAN §4.5 の
+  `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
+- UI は Jetpack Compose + Material 3。DI は手動（`Application` の `AppContainer`、M1 で導入予定）
+- 依存の版は sesami-wear と同じ版にそろえる（AGP 8.13.0、Kotlin 2.0.21、Compose BOM 2024.12.01 等。
+  `gradle/libs.versions.toml`）。必要になったマイルストーンで追加し、使わない依存は入れない
+
+### デザインシステム方針
+
+- 配色は `IkumemoPalette` に ARGB の `Long` で持ち、`toColorScheme()` で Material 3 の `ColorScheme` へ対応付ける。
+  Compose の `Color` に依存させないことで、コントラスト比を Android 実行環境なしの単体テストで検査できる
+- 検査する組み合わせは `IkumemoPalette.textPairs()`（on 系と対応する背景、補助文字 onSurfaceVariant を surface と
+  background の両方、primary と error を surface 上の文字として）。配色を追加・変更したら必ずこの検査を通す
+- 角の丸み: ポップ・やさしい 12/20/28dp、クール 4/8/12dp、シンプル 8/12/16dp（small/medium/large）
+- 初期テーマはポップ（PLAN に既定値の指定が無いため D-8 の並びの先頭。きせかえ画面 BL-060 で変更可能）
+- テーマと文字の大きさは `storageKey`（`pop` / `gentle` / `cool` / `simple`、`normal` / `large` / `extra_large`）で
+  保存する前提。未知の値は既定値へ戻す
+- フォントは端末標準を使い、同梱しない（PLAN §2.7）
+
+### データ設計方針
+
+- 未実装（M1 の BL-010 で Room の 6 テーブルを導入する。PLAN §4.3）
+
+### UI/UX 方針
+
+- 画面の配置は `docs/design/WIREFRAME.md`（主要画面・シートの配置と、その場のガイドで照らす場所の目印）
+- 文言はすべて `strings.xml` に置く（日本語のみでも。PLAN §4.1）
+
+## 非機能要件
+
+- 性能・信頼性: 未実装（PLAN §8 の目標は BL-089 等で対応）
+- セキュリティ／プライバシー: `AndroidManifest.xml` で宣言する権限は無い。INTERNET・位置情報・CAMERA・VIBRATE・
+  SCHEDULE_EXACT_ALARM は使わない方針（PLAN §5）。公開している画面は起動用の `MainActivity` だけ
+- 署名鍵・`local.properties`・`secrets.properties`・`*.jks` / `*.keystore`・`.env*` は `.gitignore` で除外する
+
+## 実装制約
+
+### 技術制約
+
+- アダプティブアイコンは aapt2 が `-v26` 付きのフォルダでしか解決しないため、minSdk 26 でも
+  `mipmap-anydpi-v26` に置き、Lint の `ObsoleteSdkInt` を `mobile/lint.xml` で除外する
+- detekt は sesami-wear の設定（`maxIssues: 0`、`MagicNumber` 無効、`LongMethod` 60）に加え、`@Preview` 関数を
+  `UnusedPrivateMember` の対象外にする
+- 品質ゲートは `CLAUDE.md`「本リポジトリの品質ゲート定義」が正本（ktlintCheck・detekt・lintDebug・
+  testDebugUnitTest test・assembleDebug、markdownlint、記録ファイルの検証）
+
+### 運用制約
+
+- CI（GitHub Actions）と Dependabot は導入しない。Gradle の依存脆弱性スキャンも導入しない（sesami-wear に合わせた
+  オーナー判断、2026-10-24）。ローカルの品質ゲートが唯一のゲート
+- 外部からの Pull Request は受け付けない（オーナー判断、`CONTRIBUTING.local.md`）
+- LICENSE（Apache-2.0）の配置はオーナーが行う（PLAN D-6、BL-007）
+- `PLAN.md` は本文を更新せず、冒頭の `markdownlint-disable-file` で静的解析の対象から外している
+- リリースビルドは `scripts/release-build.bat`。Play への自動アップロードは行わない
+
+## エージェント実装指示
+
+- 初回実装時の出力要件: 本書の「実装済み機能要件」の各行を満たす構成を作り、品質ゲートをすべて成功させる。
+  テーマの配色は `ThemeContrastTest` を通る値にする
+- 追加実装時の出力要件: BACKLOG.md のタスク単位で実装し、完了したら本書の該当節（実装済み機能要件・設計方針・
+  非機能要件・実装制約）を最新の実装に合わせて書き換える。未実装の内容を本書へ先回りして書かない
+- 要件トレーサビリティ要件: 実装済み機能要件の表は PLAN の ID（F- / R- / W- / G- / H- / D-、または節番号）と
+  実装箇所を対応付ける。PLAN と異なる判断をした場合は、その理由を本書と BACKLOG の `根拠` に残す
 <!-- COPILOT_RECORDS:END -->
