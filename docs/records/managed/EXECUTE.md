@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 15:58
+  summary: Baseline Profile をビルドに含め、リリースのサイズを確認（R8 は有効済み）（非機能要件）
+  details:
+    変更内容: >-
+      release の R8（縮小・難読化）はすでに有効だった。Baseline Profile として、アプリのコード全体を対象にした広い規則を
+      mobile/src/main/baseline-prof.txt に置き、Compose 経由で入っていた profileinstaller 1.3.1 を同じ版で明示的に依存に書いた。
+      署名なしの assembleRelease で APK が約 3.2MB（上限 15MB）であること、APK に assets/dexopt/baseline.prof が入り、
+      アプリの規則がライブラリの規則と合わせて入っていること（merged_art_profile 4374 行）を確かめた。署名鍵の設定（local.properties）は
+      無く、本番の資格情報は使っていない。実機での Baseline Profile の作成と起動時間の計測は人手検証 BL-100 として起票した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/baseline-prof.txt
+    検証コマンド: >-
+      ./gradlew :mobile:assembleRelease（署名なし）、unzip -l で APK の中身を確認、
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - assembleRelease BUILD SUCCESSFUL（約 8 分）、mobile-release-unsigned.apk 3,206,422 バイト、assets/dexopt/baseline.prof あり。
+      全ゲート BUILD SUCCESSFUL（依存の追加で作り直しになり約 8 分、単体テスト 232 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-089
 - date: 2026-10-25 15:39
   summary: メモの行に読み上げ用の「買った」「やめた」の操作を追加（アクセシビリティの仕上げ）（M8）
   details:

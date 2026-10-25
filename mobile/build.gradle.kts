@@ -139,6 +139,8 @@ dependencies {
     // このアプリについて のライセンス一覧（Play Services に依存しない、PLAN §4.1・§7）
     implementation(libs.aboutlibraries.compose)
     implementation(libs.androidx.work.runtime)
+    // Baseline Profile（src/main/baseline-prof.txt）をインストール時に反映する（PLAN §8）
+    implementation(libs.androidx.profileinstaller)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
