@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:20
+  summary: せっていに お店の管理（使わない・まとめる）と よく買う物の管理（候補に出す／出さない）を追加（M6）
+  details:
+    変更内容: >-
+      お店の管理は使っているお店を最近使った順に並べ、「使わない」（確認を 1 回出し、候補から消して記録のお店名は残す、R-16）と
+      「ほかのお店とまとめる」（まとめ先を選び、記録・メモ・お買い物を移す）を StoreRepository の archive / merge で行う。
+      よく買う物の管理は全部の品目を買った回数 → 最近買った日 → 品名の順に並べ、「候補に出す」のスイッチで ProductEntity.hidden を
+      切り替える（F-23 の非表示。表記ゆれの統合は S のため含めない）。確認の状態は rememberSaveable で持ち、画面を回しても残す
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ProductRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ManageViewModels.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ProductManageScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/StoreManageScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/ManageViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/ManageContentTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（単体テスト計 262 件。追加は使わない印と記録のお店名、まとめると記録が移ること、品目の並びと非表示で候補から消えること 3 件、
+      確認を経て操作が届くこと・スイッチの切り替え 2 件）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-092
 - date: 2026-10-25 09:40
   summary: せっていに そうさ（○ の表示・振動）と おしらせ（時刻・当日のおしらせ）の画面を追加（M6）
   details:

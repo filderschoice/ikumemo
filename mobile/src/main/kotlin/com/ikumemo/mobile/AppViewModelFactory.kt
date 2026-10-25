@@ -10,7 +10,9 @@ import com.ikumemo.mobile.calendar.CalendarViewModel
 import com.ikumemo.mobile.reminder.ReminderViewModel
 import com.ikumemo.mobile.settings.AppearanceViewModel
 import com.ikumemo.mobile.settings.OperationViewModel
+import com.ikumemo.mobile.settings.ProductManageViewModel
 import com.ikumemo.mobile.settings.ReminderSettingsViewModel
+import com.ikumemo.mobile.settings.StoreManageViewModel
 import com.ikumemo.mobile.shoppinglist.ShoppingListViewModel
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 
@@ -37,6 +39,8 @@ object AppViewModelFactory {
             }
             initializer { AppearanceViewModel(container().appearancePrefs) }
             initializer { OperationViewModel(container().operationPrefs) }
+            initializer { StoreManageViewModel(container().storeRepository) }
+            initializer { ProductManageViewModel(container().shoppingRepository.products) }
             initializer {
                 val container = container()
                 ReminderSettingsViewModel(container.reminderPrefs) { container.reminderScheduler.reschedule() }

@@ -32,9 +32,11 @@ import com.ikumemo.mobile.calendar.CalendarScreen
 import com.ikumemo.mobile.reminder.ReminderScreen
 import com.ikumemo.mobile.settings.AppearanceScreen
 import com.ikumemo.mobile.settings.OperationScreen
+import com.ikumemo.mobile.settings.ProductManageScreen
 import com.ikumemo.mobile.settings.ReminderSettingsScreen
 import com.ikumemo.mobile.settings.SettingsItem
 import com.ikumemo.mobile.settings.SettingsScreen
+import com.ikumemo.mobile.settings.StoreManageScreen
 import com.ikumemo.mobile.shoppinglist.HomeNavigation
 import com.ikumemo.mobile.shoppinglist.ShoppingListScreen
 import kotlinx.serialization.Serializable
@@ -60,6 +62,12 @@ object OperationRoute
 
 @Serializable
 object ReminderSettingsRoute
+
+@Serializable
+object StoreManageRoute
+
+@Serializable
+object ProductManageRoute
 
 /** 下タブ 3 つ（アイコン＋文字ラベル、PLAN §3）。 */
 private enum class TopLevelTab(
@@ -123,6 +131,8 @@ fun IkumemoApp(
                             SettingsItem.APPEARANCE -> navController.navigate(AppearanceRoute)
                             SettingsItem.OPERATION -> navController.navigate(OperationRoute)
                             SettingsItem.REMINDER -> navController.navigate(ReminderSettingsRoute)
+                            SettingsItem.STORES -> navController.navigate(StoreManageRoute)
+                            SettingsItem.PRODUCTS -> navController.navigate(ProductManageRoute)
                         }
                     },
                 )
@@ -130,6 +140,8 @@ fun IkumemoApp(
             composable<AppearanceRoute> { AppearanceScreen(onBack = { navController.popBackStack() }) }
             composable<OperationRoute> { OperationScreen(onBack = { navController.popBackStack() }) }
             composable<ReminderSettingsRoute> { ReminderSettingsScreen(onBack = { navController.popBackStack() }) }
+            composable<StoreManageRoute> { StoreManageScreen(onBack = { navController.popBackStack() }) }
+            composable<ProductManageRoute> { ProductManageScreen(onBack = { navController.popBackStack() }) }
         }
     }
 }

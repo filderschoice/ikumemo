@@ -29,6 +29,17 @@ class ProductRepository(
     /** 品目の表示名（音声の分割で品名の中の「と」を守るのに使う）。 */
     suspend fun names(): List<String> = productDao.getAllNames()
 
+    /** よく買う物の管理で並べる全部の品目（候補に出さない物も含む）。 */
+    fun observeAllProducts(): Flow<List<ProductEntity>> = productDao.observeAll()
+
+    /** 候補に出さない／出す（F-23）。記録やメモには影響しない。 */
+    suspend fun setHidden(
+        productId: Long,
+        hidden: Boolean,
+    ) {
+        productDao.getById(productId)?.let { productDao.update(it.copy(hidden = hidden)) }
+    }
+
     /** 候補の元になる品目（F-20・F-21）。 */
     fun observeSummaries(): Flow<List<ProductSummary>> =
         productDao.observeAll().map { products ->

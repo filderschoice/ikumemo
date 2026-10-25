@@ -60,13 +60,14 @@
 | F-20・F-21 | 追加シートに入力中の候補（正規化名の前方一致を先、部分一致を後）と「いつもの」チップ（購入回数 → 最近買った順 → 正規化名、最大 12 件）。メモにある物は出さない。チップは押すたびに 1 件入る | `core/suggest/Suggestions.kt`、`ShoppingListViewModel.addSuggestions`、`ItemSheets.kt` の `AddItemSheet` |
 | F-14・F-30・F-31 | メモ上部のお店チップ → いつものお店から選ぶシート（最近使った順の上位 5 件・ほかのお店・新しいお店・選ばない）。選んだお店は「買った」に付く | `shoppinglist/StorePicker.kt`、`data/StoreRepository.kt` |
 | R-06 | 選んだ時か最後の「買った」から 3 時間、または日付が変わったら選んだお店を解除（表示は 1 分ごとに見直す） | `data/AppSettings.kt` の `StoreSelection`、`StoreRepository` |
-| R-16（処理のみ） | お店は消さずに使わない印、同じお店の統合（記録・メモ・お買い物を移す）。お店の管理の画面は未実装 | `StoreRepository.archive` / `merge` |
+| R-16 | お店の管理: お店は消さずに「使わない」印（確認を 1 回出す、記録のお店名は残す）、「ほかのお店とまとめる」で記録・メモ・お買い物を選んだお店へ移す | `settings/StoreManageScreen.kt`、`StoreRepository.archive` / `merge` |
+| F-23（非表示のみ） | よく買う物の管理: 買った回数の多い順に並べ、品目ごとに「候補に出す」を切り替える（オフはいつもの・入力中の候補に出ない）。表記ゆれの統合は未実装（S） | `settings/ProductManageScreen.kt`、`ProductRepository.setHidden` |
 | R-20〜R-23・R-27・R-28 | 通知日（前日・当日〔オフ可〕・あとでの翌日）、同じ日の 1 通へのまとめ、次の通知日時（電源オフ後はすぐ出す） | `core/reminder/ReminderSchedule.kt` |
 | F-51・R-24・R-25 | 次の通知時刻を `setAndAllowWhileIdle` で 1 件だけ予約。起動時と再起動・時刻変更・タイムゾーン変更・アプリ更新で予約し直す。チャンネルは「期限のおしらせ」1 種。押すとおしらせのタブ | `reminder/ReminderScheduler.kt`、`ReminderReceivers.kt`、`ReminderNotifier.kt` |
 | F-52・R-26・R-27 | 1 品目の通知だけ「使い切った」「また買う」（メモへ入れて使い切った）「あとで」（翌日にもう一度） | `reminder/ReminderActions.kt` |
 | PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
 | F-60・F-63・F-65 | きせかえ（各テーマの色で描いた見本のカードでテーマを選ぶ、暗い画面「端末に合わせる / 明るい / 暗い」、文字の大きさ 3 段階）。選んだらすぐ保存しアプリ全体へ反映 | `settings/AppearanceScreen.kt`、`data/AppearancePrefs.kt`、`MainActivity.kt` |
-| PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。せってい画面の項目は今は「きせかえ」「そうさ」「おしらせ」（ほかは BL-072・BL-081・BL-092・BL-093 で足す） | `settings/SettingsScreen.kt` |
+| PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。せってい画面の項目は今は「きせかえ」「そうさ」「おしらせ」「お店の管理」「よく買う物の管理」（ほかは BL-072・BL-081・BL-093 で足す） | `settings/SettingsScreen.kt` |
 | F-13・R-05・PLAN §3 そうさ | ○ の表示と振動のオン/オフ（初期値はどちらもオン）。○ を消した行は左に余白を取る | `settings/OperationScreen.kt`、`data/OperationPrefs.kt`、`shoppinglist/SwipeableItemRow.kt` |
 | R-20・R-21・PLAN §3 おしらせ | 通知の時刻（時計の形で選ぶ、24 時間表示）と期限当日のおしらせのオン/オフ。保存したら次の通知を予約し直す | `settings/ReminderSettingsScreen.kt` |
 | W-01・R-42・R-44・R-45 | 1×1 ウィジェット「話して追加」（横 2 マス以上で文字を横並び）。押すと透明な専用 Activity で音声入力シートが重なって開き、追加したらトーストを出して閉じる。途中で閉じたら何も追加しない。音声入力が使えない端末では「書いて追加」でアプリの追加シートを開く。色はきせかえのテーマと暗い画面の設定に合わせる | `widget/VoiceWidget.kt`、`widget/WidgetColors.kt`、`voice/VoiceSheetActivity.kt` |

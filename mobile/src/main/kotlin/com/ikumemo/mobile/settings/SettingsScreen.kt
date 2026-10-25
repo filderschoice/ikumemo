@@ -62,6 +62,8 @@ enum class SettingsItem(
     APPEARANCE(R.string.settings_appearance),
     OPERATION(R.string.settings_operation),
     REMINDER(R.string.settings_reminder),
+    STORES(R.string.settings_stores),
+    PRODUCTS(R.string.settings_products),
 }
 
 /** せってい（PLAN §3 右上メニュー）。項目を押すとそれぞれの画面を開く。 */
