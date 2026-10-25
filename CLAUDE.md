@@ -28,6 +28,7 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 | 脆弱性チェック | (未導入) | Gradle の依存脆弱性スキャン（`dependencyCheck` 等）は導入しない（sesami-wear に合わせたオーナー判断、2026-10-24）。導入した場合は本節を更新する |
 | Markdown の静的解析 | `npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml` | `Summary: 0 issues`、かつ出力の `Linting: N files` が `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致（対象漏れの検出） |
 | 記録ファイルの検証 | `python scripts/validate-records.py`（PyYAMLが必要） | 終了コード0 |
+| 使い方の Web 版 | `python scripts/make-user-guide.py --check` | 終了コード0（`docs/USER_GUIDE.md` がアプリ内の使い方の正本 `mobile/src/main/assets/help/` と一致。正本を直したら `python scripts/make-user-guide.py` で作り直す） |
 
 - Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug` で一度に実行できる。
   ktlint の違反は `./gradlew ktlintFormat` で自動修正できる（品質ゲートには含めない）

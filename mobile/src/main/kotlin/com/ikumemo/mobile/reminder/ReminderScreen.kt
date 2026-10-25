@@ -51,10 +51,14 @@ import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.guideTarget
 import com.ikumemo.mobile.guide.rememberGuideTargets
+import com.ikumemo.mobile.help.HelpPages
 import java.time.LocalDate
 
 @Composable
-fun ReminderScreen(viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory)) {
+fun ReminderScreen(
+    onOpenHelp: (String) -> Unit = {},
+    viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val refresh = {
@@ -70,7 +74,12 @@ fun ReminderScreen(viewModel: ReminderViewModel = viewModel(factory = AppViewMod
         viewModel.onEvent(event)
         if (event is ReminderEvent.SetDue) permission.askAfterFirstDue()
     }
-    ReminderContent(state = state, onEvent = onEvent, onEnableNotifications = permission::enable)
+    ReminderContent(
+        state = state,
+        onEvent = onEvent,
+        onEnableNotifications = permission::enable,
+        onOpenHelp = onOpenHelp,
+    )
     state.dueTarget?.let { DueSheet(target = it, today = state.today, onEvent = onEvent) }
     permission.Dialog()
 }
@@ -81,13 +90,14 @@ fun ReminderContent(
     state: ReminderUiState,
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
+    onOpenHelp: (String) -> Unit = {},
 ) {
     val guideTargets = rememberGuideTargets()
     CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 TopAppBar(title = { Text(stringResource(R.string.tab_reminder)) }, windowInsets = WindowInsets(0))
-                ReminderList(state, onEvent, onEnableNotifications)
+                ReminderList(state, onEvent, onEnableNotifications, onOpenHelp)
             }
             state.guide?.let { guide ->
                 GuideOverlay(
@@ -105,6 +115,7 @@ private fun ReminderList(
     state: ReminderUiState,
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
+    onOpenHelp: (String) -> Unit,
 ) {
     val targets = LocalGuideTargets.current
     LazyColumn(Modifier.fillMaxSize()) {
@@ -130,6 +141,15 @@ private fun ReminderList(
         items(state.pending, key = { "pending_${it.reminder.id}" }) { row ->
             PendingRow(row, state.today, onEvent)
             HorizontalDivider()
+        }
+        // 困ったときの入口（H-03）
+        item {
+            TextButton(
+                onClick = { onOpenHelp(HelpPages.NOT_ARRIVING) },
+                modifier = Modifier.padding(8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.NOT_ARRIVING),
+            ) {
+                Text(stringResource(R.string.help_not_arriving))
+            }
         }
     }
 }
@@ -269,6 +289,7 @@ fun Context.openNotificationSettings() {
 
 object ReminderTestTags {
     const val NOTIFICATIONS_OFF = "reminder_notifications_off"
+    const val NOT_ARRIVING = "reminder_not_arriving"
 
     fun setDue(recordId: Long) = "reminder_set_due_$recordId"
 

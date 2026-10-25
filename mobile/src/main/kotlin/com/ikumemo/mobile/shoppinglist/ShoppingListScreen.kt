@@ -56,6 +56,7 @@ import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.MemoGuides
 import com.ikumemo.mobile.guide.guideTarget
 import com.ikumemo.mobile.guide.rememberGuideTargets
+import com.ikumemo.mobile.help.HelpPages
 import com.ikumemo.mobile.voice.VoiceInputSheet
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.delay
@@ -79,6 +80,8 @@ private const val UNDO_MILLIS = 5_000L
  */
 data class HomeNavigation(
     val onOpenSettings: () -> Unit = {},
+    /** 困ったときの入口から使い方のページを開く（H-03）。 */
+    val onOpenHelp: (String) -> Unit = {},
     val request: ScreenRequest? = null,
     val onRequestHandled: () -> Unit = {},
 )
@@ -113,6 +116,7 @@ fun ShoppingListScreen(
         voiceAvailable = voiceViewModel.isAvailable,
         onEvent = onEvent,
         onOpenSettings = navigation.onOpenSettings,
+        onOpenHelp = navigation.onOpenHelp,
     )
     when (val sheet = state.sheet) {
         HomeSheet.Voice ->
@@ -150,6 +154,7 @@ fun ShoppingListContent(
     voiceAvailable: Boolean,
     onEvent: (ShoppingListEvent) -> Unit,
     onOpenSettings: () -> Unit = {},
+    onOpenHelp: (String) -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
@@ -177,11 +182,11 @@ fun ShoppingListContent(
                     modifier = Modifier.padding(horizontal = 16.dp).guideTarget(GuideId.G06_STORE_CHIP, guideTargets),
                 )
                 if (state.loaded && state.items.isEmpty()) {
-                    EmptyMemo(Modifier.weight(1f))
+                    EmptyMemo(onOpenHelp = { onOpenHelp(HelpPages.VOICE) }, modifier = Modifier.weight(1f))
                 } else {
                     MemoList(state, listState, onEvent, Modifier.weight(1f))
                 }
-                AddButtons(voiceAvailable = voiceAvailable, onEvent = onEvent)
+                AddButtons(voiceAvailable = voiceAvailable, onEvent = onEvent, onOpenHelp = onOpenHelp)
             }
             SnackbarHost(
                 snackbarHostState,
@@ -316,14 +321,25 @@ private fun SettingsButton(onClick: () -> Unit) {
     }
 }
 
+/** メモが空のときの案内。「使い方を見る」で話して入れるページへ（H-03）。 */
 @Composable
-private fun EmptyMemo(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+private fun EmptyMemo(
+    onOpenHelp: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier.fillMaxWidth().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Text(
             text = stringResource(R.string.home_empty),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
+        TextButton(onClick = onOpenHelp, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EMPTY_HELP)) {
+            Text(stringResource(R.string.help_open))
+        }
     }
 }
 
@@ -332,6 +348,7 @@ private fun EmptyMemo(modifier: Modifier = Modifier) {
 private fun AddButtons(
     voiceAvailable: Boolean,
     onEvent: (ShoppingListEvent) -> Unit,
+    onOpenHelp: (String) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -369,6 +386,13 @@ private fun AddButtons(
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
+            // 困ったときの入口（H-03）
+            TextButton(
+                onClick = { onOpenHelp(HelpPages.NO_VOICE) },
+                modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.NO_VOICE_HELP),
+            ) {
+                Text(stringResource(R.string.help_open))
+            }
             Button(
                 onClick = { onEvent(ShoppingListEvent.OpenAddByText) },
                 modifier = Modifier.heightIn(min = 56.dp).widthIn(min = 200.dp).testTag(TestTags.ADD_BY_TEXT),
@@ -396,6 +420,8 @@ object TestTags {
     const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
     const val SETTINGS = "settings"
+    const val EMPTY_HELP = "empty_help"
+    const val NO_VOICE_HELP = "no_voice_help"
 
     /** お店チップ（G-06 で照らす場所）。 */
     const val STORE_CHIP = "store_chip"

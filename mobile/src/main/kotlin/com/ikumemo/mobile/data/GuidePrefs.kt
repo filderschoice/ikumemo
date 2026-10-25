@@ -49,6 +49,19 @@ class GuidePrefs(
         }
     }
 
+    /** 使い方の各ページの「ガイドをもう一度見る」（H-02）。そのガイドを未表示に戻し、止めていたガイドも再開する。 */
+    suspend fun showGuideAgain(id: GuideId) {
+        dataStore.edit {
+            it[SHOWN] = it[SHOWN].orEmpty() - id.storageKey
+            it[DISABLED] = false
+        }
+    }
+
+    /** 使い方の「はじめての案内をもう一度見る」（H-02）。 */
+    suspend fun showOnboardingAgain() {
+        dataStore.edit { it[ONBOARDING_DONE] = false }
+    }
+
     /** 使い方の「ガイドをもう一度見る」用。表示済みを消し、止めていたガイドも再開する（はじめての案内は出し直さない）。 */
     suspend fun resetGuides() {
         dataStore.edit {

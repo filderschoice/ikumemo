@@ -5,6 +5,49 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 14:02
+  summary: 使い方（H-01〜H-03）と Web 版 docs/USER_GUIDE.md の生成（M8）
+  details:
+    変更内容: >-
+      使い方の正本を mobile/src/main/assets/help/ の Markdown（目次 index.md と 27 ページ。見出し・段落・箇条書きと
+      「<!-- try: 画面; guide: g02 -->」だけ）として書き、HelpParser・HelpRepository で読んで、せっていの一番上の「使い方」から
+      目次と 1 ページずつ表示するようにした。各ページの下に「ガイドをもう一度見る」（GuidePrefs.showGuideAgain でそのガイドを未表示に戻して
+      画面を開く）と「やってみる」、目次の先頭に「はじめての案内をもう一度見る」（showOnboardingAgain）を置いた（H-02）。メモが空の画面・
+      音声が使えない機種の表示・おしらせ一覧の「おしらせが来ないときは」から関係するページへ移る（H-03）。scripts/make-user-guide.py で
+      docs/USER_GUIDE.md を作り、--check で正本との一致を確かめる行を CLAUDE.md の品質ゲートに足した（CHANGELOG に記録）。
+      未実装の「LINE などで送る」（F-08）は目次に載せず、画面の絵はスクリーンショットテスト（BL-062）が無いため入れていない
+    変更ファイル:
+      - CHANGELOG.md
+      - CLAUDE.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/assets/help/（index.md と 27 ページ）
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/GuidePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/help/HelpContent.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/help/HelpScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/GuidePrefsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/help/HelpContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/help/HelpScreenTest.kt
+      - scripts/make-user-guide.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 途中で detekt の MaxLineLength を直した。1 回目の全ゲートはメモリ不足で Claude Code に止められ、オーナーの指示した時刻に
+      流し直して BUILD SUCCESSFUL（単体テスト 228 件。追加は目次の全ページが読める・G-02〜G-08 をどこかのページから出し直せる・
+      困ったときの入口のページがある・読み方・無いページで落ちない 5 件、ガイドの出し直しと案内の出し直しの保存 2 件、ページのボタン 2 件、
+      せってい→使い方→ガイドをもう一度見るでカレンダーが開く・空のメモから話して入れるページへ 2 件）、markdownlint 0 issues（56 ファイル）、
+      記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-081
 - date: 2026-10-25 11:32
   summary: カレンダーとおしらせのその場のガイド（G-07・G-08）（M8）
   details:

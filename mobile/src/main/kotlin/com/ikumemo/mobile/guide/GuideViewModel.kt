@@ -33,6 +33,16 @@ class GuideViewModel(
         viewModelScope.launch { prefs.disableAll(current) }
     }
 
+    /** 使い方の「ガイドをもう一度見る」（H-02）。 */
+    fun showGuideAgain(id: GuideId) {
+        viewModelScope.launch { prefs.showGuideAgain(id) }
+    }
+
+    /** 使い方の「はじめての案内をもう一度見る」（H-02）。保存するとアプリ全体が案内に切り替わる。 */
+    fun showOnboardingAgain() {
+        viewModelScope.launch { prefs.showOnboardingAgain() }
+    }
+
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
     }

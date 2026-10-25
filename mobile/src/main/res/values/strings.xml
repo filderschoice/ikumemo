@@ -113,6 +113,13 @@
     <string name="notification_later">あとで</string>
     <string name="common_back">もどる</string>
     <string name="settings_title">せってい</string>
+    <string name="settings_help">使い方</string>
+    <string name="help_show_onboarding">はじめての案内をもう一度見る</string>
+    <string name="help_show_guide">ガイドをもう一度見る</string>
+    <string name="help_try">やってみる</string>
+    <string name="help_not_found">このページは見つかりませんでした</string>
+    <string name="help_open">使い方を見る</string>
+    <string name="help_not_arriving">おしらせが来ないときは</string>
     <string name="settings_appearance">きせかえ</string>
     <string name="settings_operation">そうさ</string>
     <string name="settings_reminder">おしらせ</string>

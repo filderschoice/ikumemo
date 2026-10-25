@@ -57,6 +57,34 @@ class GuidePrefsTest {
         }
 
     @Test
+    fun showGuideAgainResetsOnlyThatGuideAndResumes() =
+        runTest {
+            prefs.finishOnboarding()
+            prefs.markShown(GuideId.G05_UNDO)
+            prefs.disableAll(GuideId.G07_CALENDAR_DAY)
+
+            // 使い方の「ガイドをもう一度見る」（H-02）
+            prefs.showGuideAgain(GuideId.G07_CALENDAR_DAY)
+
+            val state = prefs.state.first()
+            assertEquals(setOf(GuideId.G05_UNDO), state.shown)
+            assertFalse(state.disabled)
+        }
+
+    @Test
+    fun showOnboardingAgainKeepsGuides() =
+        runTest {
+            prefs.finishOnboarding()
+            prefs.markShown(GuideId.G02_VOICE_BUTTON)
+
+            prefs.showOnboardingAgain()
+
+            val state = prefs.state.first()
+            assertFalse(state.onboardingDone)
+            assertEquals(setOf(GuideId.G02_VOICE_BUTTON), state.shown)
+        }
+
+    @Test
     fun unknownGuideKeysAreIgnored() =
         runTest {
             // 新しい版で足したガイドを古い版で読んだ場合

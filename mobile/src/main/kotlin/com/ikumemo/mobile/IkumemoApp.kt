@@ -39,7 +39,9 @@ import com.ikumemo.mobile.calendar.CalendarScreen
 import com.ikumemo.mobile.designsystem.LocalHasBackgroundImage
 import com.ikumemo.mobile.guide.GuideViewModel
 import com.ikumemo.mobile.guide.OnboardingContent
+import com.ikumemo.mobile.help.HelpScreens
 import com.ikumemo.mobile.reminder.ReminderScreen
+import com.ikumemo.mobile.settings.HelpPageRoute
 import com.ikumemo.mobile.settings.SettingsRoute
 import com.ikumemo.mobile.settings.settingsGraph
 import com.ikumemo.mobile.shoppinglist.HomeNavigation
@@ -166,15 +168,35 @@ private fun AppScaffold(
                     navigation =
                         HomeNavigation(
                             onOpenSettings = { navController.navigate(SettingsRoute) },
+                            onOpenHelp = { navController.navigate(HelpPageRoute(it)) },
                             request = memoRequest,
                             onRequestHandled = { onMemoRequestChange(null) },
                         ),
                 )
             }
             composable<CalendarRoute> { CalendarScreen() }
-            composable<ReminderRoute> { ReminderScreen() }
-            settingsGraph(navController)
+            composable<ReminderRoute> { ReminderScreen(onOpenHelp = { navController.navigate(HelpPageRoute(it)) }) }
+            settingsGraph(navController) { screen -> openFromHelp(navController, screen, onMemoRequestChange) }
         }
+    }
+}
+
+/** 使い方の「やってみる」「ガイドをもう一度見る」から、メモ・カレンダー・おしらせの画面を開く（H-02）。 */
+private fun openFromHelp(
+    navController: NavHostController,
+    screen: String,
+    onMemoRequestChange: (ScreenRequest?) -> Unit,
+) {
+    val route: Any =
+        when (screen) {
+            HelpScreens.CALENDAR -> CalendarRoute
+            HelpScreens.REMINDER -> ReminderRoute
+            HelpScreens.ADD_TEXT -> MemoRoute.also { onMemoRequestChange(ScreenRequest(MainActivity.OPEN_ADD_TEXT)) }
+            else -> MemoRoute
+        }
+    navController.navigate(route) {
+        popUpTo(navController.graph.findStartDestination().id)
+        launchSingleTop = true
     }
 }
 
