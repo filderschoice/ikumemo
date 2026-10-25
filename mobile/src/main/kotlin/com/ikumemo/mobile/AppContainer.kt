@@ -7,6 +7,8 @@ import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.AppearancePrefs
 import com.ikumemo.mobile.data.OperationPrefs
+import com.ikumemo.mobile.data.PhotoCleaner
+import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.RecordRepository
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
@@ -67,6 +69,8 @@ class AppContainer(
     val storeRepository by lazy { StoreRepository(database, settings, normalizer, clock) }
 
     val widgetUpdater by lazy { WidgetUpdater(appContext, this) }
+
+    val photoCleaner by lazy { PhotoCleaner(database, PhotoStore(appContext), clock) }
 
     /** 音声認識の窓口を作る。ViewModel ごとに 1 つ作り、ViewModel の破棄で片付ける。 */
     val speechEngineFactory: () -> SpeechEngine = { speechEngine(appContext) }

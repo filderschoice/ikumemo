@@ -1,6 +1,7 @@
 package com.ikumemo.mobile
 
 import android.app.Application
+import com.ikumemo.mobile.data.PhotoCleanupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,5 +28,7 @@ open class IkumemoApplication : Application() {
         scope.launch { container.reminderScheduler.notifyIfDue() }
         // データ・見た目が変わったらウィジェットを描き直す（R-41）
         container.widgetUpdater.start(scope)
+        // 使われなくなった写真を 1 日 1 回消す（R-14）
+        PhotoCleanupWorker.schedule(this)
     }
 }

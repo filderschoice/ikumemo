@@ -55,12 +55,18 @@ class PhotoStore(
         File(appContext.cacheDir, CAMERA_DIR).listFiles()?.forEach { it.delete() }
     }
 
-    /** 参照されていない写真を消す（R-14）。消した数を返す。 */
-    fun deleteUnreferenced(referenced: Set<String>): Int =
+    /**
+     * 参照されていない写真を消す（R-14）。消した数を返す。[modifiedBeforeMillis] より後に書いた写真は、
+     * 編集シートで取り込んだばかりでまだ保存されていない可能性があるため残す。
+     */
+    fun deleteUnreferenced(
+        referenced: Set<String>,
+        modifiedBeforeMillis: Long = Long.MAX_VALUE,
+    ): Int =
         photosDir
             .listFiles()
             .orEmpty()
-            .filter { "$PHOTOS_DIR/${it.name}" !in referenced }
+            .filter { "$PHOTOS_DIR/${it.name}" !in referenced && it.lastModified() < modifiedBeforeMillis }
             .count { it.delete() }
 
     private fun save(bitmap: Bitmap): String {

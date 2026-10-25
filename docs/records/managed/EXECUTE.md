@@ -5,6 +5,34 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:03
+  summary: 使われなくなった写真の掃除を 1 日 1 回動かす（R-14）（M4）
+  details:
+    変更内容: >-
+      メモ・お買い物・記録のどれかが参照している写真の相対パスを返す PhotoDao を追加し、参照されていない写真を消す PhotoCleaner と、
+      それを WorkManager で 1 日 1 回動かす PhotoCleanupWorker を追加した。予約は起動時に一意の定期作業として行い、既にあれば残す。
+      端末を使っていない間・電池残量が少なくない時に限って動かす（「やめた」の元に戻すを待っている写真を消さないため）。
+      編集シートで取り込んだばかりでまだ保存していない写真を消さないよう、書いてから 1 日未満の写真は残す
+      （PhotoStore.deleteUnreferenced に書いた時刻の条件を追加。既定値は従来どおり条件なし）
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoCleaner.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoCleanupWorker.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/IkumemoDatabase.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/PhotoCleanerTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（約 3 分 30 秒。単体テスト 179 件。追加は参照されていない写真だけ消える・メモと記録で共有する写真を残す・
+      取り込んだばかりの写真を残す 3 件）、Lint 成功、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-041
 - date: 2026-10-25 09:46
   summary: 編集シートの各入力欄にマイクを追加（品名欄は分割しない）（M2）
   details:
