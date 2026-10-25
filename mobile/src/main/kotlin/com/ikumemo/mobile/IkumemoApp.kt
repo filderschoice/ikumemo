@@ -13,6 +13,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -34,6 +36,8 @@ import com.ikumemo.mobile.settings.SettingsRoute
 import com.ikumemo.mobile.settings.settingsGraph
 import com.ikumemo.mobile.shoppinglist.HomeNavigation
 import com.ikumemo.mobile.shoppinglist.ShoppingListScreen
+import com.ikumemo.mobile.voice.FieldDictationViewModel
+import com.ikumemo.mobile.voice.LocalFieldDictation
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 
@@ -79,6 +83,19 @@ fun IkumemoApp(
         navController.navigate(route) { launchSingleTop = true }
         onTabOpened()
     }
+    // 編集シートの各欄のマイク（F-04）。アプリ全体で 1 つの聞き取りを共有する
+    val dictation: FieldDictationViewModel = viewModel(factory = AppViewModelFactory.Factory)
+    CompositionLocalProvider(LocalFieldDictation provides dictation) {
+        AppScaffold(navController, memoRequest) { memoRequest = it }
+    }
+}
+
+@Composable
+private fun AppScaffold(
+    navController: NavHostController,
+    memoRequest: ScreenRequest?,
+    onMemoRequestChange: (ScreenRequest?) -> Unit,
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = { BottomTabs(navController) },
@@ -94,7 +111,7 @@ fun IkumemoApp(
                         HomeNavigation(
                             onOpenSettings = { navController.navigate(SettingsRoute) },
                             request = memoRequest,
-                            onRequestHandled = { memoRequest = null },
+                            onRequestHandled = { onMemoRequestChange(null) },
                         ),
                 )
             }

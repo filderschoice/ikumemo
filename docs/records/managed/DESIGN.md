@@ -57,6 +57,7 @@
 | R-30・R-31 | 日本語固定・オンデバイス優先。何も話さなければ 5 秒で止め「うまく聞き取れませんでした」＋もう一度話す／文字で入れる | `voice/SpeechEngine.kt`、`VoiceInputViewModel.kt` |
 | R-01（音声） | 確認カードでメモにある物に「メモにあります」の印を付け、既定で外す | `VoiceInputViewModel.showCards` |
 | PLAN §2.10・§5 | マイクの許可は初めて使う時に理由を添えて求める。拒否されたら端末の設定を開くボタンと文字入力の案内。機能の無い端末ではマイクを出さない | `voice/VoiceInputSheet.kt`、`ShoppingListScreen.kt` の `AddButtons` |
+| F-04・R-32 | 編集シート（メモの項目・カレンダーの記録）の各入力欄の横にマイク。聞き取った文字は分割せずに入れる（品名も分けない）。1 行の欄は置き換え、メモは改行して足す。聞くのは一度に 1 欄。音声認識が無い端末では出さない | `voice/FieldDictation.kt`、`shoppinglist/EditItemSheet.kt` の `EditField` |
 | F-20・F-21 | 追加シートに入力中の候補（正規化名の前方一致を先、部分一致を後）と「いつもの」チップ（購入回数 → 最近買った順 → 正規化名、最大 12 件）。メモにある物は出さない。チップは押すたびに 1 件入る | `core/suggest/Suggestions.kt`、`ShoppingListViewModel.addSuggestions`、`ItemSheets.kt` の `AddItemSheet` |
 | F-14・F-30・F-31 | メモ上部のお店チップ → いつものお店から選ぶシート（最近使った順の上位 5 件・ほかのお店・新しいお店・選ばない）。選んだお店は「買った」に付く | `shoppinglist/StorePicker.kt`、`data/StoreRepository.kt` |
 | R-06 | 選んだ時か最後の「買った」から 3 時間、または日付が変わったら選んだお店を解除（表示は 1 分ごとに見直す） | `data/AppSettings.kt` の `StoreSelection`、`StoreRepository` |

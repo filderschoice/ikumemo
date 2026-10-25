@@ -289,7 +289,7 @@ private fun Guidance(
     }
 }
 
-private fun Context.hasRecordAudioPermission(): Boolean =
+internal fun Context.hasRecordAudioPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
 /** 端末の設定のこのアプリの画面を開く（PLAN §2.10）。 */

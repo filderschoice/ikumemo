@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 09:46
+  summary: 編集シートの各入力欄にマイクを追加（品名欄は分割しない）（M2）
+  details:
+    変更内容: >-
+      FieldDictationViewModel（音声認識を 1 つ持ち、一度に 1 欄だけ聞く）と、入力欄の横に置く FieldMic を追加した。聞き取った文字は
+      いちばん確からしい候補を分割せずにそのまま入れる（品名欄も「と」で分けない、R-32）。1 行の欄（品名・数量）は置き換え、
+      複数行のメモは空でなければ改行して足す。聞いている間はマイクが止めるボタンに変わり、押すと何も入れずにやめる。
+      マイクの許可が無ければその場で求め、断られたら文字での入力を案内する（R-44）。聞き取れなかった時は聞いていた欄から一度だけ知らせる。
+      EditField（メモの編集シートとカレンダーの記録の編集シートで共通）にマイクを付け、ViewModel はアプリ全体で 1 つ持って
+      LocalFieldDictation で渡す（渡さない画面ではマイクを出さない）。音声認識が無い端末ではマイクを出さない
+    変更ファイル:
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/EditItemSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/FieldDictation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/FieldDictationViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/FieldMicTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（約 2 分 40 秒。単体テスト 176 件。追加は品名を分けない・一度に 1 欄・聞き取れない時とやめた時は入れない・置き換えと追記 4 件、編集シートの 3 欄に声で入れて保存される・音声認識が無い端末ではマイクを出さない 2 件）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-022
 - date: 2026-10-25 09:37
   summary: 品質ゲートを速くした（release 側の重複テストをやめる・遅いテストを分ける・ビルドキャッシュ）
   details:

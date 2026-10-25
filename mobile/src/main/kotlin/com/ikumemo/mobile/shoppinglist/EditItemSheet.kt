@@ -52,6 +52,7 @@ import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
 import com.ikumemo.mobile.data.db.StoreEntity
+import com.ikumemo.mobile.voice.FieldMic
 import kotlinx.coroutines.launch
 
 /**
@@ -108,11 +109,13 @@ internal fun EditField(
     tag: String,
     singleLine: Boolean,
 ) {
+    // 各欄の横にマイク（F-04）。聞き取った文字は分割せずにそのまま入れる（R-32）
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(stringResource(label)) },
         singleLine = singleLine,
+        trailingIcon = { FieldMic(field = tag, singleLine = singleLine, value = value, onValueChange = onValueChange) },
         modifier = Modifier.fillMaxWidth().testTag(tag),
     )
 }

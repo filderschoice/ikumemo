@@ -14,6 +14,7 @@ import com.ikumemo.mobile.settings.ProductManageViewModel
 import com.ikumemo.mobile.settings.ReminderSettingsViewModel
 import com.ikumemo.mobile.settings.StoreManageViewModel
 import com.ikumemo.mobile.shoppinglist.ShoppingListViewModel
+import com.ikumemo.mobile.voice.FieldDictationViewModel
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 
 /** 画面の ViewModel を [AppContainer] から作る（手動 DI、PLAN §4.1）。 */
@@ -46,6 +47,7 @@ object AppViewModelFactory {
                 ReminderSettingsViewModel(container.reminderPrefs) { container.reminderScheduler.reschedule() }
             }
             initializer { VoiceInputViewModel(container().shoppingRepository, container().speechEngineFactory()) }
+            initializer { FieldDictationViewModel(container().speechEngineFactory()) }
         }
 
     private fun CreationExtras.container(): AppContainer =
