@@ -141,6 +141,9 @@
     <string name="onboarding_later">あとで</string>
     <string name="onboarding_page_position">%1$d / %2$d 枚目</string>
     <string name="onboarding_voice_title">話すだけでメモ</string>
+    <string name="onboarding_demo_spoken">「牛乳とたまご」</string>
+    <string name="onboarding_demo_item1">牛乳</string>
+    <string name="onboarding_demo_item2">たまご</string>
     <string name="onboarding_voice_body">「牛乳とたまご」と話すと、2 つに分かれて入ります</string>
     <string name="onboarding_swipe_title">買ったらスワイプ</string>
     <string name="onboarding_swipe_body">右へ動かすと「買った」、左へ動かすと「やめた」</string>

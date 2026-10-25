@@ -5,6 +5,36 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 16:16
+  summary: はじめての案内 1 枚目と G-03 の手本のアニメーション（R-56 のアニメーションを減らす設定に対応）（M8）
+  details:
+    変更内容: >-
+      はじめての案内 1 枚目に、「牛乳とたまご」が 2 つの品目に分かれる手本 VoiceSplitDemo を入れた（3 回くり返して分かれた形で止まる）。
+      G-03 の間は、れんしゅう項目を右へ少し動かして戻す手本 SwipeNudge を 2 回見せて止まる。どちらも回数を決めて止まる動きにし、
+      いつまでも動き続けない（UI テストの待ち合わせが止まらないようにするため）。端末の「アニメーションを減らす」
+      （ANIMATOR_DURATION_SCALE が 0）では動かさず、案内は最初から分かれた形で出す。UI デザイン設計書の案内の絵と所見、
+      DESIGN、リリースノートの「分かっている問題」を合わせて直した
+    変更ファイル:
+      - docs/RELEASE_NOTES.md
+      - docs/design/UI_DESIGN.html
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideDemos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/OnboardingScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/GuideDemosTest.kt
+      - scripts/ui-doc/gen_ui_doc.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check、
+      python -I scripts/ui-doc/gen_ui_doc.py docs/design/UI_DESIGN.html とヘッドレスブラウザでの目視
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（約 3 分 20 秒、単体テスト 236 件。追加は案内の手本が話した文→分かれた形と動いて止まる・減らす設定では止まる・
+      れんしゅう項目が右へ動く・減らす設定では動かない 4 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK、
+      設計書の案内の絵を目視。メモ・カレンダー・おしらせの描画は変えていないためスクリーンショットの比較は流していない
+    関連ID:
+      - BL-098
 - date: 2026-10-25 15:58
   summary: Baseline Profile をビルドに含め、リリースのサイズを確認（R8 は有効済み）（非機能要件）
   details:

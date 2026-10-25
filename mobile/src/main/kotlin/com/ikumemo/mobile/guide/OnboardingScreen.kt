@@ -77,7 +77,8 @@ fun OnboardingContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(page.emoji, fontSize = EMOJI_SP.sp)
+                // 1 枚目は「牛乳とたまご」が 2 つに分かれる手本を動かす（アニメーションを減らす設定では止める）
+                if (page == OnboardingPage.VOICE) VoiceSplitDemo() else Text(page.emoji, fontSize = EMOJI_SP.sp)
                 Spacer(Modifier.size(24.dp))
                 Text(
                     stringResource(page.title),

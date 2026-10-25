@@ -341,13 +341,15 @@ def onboarding_screen(page):
              ("📅", "onboarding_look_back_title", "onboarding_look_back_body"), ("🏠", "onboarding_home_title", "onboarding_home_body")]
     emoji, title, body = pages[page]
     last = page == len(pages) - 1
+    demo = (f'<div style="display:flex;gap:8px;margin-top:8px"><span class="chip sel">{s("onboarding_demo_item1")}</span>'
+            f'<span class="chip sel">{s("onboarding_demo_item2")}</span></div>') if page == 0 else ""
     pins = (f'<div style="display:flex;flex-direction:column;gap:8px;align-items:center;margin-top:16px">'
             f'<span class="obtn">{s("onboarding_pin_voice")}</span><span class="obtn">{s("onboarding_pin_memo")}</span></div>') if last else ""
     dots = "".join(f'<i style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px;'
                    f'background:{"var(--p-primary)" if i == page else "var(--p-outline)"}"></i>' for i in range(len(pages)))
     inner = (f'<div class="body" style="padding:16px"><div style="text-align:right"><span class="tbtn">{s("onboarding_skip")}</span></div>'
              f'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px">'
-             f'<div style="font-size:72px;line-height:1">{emoji}</div><div style="font-size:22px;margin-top:16px">{s(title)}</div>'
+             f'<div style="font-size:72px;line-height:1">{emoji}</div>{demo}<div style="font-size:22px;margin-top:16px">{s(title)}</div>'
              f'<div style="font-size:16px">{s(body)}</div>{pins}</div><div style="text-align:center">{dots}</div>'
              f'<div style="text-align:right;margin-top:16px"><span class="fbtn">{s("onboarding_later" if last else "onboarding_next")}</span></div></div>')
     return phone(inner)
@@ -707,7 +709,7 @@ def ch_screens():
         fig(reminder_screen(due_sheet=True), "期限を決めるシート", "チップで選び、日付の入力をなるべく要らなくする。"),
     )
     guide = grid(
-        fig(onboarding_screen(0), "はじめての案内（1 枚目）", "初回起動時だけ全画面で出す。「とばす」は常に出す。権限は求めない。"),
+        fig(onboarding_screen(0), "はじめての案内（1 枚目）", "初回起動時だけ全画面で出す。「とばす」は常に出す。権限は求めない。「" + s("onboarding_demo_spoken") + "」が 2 つに分かれる手本を動かす（絵は最後の形）。"),
         fig(onboarding_screen(3), "はじめての案内（最後）", "ホーム画面に置く（W-03）。「置く」では閉じず、「あとで」で閉じる。"),
         fig(memo_screen(items=False, spot="mic", overlay=guide_bubble("guide_g02", top=330)), "その場のガイド G-02",
             "空のメモで 🎤 を照らす。暗くするのは見た目だけで、照らした部品はそのまま押せる。"),
@@ -842,8 +844,9 @@ def ch_findings():
     items = [
         ("実機で未確認", "画面は Robolectric の画面テスト・コントラストのテスト・スクリーンショットテスト（72 枚）で確認。実機での配置、"
                        "ガイドの吹き出しの位置、背景の写真の見え方、ホーム画面アプリごとのウィジェットの大きさは<span class='tag unk'>未確認</span>（人手検証として BACKLOG に残っている）。"),
-        ("未実装の UI", "はじめての案内 1 枚目とれんしゅうの手本のアニメーション（いまは動かない表示、BL-098）、"
-                       "通知から開いた直後のおしらせ・カレンダーでガイドを出さない判定（BL-099）。"),
+        ("未実装の UI", "通知から開いた直後のおしらせ・カレンダーでガイドを出さない判定（BL-099）。"),
+        ("動き", "はじめての案内 1 枚目は「牛乳とたまご」が 2 つに分かれる手本を 3 回、G-03 はれんしゅう項目を右へ少し動かす手本を 2 回見せて止まる。"
+               "端末の「アニメーションを減らす」では動かさない（R-56）。本書の絵は止まった最後の形。"),
         ("アクセシビリティ", "アイコンだけのボタンには説明を付け、色だけで伝えず文字を添えている（スワイプの背景、せっていの ⚙ に文字）。"
                           "メモの行は読み上げの操作の一覧に「" + s("memo_bought") + "」「" + s("memo_dismissed") + "」を出す。TalkBack での実際の読み上げ順は<span class='tag unk'>未確認</span>。"),
         ("暗い画面のカレンダー", "端末は明るい設定・アプリだけ暗い画面のとき、曜日の色とお店の点が明るい画面用の色になる不具合があり、スクリーンショットテストで見つけて直した（LocalDarkTheme）。"),

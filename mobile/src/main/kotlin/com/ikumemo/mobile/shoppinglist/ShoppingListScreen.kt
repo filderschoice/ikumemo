@@ -54,6 +54,7 @@ import com.ikumemo.mobile.guide.GuideId
 import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.MemoGuides
+import com.ikumemo.mobile.guide.SwipeNudge
 import com.ikumemo.mobile.guide.guideTarget
 import com.ikumemo.mobile.guide.rememberGuideTargets
 import com.ikumemo.mobile.help.HelpPages
@@ -223,7 +224,11 @@ private fun MemoList(
         itemsIndexed(rows, key = { _, item -> item.id }) { index, item ->
             val practice = item.id == MemoGuides.PRACTICE_ITEM_ID
             val rowModifier = if (practice) Modifier.guideTarget(GuideId.G03_SWIPE_PRACTICE, targets) else Modifier
-            Box(rowModifier) {
+            // G-03 の間は、れんしゅう項目を右へ少し動かして戻す手本を見せる
+            SwipeNudge(
+                active = practice && state.guide == GuideId.G03_SWIPE_PRACTICE,
+                modifier = rowModifier.testTag(TestTags.PRACTICE),
+            ) {
                 // G-04 は一番上の項目の ○ を照らす
                 val boughtButton =
                     if (index == 0) {
@@ -421,6 +426,7 @@ object TestTags {
     const val SNACKBAR = "snackbar"
     const val SETTINGS = "settings"
     const val EMPTY_HELP = "empty_help"
+    const val PRACTICE = "memo_practice"
     const val NO_VOICE_HELP = "no_voice_help"
 
     /** お店チップ（G-06 で照らす場所）。 */
