@@ -65,6 +65,7 @@ enum class SettingsItem(
     REMINDER(R.string.settings_reminder, ReminderSettingsRoute),
     STORES(R.string.settings_stores, StoreManageRoute),
     PRODUCTS(R.string.settings_products, ProductManageRoute),
+    HOME_SCREEN(R.string.settings_home_screen, HomeScreenRoute),
     FEEDBACK(R.string.settings_feedback, FeedbackRoute),
     ABOUT(R.string.settings_about, AboutRoute),
 }

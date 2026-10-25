@@ -5,6 +5,44 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:47
+  summary: アプリからウィジェットを置く（W-03）とアイコン長押しのショートカット（F-74）（M7）
+  details:
+    変更内容: >-
+      せっていに「ホーム画面に置く」を追加し、ウィジェット 2 種の見本（話して追加 1×1・メモ一覧 4×4）と「置く」
+      （WidgetPinner、requestPinAppWidget）を置いた。置く大きさは Android の API で指定できないため、オーナー判断により
+      メモ一覧の既定の大きさを 4×2 から 4×4 に変え（targetCellHeight 4、minHeight 250dp）、4×2 は置いた後に長押しで小さくできると
+      説明だけ添えた。ホーム画面アプリが対応していなければボタンの代わりに置き方を説明する。ショートカット「話して追加」「文字で追加」
+      「カレンダー」「おしらせ」は、debug 版の applicationId が違い静的な shortcuts.xml にはパッケージ名を固定で書くしかないため、
+      起動時に ShortcutManagerCompat の動的ショートカットとして登録する（AppShortcuts、アイコンは Material Icons の形を丸い地に載せた
+      ic_shortcut_*）。BL-073 の実機確認の対象に今回の 2 つを足した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppShortcuts.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/HomeScreenScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetPinner.kt
+      - mobile/src/main/res/drawable/ic_shortcut_calendar.xml
+      - mobile/src/main/res/drawable/ic_shortcut_reminder.xml
+      - mobile/src/main/res/drawable/ic_shortcut_text.xml
+      - mobile/src/main/res/drawable/ic_shortcut_voice.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/res/xml/widget_memo_info.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/AppShortcutsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/WidgetPinnerTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/HomeScreenContentTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（約 3 分 40 秒。単体テスト 192 件。追加はショートカット 4 種が各画面を開く・登録し直しても増えない・
+      2 種の追加要求が出せる・非対応のホーム画面アプリでは要求しない・置くボタンが各ウィジェットを求める・非対応時は置き方を説明する 6 件）、
+      markdownlint 0 issues、記録ファイル OK。実機のホーム画面アプリでの見え方は BL-073 で確認する
+    関連ID:
+      - BL-072
 - date: 2026-10-25 10:29
   summary: 背景の写真と膜の濃さを選べるようにした（F-61）（M6）
   details:

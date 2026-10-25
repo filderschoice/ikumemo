@@ -24,6 +24,9 @@ object StoreManageRoute
 object ProductManageRoute
 
 @Serializable
+object HomeScreenRoute
+
+@Serializable
 object FeedbackRoute
 
 @Serializable
@@ -43,6 +46,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
     composable<ReminderSettingsRoute> { ReminderSettingsScreen(onBack = back) }
     composable<StoreManageRoute> { StoreManageScreen(onBack = back) }
     composable<ProductManageRoute> { ProductManageScreen(onBack = back) }
+    composable<HomeScreenRoute> { HomeScreenScreen(onBack = back) }
     composable<FeedbackRoute> { FeedbackScreen(onBack = back) }
     composable<AboutRoute> { AboutScreen(onBack = back, onOpenLicenses = { navController.navigate(LicensesRoute) }) }
     composable<LicensesRoute> { LicensesScreen(onBack = back) }

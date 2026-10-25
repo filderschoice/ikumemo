@@ -30,5 +30,7 @@ open class IkumemoApplication : Application() {
         container.widgetUpdater.start(scope)
         // 使われなくなった写真を 1 日 1 回消す（R-14）
         PhotoCleanupWorker.schedule(this)
+        // アイコン長押しのショートカット（F-74）
+        AppShortcuts.publish(this)
     }
 }
