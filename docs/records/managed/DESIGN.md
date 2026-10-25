@@ -17,9 +17,10 @@
 
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
-- 進捗: マイルストーン M0（準備）・M1 の完了条件（手入力で追加 → スワイプで記録 → 元に戻す）・M2 の完了条件
-  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4（カレンダーと写真。あとから記録・写真の掃除を含む）・M5（おしらせ）・M6（きせかえ。テーマ・背景の写真・暗い画面・文字の大きさ）を実装済み。
-  ほかの実装済みの要件は下の表のとおり
+- 進捗: マイルストーン M0〜M8（準備・メモ・音声入力・候補とお店・カレンダーと写真・おしらせ・きせかえ・ウィジェットと
+  ショートカット・はじめての案内と使い方・スクリーンショットテスト・公開用ドキュメント）を実装済み。公開前の外部作業
+  （Google フォーム・Play Console の申告・実機での確認・クローズドテスト）と site/ は `BACKLOG.md` を参照する。
+  書き出し・読み込み（F-72）と「データをすべて消す」（F-76）は未実装。ほかの実装済みの要件は下の表のとおり
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
 ## 実装済み機能要件
@@ -43,7 +44,7 @@
 | F-10・F-11・D-4・R-05 | 右へスワイプで「買った」、左へで「やめた」。幅の 40% で確定し、超えた瞬間に軽い振動。背景は色＋アイコン＋文字 | `shoppinglist/SwipeableItemRow.kt` |
 | PLAN §8 アプリサイズ・起動 | release は R8 で縮小・難読化（`isMinifyEnabled`、アプリ固有の規則は `proguard-rules.pro` で今は無し）。署名なしの release APK は約 3.2MB（上限 15MB）。Baseline Profile は `src/main/baseline-prof.txt`（アプリのコード全体を対象にした広い規則。実機の Macrobenchmark で作り直すのは BL-100）を `profileinstaller` で反映し、ライブラリの規則と合わせて APK の `assets/dexopt/baseline.prof` に入る | `mobile/build.gradle.kts`、`src/main/baseline-prof.txt` |
 | PLAN §8 アクセシビリティ | メモの行は読み上げ（TalkBack）の操作の一覧に「買った」「やめた」を出し、スワイプしなくても操作できる（`CustomAccessibilityAction`）。アイコンだけのボタン・写真ありの印には説明を付け、文字と並ぶアイコンは説明なし（読み上げの重複を防ぐ）。「元に戻す」は読み上げ利用時に端末の推奨時間まで延ばす（R-04） | `shoppinglist/SwipeableItemRow.kt` |
-| F-13 | 行の左の ○ でも「買った」（○ を隠す設定は未実装） | `SwipeableItemRow.kt` の `ItemRowContent` |
+| F-13 | 行の左の ○ でも「買った」（○ を隠す設定は「そうさ」で切り替える） | `SwipeableItemRow.kt` の `ItemRowContent` |
 | F-12・R-04 | 「買った：牛乳 ／ 元に戻す」を 5 秒表示（TalkBack 等の利用時は推奨時間まで延長）。元に戻せるのは最新の 1 件 | `ShoppingListScreen.kt` の `UndoEffect` |
 | R-03・R-10・R-11・R-15 | 「やめた」は記録せず品目を残す。「買った」は端末の今日の日付で記録、同じ日の 2 回目も別記録、写真は同じファイルを参照 | `data/ShoppingRepository.kt` |
 | R-12 | 購入回数・最後に買った日・平均間隔を残っている記録から計算し直す。記録を消すと紐づくおしらせも消す | `core/suggest/PurchaseStats.kt`、`data/ProductStatsUpdater.kt` |
@@ -73,7 +74,7 @@
 | PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
 | F-60・F-63・F-65 | きせかえ（各テーマの色で描いた見本のカードでテーマを選ぶ、暗い画面「端末に合わせる / 明るい / 暗い」、文字の大きさ 3 段階）。選んだらすぐ保存しアプリ全体へ反映 | `settings/AppearanceScreen.kt`、`data/AppearancePrefs.kt`、`MainActivity.kt` |
 | F-61 | 背景の写真（きせかえの「写真を選ぶ」「外す」、Photo Picker）。`filesDir/background/` へ写真と同じ形（長辺 1600px・Exif 無し）で取り込み、差し替え・解除で前の画像を消す。画面いっぱいに写真を描き、その上にテーマの背景色の半透明の膜（濃さ 0.3〜0.9、既定 0.6。スライダーを離すと保存）を敷く。暗い画面では膜を 0.15 濃くする（上限 0.95）。メモの行・上部のバー・下タブは不透明のまま写真を覆う。音声入力シート（他アプリの上に出す）とウィジェットには描かない | `designsystem/BackgroundScrim.kt`、`AppThemeHost`、`AppearanceViewModel` |
-| PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。項目は今は「きせかえ」「そうさ」「おしらせ」「お店の管理」「よく買う物の管理」「ご意見・ご要望」「このアプリについて」（使い方は BL-081、ホーム画面に置くは BL-072、データは F-72・F-76〔S〕で足す） | `settings/SettingsScreen.kt`、`settings/SettingsNavigation.kt` |
+| PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。項目は上から「使い方」「きせかえ」「そうさ」「おしらせ」「お店の管理」「よく買う物の管理」「ホーム画面に置く」「ご意見・ご要望」「このアプリについて」（データは F-72・F-76〔S〕で足す。BL-102・BL-103） | `settings/SettingsScreen.kt`、`settings/SettingsNavigation.kt` |
 | F-77（GitHub のみ） | ご意見・ご要望: よくある質問 4 つ（押すと答え）→ GitHub の Issue を開く。アプリの版・Android の版・機種名を画面に出しコピーできる。ご意見フォームは site/ の転送ページができるまで置かない（オーナー判断） | `settings/FeedbackScreen.kt` |
 | PLAN §3・§5・§7 | このアプリについて: 版・名前の由来・ライセンス一覧（AboutLibraries）・プライバシーポリシー・GitHub・ストアのページ（評価のお願い） | `settings/AboutScreen.kt`、`settings/LicensesScreen.kt`、`settings/ExternalLink.kt` |
 | F-13・R-05・PLAN §3 そうさ | ○ の表示と振動のオン/オフ（初期値はどちらもオン）。○ を消した行は左に余白を取る | `settings/OperationScreen.kt`、`data/OperationPrefs.kt`、`shoppinglist/SwipeableItemRow.kt` |
@@ -99,9 +100,8 @@
 
 - モジュール: `core`（純 Kotlin/JVM、Android 非依存、パッケージ `com.ikumemo.core`）と `mobile`（アプリ本体、
   `com.ikumemo.mobile`）。feature ごとの Gradle モジュール分割はしない（PLAN §4.5）
-- `mobile` 内は画面ごとのパッケージに分ける。実装済みは `settings/`（せっていの枠ときせかえ）・`designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
-  `reminder/`・`voice/`・`widget/`。予定は PLAN §4.5 の
-  `data/` `shoppinglist/` `calendar/` `reminder/` `settings/` `guide/` `help/` `voice/` `widget/`
+- `mobile` 内は画面ごとのパッケージに分ける。`settings/`（せっていの枠ときせかえ）・`designsystem/`・`data/`（品目は `ProductRepository`）・`shoppinglist/`・`calendar/`・
+  `reminder/`・`voice/`・`widget/`・`guide/`（はじめての案内とその場のガイド）・`help/`（使い方）。PLAN §4.5 の構成と同じ
 - 画面は MVVM + 単方向データフロー。画面からの操作は `sealed interface` のイベント（例 `ShoppingListEvent`）を
   ViewModel の `onEvent()` 1 つで受ける。ViewModel は `StateFlow<UiState>` を公開し、DB の Flow と画面だけの状態
   （開いているシート・光らせる項目・一度だけ出す知らせ）を `combine` する。知らせは画面が表示したら `messageShown()` で消す
@@ -227,7 +227,7 @@
 ## 非機能要件
 
 - 性能・信頼性: 記録 2 万件で品名検索と月の記録の取得がそれぞれ 1 秒未満（`RecordSearchPerformanceTest`）。
-  そのほかの目標（PLAN §8）は BL-089 等で対応
+  そのほかの目標（PLAN §8）のうち、起動時間は実機での計測（BL-100）で確かめる
 - セキュリティ／プライバシー: `AndroidManifest.xml` で宣言する権限は `RECORD_AUDIO`・`POST_NOTIFICATIONS`・
   `RECEIVE_BOOT_COMPLETED`（音声認識サービスを見つけるための
   `<queries>` の `android.speech.RecognitionService` も宣言）。INTERNET・位置情報・CAMERA・VIBRATE・SCHEDULE_EXACT_ALARM は
