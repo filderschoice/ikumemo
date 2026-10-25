@@ -6,6 +6,7 @@ import androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
 import androidx.glance.appwidget.testing.unit.hasStartActivityClickAction
 import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
 import androidx.glance.testing.unit.hasAnyDescendant
+import androidx.glance.testing.unit.hasContentDescriptionEqualTo
 import androidx.glance.testing.unit.hasText
 import androidx.glance.testing.unit.hasTextEqualTo
 import androidx.test.core.app.ApplicationProvider
@@ -94,4 +95,16 @@ class MemoListWidgetTest {
             onAllNodes(hasText("期限が近い")).assertCountEquals(0)
             onNode(hasStartActivityClickAction(MainActivity.intent(context, MainActivity.OPEN_MEMO))).assertExists()
         }
+
+    @Test
+    fun refreshButtonIsShownInEverySizeEvenWhenEmpty() {
+        listOf(MemoListWidget.SMALL, MemoListWidget.LARGE).forEach { size ->
+            render(fiveItems, size) {
+                onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+            }
+        }
+        render(MemoWidgetState(), MemoListWidget.LARGE) {
+            onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+        }
+    }
 }

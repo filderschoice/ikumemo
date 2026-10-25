@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 18:35
+  summary: メモ一覧ウィジェットの見出しに更新ボタンを追加（メモを足した直後に反映されないときに、押してその場で描き直せる）
+  details:
+    変更内容: >-
+      メモ一覧ウィジェット（MemoListWidget）の見出しの右端に、48dp の更新ボタン（Material の refresh 形、テーマ色）を足した。押すと RefreshMemoAction
+      （Glance の ActionCallback）が WidgetUpdater.refresh を呼び、メモ一覧と 1×1 の両方を描き直す。空のメモでも、どの大きさでも出す。
+      読み上げ用に「メモ一覧を更新」の説明を付けた。使い方の「2 つのウィジェット」と DESIGN の W-02 に反映した
+    変更ファイル:
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/assets/help/widgets.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/res/drawable/ic_widget_refresh.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - MemoListWidgetTest に更新ボタンの有無（小・大・空）の 1 件を追加。途中で ktlint の import 順を ktlintFormat で直し、
+      glance の hasRunCallbackClickAction が internal だったため説明文での照合に変えた。幅が狭いときの見出しの収まりと実機の描き直しは
+      人手検証（BL-106）
+    関連ID:
+      - BL-105
+      - BL-106
 - date: 2026-10-25 20:10
   summary: データの書き出し・読み込み（F-72）。ZIP（写真つき）・JSON・CSV（記録だけ）で書き出し、ZIP と JSON を読み込んで置き換える
   details:

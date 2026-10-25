@@ -266,6 +266,7 @@
     <string name="widget_memo_due_soon">🔔期限が近い %1$d件</string>
     <string name="widget_memo_store">🏪 %1$s で買う</string>
     <string name="widget_memo_more">ほか%1$d件</string>
+    <string name="widget_memo_refresh">メモ一覧を更新</string>
     <string name="widget_memo_empty">メモは空です</string>
     <string name="widget_memo_bullet">・%1$s</string>
     <string name="widget_memo_preview_count">🛒メモ 5件</string>

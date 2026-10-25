@@ -4,14 +4,20 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -27,7 +33,10 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.width
+import androidx.glance.semantics.contentDescription
+import androidx.glance.semantics.semantics
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -131,6 +140,40 @@ private fun MemoHeader(
                 )
             }
         }
+        Spacer(GlanceModifier.defaultWeight())
+        RefreshButton(colors)
+    }
+}
+
+/** 更新ボタン。メモを足した直後に反映されないときのため、押すとその場で描き直す。 */
+@Composable
+private fun RefreshButton(colors: WidgetColors) {
+    val description = LocalContext.current.getString(R.string.widget_memo_refresh)
+    Box(
+        modifier =
+            GlanceModifier
+                .size(TAP_HEIGHT)
+                .clickable(actionRunCallback<RefreshMemoAction>())
+                .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            ImageProvider(R.drawable.ic_widget_refresh),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(colors.primary),
+            modifier = GlanceModifier.size(REFRESH_ICON),
+        )
+    }
+}
+
+/** 更新ボタンが押された。ウィジェット全体を描き直す（アプリが止まっていても動く）。 */
+class RefreshMemoAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        (context.applicationContext as IkumemoApplication).container.widgetUpdater.refresh()
     }
 }
 
@@ -229,6 +272,8 @@ private fun MemoWidgetItem.label(): String = quantity?.let { "$name $it" } ?: na
 
 /** タップできる部分の高さ（48dp 以上、PLAN §2.11）。 */
 private val TAP_HEIGHT = 48.dp
+
+private val REFRESH_ICON = 24.dp
 
 private const val NAME_SEPARATOR = "　"
 
