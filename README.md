@@ -1,6 +1,6 @@
 # いくメモ（Ikumemo）
 
-話しかけるだけで買い物メモ。買ったらスワイプで記録。あとからカレンダーで振り返れる Android アプリです。
+話しかけるだけで買い物メモ。買ったらスワイプで記録。後からカレンダーで振り返れる Android アプリです。
 
 > 買い物に「**いく**」ときの、いちばん身近な「**メモ**」。
 > いく前に話して残す。買ったらスワイプで記録。その記録が、次にいくときの「いつもの」になる。
@@ -11,7 +11,7 @@
 
 ## 開発の状況
 
-開発中です。アプリの機能（メモ・音声入力・カレンダー・おしらせ・きせかえ・ウィジェット・はじめての案内と使い方）は
+開発中です。アプリの機能（メモ・音声入力・カレンダー・お知らせ・着せ替え・ウィジェット・初めての案内と使い方）は
 実装済みで、公開に向けた準備の段階です。Google Play では未公開です。
 要件と判断の背景は [PLAN.md](PLAN.md)、今後のタスクは
 [docs/records/managed/BACKLOG.md](docs/records/managed/BACKLOG.md) を参照してください。
@@ -94,7 +94,7 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 | --- | --- |
 | `core/` | Android に依存しない純 Kotlin/JVM のロジック（`com.ikumemo.core`）。JVM の単体テストだけで検証する |
 | `mobile/` | Android アプリ本体（`com.ikumemo.mobile`）。画面・データ層・ウィジェット |
-| `mobile/src/main/kotlin/com/ikumemo/mobile/` | 画面ごとのパッケージ。`shoppinglist/`（メモ）・`calendar/`・`reminder/`（おしらせ）・`voice/`（音声入力）・`widget/`・`settings/`・`guide/`（はじめての案内とその場のガイド）・`help/`（使い方）・`data/`（保存） |
+| `mobile/src/main/kotlin/com/ikumemo/mobile/` | 画面ごとのパッケージ。`shoppinglist/`（メモ）・`calendar/`・`reminder/`（お知らせ）・`voice/`（音声入力）・`widget/`・`settings/`・`guide/`（初めての案内とその場のガイド）・`help/`（使い方）・`data/`（保存） |
 | `mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/` | テーマ 4 種（ポップ／やさしい／クール／シンプル）、配色、文字の大きさ |
 | `mobile/src/main/assets/help/` | アプリ内の使い方の正本（Markdown）。`docs/USER_GUIDE.md` の元 |
 | `mobile/screenshots/` | スクリーンショットテスト（Roborazzi）の正解画像 |

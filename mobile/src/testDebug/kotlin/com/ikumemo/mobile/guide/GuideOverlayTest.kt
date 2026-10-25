@@ -66,7 +66,7 @@ class GuideOverlayTest {
 
         composeRule.onNodeWithTag(GuideTestTags.SPOTLIGHT).assertDoesNotExist()
         composeRule.onNodeWithTag(GuideTestTags.bubble(GuideId.G02_VOICE_BUTTON)).assertIsDisplayed()
-        composeRule.onNodeWithText("わかった").performClick()
+        composeRule.onNodeWithText("分かった").performClick()
 
         assertEquals(listOf("dismiss"), events.toList())
     }

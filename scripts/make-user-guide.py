@@ -37,7 +37,7 @@ def build() -> str:
         '',
         '<!-- このファイルは scripts/make-user-guide.py が mobile/src/main/assets/help/ から作る。直接は直さない -->',
         '',
-        'アプリの「せってい」→「使い方」と同じ内容です。',
+        'アプリの「設定」→「使い方」と同じ内容です。',
     ]
     for line in COMMENT.sub('', read(HELP / 'index.md')).splitlines():
         line = line.strip()

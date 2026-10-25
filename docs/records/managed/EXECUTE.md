@@ -5,6 +5,68 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 17:10
+  summary: 平仮名だけの表示文字列のうち意図のないものを漢字へ置き換え（お知らせ・設定・着せ替え・操作・買い物メモなど）
+  details:
+    変更内容: >-
+      想定ユーザーが大人のため（オーナー指示）、strings.xml・アプリ内の使い方（assets/help/）・利用者向けドキュメント・
+      UI デザイン設計書の生成スクリプトと、文言を検査するテストの平仮名を漢字へ改めた。置き換えたのは
+      おしらせ→お知らせ、せってい→設定、きせかえ→着せ替え、そうさ→操作、かいものメモ→買い物メモ、もどる→戻る、あした→明日、きょう→今日、
+      さがす→探す、れんしゅう→練習、わかった→分かった、あとで→後で、はじめて→初めて など。「いつもの」「やめた」「いくメモ」
+      テーマ名「やさしい」、品名の例「たまご」は意図のある名前のため残した。PLAN.md・EXECUTE.md・CHANGELOG.md の過去の記述は履歴のため変えない。
+      DESIGN の UI/UX 方針に表記の方針を足した。メモ・おしらせ画面のスクリーンショットの正解画像を記録し直した（カレンダーは変化なし）
+    変更ファイル:
+      - README.md
+      - docs/CLOSED_TEST.md
+      - docs/FEEDBACK.md
+      - docs/RELEASE_NOTES.md
+      - docs/SUPPORT.md
+      - docs/USER_GUIDE.md
+      - docs/design/UI_DESIGN.html
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/DESIGN.md
+      - docs/store/PRIVACY_POLICY.md
+      - docs/store/STORE_LISTING.md
+      - mobile/src/main/assets/help/add-later.md
+      - mobile/src/main/assets/help/background.md
+      - mobile/src/main/assets/help/bought-button.md
+      - mobile/src/main/assets/help/dark.md
+      - mobile/src/main/assets/help/device-change.md
+      - mobile/src/main/assets/help/due.md
+      - mobile/src/main/assets/help/faq.md
+      - mobile/src/main/assets/help/feedback.md
+      - mobile/src/main/assets/help/index.md
+      - mobile/src/main/assets/help/not-arriving.md
+      - mobile/src/main/assets/help/notified.md
+      - mobile/src/main/assets/help/resize.md
+      - mobile/src/main/assets/help/search.md
+      - mobile/src/main/assets/help/shortcuts.md
+      - mobile/src/main/assets/help/start.md
+      - mobile/src/main/assets/help/store.md
+      - mobile/src/main/assets/help/swipe.md
+      - mobile/src/main/assets/help/text-size.md
+      - mobile/src/main/assets/help/theme.md
+      - mobile/src/main/assets/help/usual.md
+      - mobile/src/main/assets/help/widgets.md
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/AppShortcutsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/help/HelpContentTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderSchedulerTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/GuideOverlayTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/OnboardingTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/help/HelpScreenTest.kt
+      - scripts/make-user-guide.py
+      - scripts/ui-doc/gen_ui_doc.py
+      - mobile/screenshots/memo/*.png（24 枚）
+      - mobile/screenshots/reminder/*.png（24 枚）
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"（calendar・reminder も同様）、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - Gradle 系の5ゲートは BUILD SUCCESSFUL。スクリーンショットは記録し直した後、3 画面とも検証が成功
+    関連ID:
+      - BL-104
 - date: 2026-10-25 16:39
   summary: 通知などから開いた直後はおしらせ・カレンダーでもガイドを出さない（R-52）、外から開いたあとのタブの切り替えの不具合を修正
   details:

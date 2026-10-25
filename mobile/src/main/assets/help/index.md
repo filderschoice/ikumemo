@@ -23,15 +23,15 @@
 ## 見返す
 
 - [カレンダー](calendar.md)
-- [さがす](search.md)
-- [あとから記録する](add-later.md)
+- [探す](search.md)
+- [後から記録する](add-later.md)
 - [記録を直す・消す](edit-record.md)
 
-## おしらせ
+## お知らせ
 
 - [期限を決める](due.md)
-- [おしらせが来たら](notified.md)
-- [おしらせが来ないときは](not-arriving.md)
+- [お知らせが来たら](notified.md)
+- [お知らせが来ないときは](not-arriving.md)
 
 ## ホーム画面に置く
 
