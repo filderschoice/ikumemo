@@ -2,4 +2,11 @@
 <resources>
     <!-- 画面の色は Compose の IkumemoTheme で決める。ここは起動直後のウィンドウ用の土台だけ -->
     <style name="Theme.Ikumemo" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- 音声入力シート。背景を透かしてホーム画面の上に重ねる -->
+    <style name="Theme.Ikumemo.VoiceSheet" parent="Theme.Ikumemo">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>

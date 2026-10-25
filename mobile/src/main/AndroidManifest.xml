@@ -5,13 +5,102 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- 音声入力（F-01）。初めてマイクボタンを押した時に求め、拒否されても文字入力で全機能が使える -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- おしらせ（F-51）。Android 13 以降は初めて期限を決めた時に求める。拒否されても期限の設定と一覧は使える（R-29） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 再起動後に次の通知を予約し直す（R-24）。正確なアラーム（SCHEDULE_EXACT_ALARM）は使わない -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Android 11 以降は音声認識サービスを見つけるために宣言が必要（無いと「使えない」と判定される、PLAN §4.1） -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
+        android:name=".IkumemoApplication"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Ikumemo">
+        <!-- カメラアプリへ撮影先の一時ファイルを渡すため（CAMERA 権限は宣言しない、PLAN §5） -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- 予約した通知時刻と通知のボタン。アプリ内からだけ呼ぶ -->
+        <receiver
+            android:name=".reminder.ReminderAlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".reminder.ReminderActionReceiver"
+            android:exported="false" />
+
+        <!-- OS からの通知（再起動・時刻変更・タイムゾーン変更・アプリ更新）だけを受ける（PLAN §5） -->
+        <receiver
+            android:name=".reminder.ReminderBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 音声入力シート（W-01）。ホーム画面の上に重ねて開き、履歴に残さず別のタスクで動かす。外部には公開しない -->
+        <activity
+            android:name=".voice.VoiceSheetActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.voice"
+            android:theme="@style/Theme.Ikumemo.VoiceSheet" />
+
+        <!-- ウィジェット W-01（OS からの更新を受けるため exported=true が必要） -->
+        <receiver
+            android:name=".widget.VoiceWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_voice_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_voice_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.MemoListWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_memo_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_memo_info" />
+        </receiver>
+
+        <!-- 日付の変わり目・お店の解除でウィジェットを描き直す（アプリ内からだけ呼ぶ、R-41） -->
+        <receiver
+            android:name=".widget.WidgetRefreshReceiver"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

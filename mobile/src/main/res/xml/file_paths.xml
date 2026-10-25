@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- カメラアプリに撮ってもらう一時ファイルだけを渡す（取り込んだら消す、PLAN §4.1）。写真の保存先 filesDir/photos は渡さない -->
+<paths>
+    <cache-path
+        name="camera"
+        path="camera/" />
+</paths>

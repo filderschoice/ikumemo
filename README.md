@@ -37,7 +37,10 @@ Gradle Wrapper 経由で、すべてリポジトリのルートから実行し�
 ./gradlew detekt lintDebug
 
 # 単体テスト（core / mobile 全モジュール）
-./gradlew testDebugUnitTest test
+./gradlew testDebugUnitTest :core:test
+
+# 時間のかかるテスト（2 万件の検索性能など）も含めて流す
+./gradlew testDebugUnitTest -PslowTests
 
 # デバッグ版 APK のビルド
 ./gradlew assembleDebug

@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.aboutlibraries)
 }
 
 // 現在のバージョンは scripts/version.properties が正本（PLAN §4.5）。リリースビルドでは
@@ -91,6 +94,23 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        // Robolectric で Room・リソースを使うテストを JVM 上で動かす（PLAN §11）
+        unitTests.isIncludeAndroidResources = true
+        // 時間のかかるテスト（SlowTest）は -PslowTests の時だけ流す（CLAUDE.md「本リポジトリの品質ゲート定義」）
+        unitTests.all { test ->
+            if (!project.hasProperty("slowTests")) {
+                test.useJUnit { excludeCategories("com.ikumemo.mobile.testing.SlowTest") }
+            }
+        }
+    }
+}
+
+// Room のスキーマ JSON を Git 管理し、AutoMigration とマイグレーションテストの基準にする（PLAN §4.3）
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.generateKotlin", "true")
 }
 
 dependencies {
@@ -104,7 +124,32 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.exifinterface)
+    // ホーム画面ウィジェット（W-01・W-02、PLAN §4.1）。Glance が推移的に持ち込む古い work-runtime は
+    // sesami-wear と同じく 2.10 系へ明示して引き上げる（写真の掃除 R-14 でも使う）
+    implementation(libs.androidx.glance.appwidget)
+    // このアプリについて のライセンス一覧（Play Services に依存しない、PLAN §4.1・§7）
+    implementation(libs.aboutlibraries.compose)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.androidx.glance.appwidget.testing)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.ui.tooling)
 }

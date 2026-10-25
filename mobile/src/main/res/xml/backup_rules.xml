@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 以前の自動バックアップの対象（F-71、PLAN §4.3）。写真（filesDir/photos/）だけ外し、DB・設定・背景画像は残す。
+  この書き方はクラウドと端末間転送を分けられないため、Android 11 以前の端末間転送では写真は移らない
+  （写真の引き継ぎは書き出し F-72 で補う）。
+-->
+<full-backup-content>
+    <exclude
+        domain="file"
+        path="photos/" />
+</full-backup-content>
