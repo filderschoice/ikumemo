@@ -5,6 +5,39 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 09:30
+  summary: せっていに このアプリについて（ライセンス一覧つき）と ご意見・ご要望（よくある質問 → GitHub）を追加（M8）
+  details:
+    変更内容: >-
+      このアプリについては、版・名前の由来（PLAN §1.2）と、ライセンス一覧（AboutLibraries 11.2.3 の Gradle プラグインがビルド時に一覧を作り、
+      aboutlibraries-compose-m3 の LibrariesContainer で出す。Play Services に依存しない）・プライバシーポリシー・GitHub・ストアのページ
+      （評価のお願い。debug 版でもストアに出す版の ID を開く）を並べた。ご意見・ご要望は、よくある質問 4 つ（押すと答えが開く）の後に、
+      アプリの版・Android の版・機種名（個人を特定する情報は含めない）とコピーのボタン、「GitHub で送る」（Issue のテンプレート選択を開く）を置いた。
+      ご意見フォームはオーナー判断（今は GitHub だけにする）により置かない。外部のページは ExternalLink に集め、開けるアプリが無ければ知らせる。
+      せっていの画面遷移を settings/SettingsNavigation.kt へ移し、各項目が行き先のルートを持つようにした
+    変更ファイル:
+      - build.gradle.kts
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AboutScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ExternalLink.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/FeedbackScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/LicensesScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/ExternalLinkTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AboutContentTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（単体テスト計 272 件。追加は外部のページの Intent・ストアは出す版の ID・ご意見に添える情報 3 件、
+      せっていの項目、このアプリについての各行、ライセンス一覧の表示、よくある質問と GitHub のボタン 4 件）、Lint No issues found、
+      markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-093
 - date: 2026-10-25 09:03
   summary: せっていに お店の管理（使わない・まとめる）と よく買う物の管理（候補に出す／出さない）を追加（M6）
   details:

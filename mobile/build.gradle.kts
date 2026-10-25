@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.aboutlibraries)
 }
 
 // 現在のバージョンは scripts/version.properties が正本（PLAN §4.5）。リリースビルドでは
@@ -128,6 +129,8 @@ dependencies {
     // ホーム画面ウィジェット（W-01・W-02、PLAN §4.1）。Glance が推移的に持ち込む古い work-runtime は
     // sesami-wear と同じく 2.10 系へ明示して引き上げる（写真の掃除 R-14 でも使う）
     implementation(libs.androidx.glance.appwidget)
+    // このアプリについて のライセンス一覧（Play Services に依存しない、PLAN §4.1・§7）
+    implementation(libs.aboutlibraries.compose)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

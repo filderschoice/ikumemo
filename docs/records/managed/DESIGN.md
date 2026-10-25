@@ -67,7 +67,9 @@
 | F-52・R-26・R-27 | 1 品目の通知だけ「使い切った」「また買う」（メモへ入れて使い切った）「あとで」（翌日にもう一度） | `reminder/ReminderActions.kt` |
 | PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
 | F-60・F-63・F-65 | きせかえ（各テーマの色で描いた見本のカードでテーマを選ぶ、暗い画面「端末に合わせる / 明るい / 暗い」、文字の大きさ 3 段階）。選んだらすぐ保存しアプリ全体へ反映 | `settings/AppearanceScreen.kt`、`data/AppearancePrefs.kt`、`MainActivity.kt` |
-| PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。せってい画面の項目は今は「きせかえ」「そうさ」「おしらせ」「お店の管理」「よく買う物の管理」（ほかは BL-072・BL-081・BL-093 で足す） | `settings/SettingsScreen.kt` |
+| PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。項目は今は「きせかえ」「そうさ」「おしらせ」「お店の管理」「よく買う物の管理」「ご意見・ご要望」「このアプリについて」（使い方は BL-081、ホーム画面に置くは BL-072、データは F-72・F-76〔S〕で足す） | `settings/SettingsScreen.kt`、`settings/SettingsNavigation.kt` |
+| F-77（GitHub のみ） | ご意見・ご要望: よくある質問 4 つ（押すと答え）→ GitHub の Issue を開く。アプリの版・Android の版・機種名を画面に出しコピーできる。ご意見フォームは site/ の転送ページができるまで置かない（オーナー判断） | `settings/FeedbackScreen.kt` |
+| PLAN §3・§5・§7 | このアプリについて: 版・名前の由来・ライセンス一覧（AboutLibraries）・プライバシーポリシー・GitHub・ストアのページ（評価のお願い） | `settings/AboutScreen.kt`、`settings/LicensesScreen.kt`、`settings/ExternalLink.kt` |
 | F-13・R-05・PLAN §3 そうさ | ○ の表示と振動のオン/オフ（初期値はどちらもオン）。○ を消した行は左に余白を取る | `settings/OperationScreen.kt`、`data/OperationPrefs.kt`、`shoppinglist/SwipeableItemRow.kt` |
 | R-20・R-21・PLAN §3 おしらせ | 通知の時刻（時計の形で選ぶ、24 時間表示）と期限当日のおしらせのオン/オフ。保存したら次の通知を予約し直す | `settings/ReminderSettingsScreen.kt` |
 | W-01・R-42・R-44・R-45 | 1×1 ウィジェット「話して追加」（横 2 マス以上で文字を横並び）。押すと透明な専用 Activity で音声入力シートが重なって開き、追加したらトーストを出して閉じる。途中で閉じたら何も追加しない。音声入力が使えない端末では「書いて追加」でアプリの追加シートを開く。色はきせかえのテーマと暗い画面の設定に合わせる | `widget/VoiceWidget.kt`、`widget/WidgetColors.kt`、`voice/VoiceSheetActivity.kt` |
@@ -96,6 +98,7 @@
   下タブは状態を保存して切り替える（`saveState` / `restoreState`）
 - UI は Jetpack Compose + Material 3。DI は手動（`IkumemoApplication` が持つ `AppContainer` から渡す。時刻は
   `AppContainer.clock` の `java.time.Clock` から取り、テストで差し替えられるようにする）
+- 外部のページ（プライバシーポリシー・GitHub・ストア）は `ExternalLink` に集め、利用者が押した時だけブラウザで開く（アプリ自体は通信しない）
 - 依存の版は sesami-wear と同じ版にそろえる（AGP 8.13.0、Kotlin 2.0.21、Compose BOM 2024.12.01 等。
   `gradle/libs.versions.toml`）。必要になったマイルストーンで追加し、使わない依存は入れない
 

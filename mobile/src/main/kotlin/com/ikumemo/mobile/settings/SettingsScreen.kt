@@ -55,15 +55,18 @@ fun SettingsScaffold(
     }
 }
 
-/** せっていの項目。 */
+/** せっていの項目（PLAN §3 の並び。まだ無い項目は作った時に足す）。 */
 enum class SettingsItem(
     val title: Int,
+    val route: Any,
 ) {
-    APPEARANCE(R.string.settings_appearance),
-    OPERATION(R.string.settings_operation),
-    REMINDER(R.string.settings_reminder),
-    STORES(R.string.settings_stores),
-    PRODUCTS(R.string.settings_products),
+    APPEARANCE(R.string.settings_appearance, AppearanceRoute),
+    OPERATION(R.string.settings_operation, OperationRoute),
+    REMINDER(R.string.settings_reminder, ReminderSettingsRoute),
+    STORES(R.string.settings_stores, StoreManageRoute),
+    PRODUCTS(R.string.settings_products, ProductManageRoute),
+    FEEDBACK(R.string.settings_feedback, FeedbackRoute),
+    ABOUT(R.string.settings_about, AboutRoute),
 }
 
 /** せってい（PLAN §3 右上メニュー）。項目を押すとそれぞれの画面を開く。 */
