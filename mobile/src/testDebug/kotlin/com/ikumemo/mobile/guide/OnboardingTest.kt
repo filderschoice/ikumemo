@@ -55,7 +55,7 @@ class OnboardingTest {
         assertEquals(0, finished.intValue)
         assertEquals(listOf(PinnableWidget.VOICE, PinnableWidget.MEMO_LIST), pinned.toList())
 
-        composeRule.onNodeWithText("あとで").performClick()
+        composeRule.onNodeWithText("後で").performClick()
         assertEquals(1, finished.intValue)
     }
 

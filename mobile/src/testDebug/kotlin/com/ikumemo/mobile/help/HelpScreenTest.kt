@@ -62,7 +62,7 @@ class HelpScreenTest {
 
     @Test
     fun pageWithoutGuideHasOnlyTry() {
-        val page = HelpPage("search", "さがす", listOf(HelpBlock.Paragraph("本文")), tryScreen = HelpScreens.CALENDAR)
+        val page = HelpPage("search", "探す", listOf(HelpBlock.Paragraph("本文")), tryScreen = HelpScreens.CALENDAR)
         composeRule.setContent { IkumemoTheme { HelpPageContent(page, onTry = {}, onShowGuide = { _, _ -> }) } }
 
         composeRule.onNodeWithTag(HelpTestTags.SHOW_GUIDE).assertDoesNotExist()

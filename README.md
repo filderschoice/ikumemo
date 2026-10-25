@@ -1,6 +1,6 @@
 # いくメモ（Ikumemo）
 
-話しかけるだけで買い物メモ。買ったらスワイプで記録。あとからカレンダーで振り返れる Android アプリです。
+話しかけるだけで買い物メモ。買ったらスワイプで記録。後からカレンダーで振り返れる Android アプリです。
 
 > 買い物に「**いく**」ときの、いちばん身近な「**メモ**」。
 > いく前に話して残す。買ったらスワイプで記録。その記録が、次にいくときの「いつもの」になる。
@@ -11,7 +11,8 @@
 
 ## 開発の状況
 
-開発中です（マイルストーン M0「準備」の段階）。Google Play では未公開です。
+開発中です。アプリの機能（メモ・音声入力・カレンダー・お知らせ・着せ替え・ウィジェット・初めての案内と使い方）は
+実装済みで、公開に向けた準備の段階です。Google Play では未公開です。
 要件と判断の背景は [PLAN.md](PLAN.md)、今後のタスクは
 [docs/records/managed/BACKLOG.md](docs/records/managed/BACKLOG.md) を参照してください。
 
@@ -41,6 +42,9 @@ Gradle Wrapper 経由で、すべてリポジトリのルートから実行し�
 
 # 時間のかかるテスト（2 万件の検索性能など）も含めて流す
 ./gradlew testDebugUnitTest -PslowTests
+
+# スクリーンショットテストの確認（画面ごとに流す。例はメモ画面。calendar・reminder も同様）
+./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"
 
 # デバッグ版 APK のビルド
 ./gradlew assembleDebug
@@ -90,9 +94,13 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 | --- | --- |
 | `core/` | Android に依存しない純 Kotlin/JVM のロジック（`com.ikumemo.core`）。JVM の単体テストだけで検証する |
 | `mobile/` | Android アプリ本体（`com.ikumemo.mobile`）。画面・データ層・ウィジェット |
+| `mobile/src/main/kotlin/com/ikumemo/mobile/` | 画面ごとのパッケージ。`shoppinglist/`（メモ）・`calendar/`・`reminder/`（お知らせ）・`voice/`（音声入力）・`widget/`・`settings/`・`guide/`（初めての案内とその場のガイド）・`help/`（使い方）・`data/`（保存） |
 | `mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/` | テーマ 4 種（ポップ／やさしい／クール／シンプル）、配色、文字の大きさ |
+| `mobile/src/main/assets/help/` | アプリ内の使い方の正本（Markdown）。`docs/USER_GUIDE.md` の元 |
+| `mobile/screenshots/` | スクリーンショットテスト（Roborazzi）の正解画像 |
+| `mobile/src/main/baseline-prof.txt` | Baseline Profile（起動の高速化） |
 | `config/detekt/` | detekt の設定 |
-| `scripts/` | バージョン管理・リリースビルド・記録ファイルの検証 |
+| `scripts/` | バージョン管理・リリースビルド・記録ファイルの検証・使い方の Web 版の生成・UI デザイン設計書の生成 |
 | `docs/records/` | 設計書・実施記録・未対応事項（AI エージェントが更新する記録ファイル） |
 | `rules/` | AI エージェントのガードレール |
 
@@ -100,6 +108,7 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 
 - [PLAN.md](PLAN.md): 開発開始前の計画書（要件と判断の背景。開発開始後は更新しない）
 - [docs/design/WIREFRAME.md](docs/design/WIREFRAME.md): 主要な画面とシートのワイヤーフレーム
+- [docs/design/UI_DESIGN.html](docs/design/UI_DESIGN.html): 実装の現状を 1 枚にまとめた UI デザイン設計書
 - [docs/records/managed/DESIGN.md](docs/records/managed/DESIGN.md): 実装済み内容の統合設計書
 - [docs/records/managed/BACKLOG.md](docs/records/managed/BACKLOG.md): 未対応事項・課題・次ステップ
 - [CONTRIBUTING.local.md](CONTRIBUTING.local.md): 報告の受け付け方針（Issue は受付、外部の Pull Request は非受付）と

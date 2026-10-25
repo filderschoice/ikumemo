@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.AppearancePrefs
+import com.ikumemo.mobile.data.DataEraser
 import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.OperationPrefs
 import com.ikumemo.mobile.data.PhotoCleaner
@@ -15,6 +16,9 @@ import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
+import com.ikumemo.mobile.data.backup.BackupExporter
+import com.ikumemo.mobile.data.backup.BackupImporter
+import com.ikumemo.mobile.data.backup.BackupSettingsStore
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.reminder.ReminderActions
 import com.ikumemo.mobile.reminder.ReminderNotifier
@@ -77,6 +81,38 @@ class AppContainer(
     val backgroundStore by lazy { PhotoStore(appContext, PhotoStore.BACKGROUND_DIR) }
 
     val photoCleaner by lazy { PhotoCleaner(database, PhotoStore(appContext), clock) }
+
+    /** データをすべて消す（F-76）。消したあとはお知らせの予約と通知を片付け、ウィジェットを空の表示に更新する（R-43）。 */
+    val dataEraser by lazy {
+        DataEraser(database, dataStore, listOf(PhotoStore(appContext), backgroundStore)) {
+            reminderNotifier.cancel()
+            reminderScheduler.reschedule()
+            widgetUpdater.refresh()
+        }
+    }
+
+    private val backupSettings by lazy {
+        BackupSettingsStore(settings, appearancePrefs, operationPrefs, reminderPrefs)
+    }
+
+    /** データの書き出し（F-72）。 */
+    val backupExporter by lazy {
+        BackupExporter(
+            database,
+            backupSettings,
+            PhotoStore(appContext),
+            backgroundStore,
+            clock,
+        )
+    }
+
+    /** 書き出したファイルの読み込み（F-72）。入れ替えたあとはお知らせを予約し直し、ウィジェットを描き直す。 */
+    val backupImporter by lazy {
+        BackupImporter(appContext, database, backupSettings, PhotoStore(appContext), backgroundStore) {
+            reminderScheduler.reschedule()
+            widgetUpdater.refresh()
+        }
+    }
 
     /** 音声認識の窓口を作る。ViewModel ごとに 1 つ作り、ViewModel の破棄で片付ける。 */
     val speechEngineFactory: () -> SpeechEngine = { speechEngine(appContext) }

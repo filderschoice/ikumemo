@@ -119,7 +119,7 @@ class ReminderSchedulerTest {
             assertTrue(scheduler.notifyIfDue())
 
             val notification = shadowOf(app.getSystemService(NotificationManager::class.java)).allNotifications.single()
-            assertEquals("たまご ほか2つの期限があしたです", notification.extras.getCharSequence("android.title").toString())
+            assertEquals("たまご ほか2つの期限が明日です", notification.extras.getCharSequence("android.title").toString())
             assertEquals(0, notification.actions?.size ?: 0)
             assertEquals(today, prefs.lastNotifiedDate())
             // きょうの分を出したので、次は期限当日の 9:00
@@ -135,8 +135,8 @@ class ReminderSchedulerTest {
             scheduler.notifyIfDue()
 
             val notification = shadowOf(app.getSystemService(NotificationManager::class.java)).allNotifications.single()
-            assertEquals("牛乳の期限がきょうです", notification.extras.getCharSequence("android.title").toString())
-            assertEquals(listOf("使い切った", "また買う", "あとで"), notification.actions.map { it.title.toString() })
+            assertEquals("牛乳の期限が今日です", notification.extras.getCharSequence("android.title").toString())
+            assertEquals(listOf("使い切った", "また買う", "後で"), notification.actions.map { it.title.toString() })
         }
 
     @Test

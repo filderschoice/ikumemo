@@ -95,7 +95,7 @@ HELP = load_help_index()
 
 
 def screenshot(screen):
-    """スクリーンショットテストの正解画像（テーマ「ポップ」・明るい・ふつう）を data URI で返す。"""
+    """スクリーンショットテストの正解画像（テーマ「ポップ」・明るい・普通）を data URI で返す。"""
     import base64
     png = ROOT / f"mobile/screenshots/{screen}/pop_light_normal.png"
     return "data:image/png;base64," + base64.b64encode(png.read_bytes()).decode()
@@ -336,7 +336,7 @@ def guide_bubble(key, top=None):
 
 
 def onboarding_screen(page):
-    """はじめての案内（OnboardingContent）。page は 0〜3。"""
+    """初めての案内（OnboardingContent）。page は 0〜3。"""
     pages = [("🎤", "onboarding_voice_title", "onboarding_voice_body"), ("👉", "onboarding_swipe_title", "onboarding_swipe_body"),
              ("📅", "onboarding_look_back_title", "onboarding_look_back_body"), ("🏠", "onboarding_home_title", "onboarding_home_body")]
     emoji, title, body = pages[page]
@@ -501,7 +501,7 @@ def reminder_screen(due_sheet=False):
 
 
 SETTINGS_ITEMS = ["settings_help", "settings_appearance", "settings_operation", "settings_reminder", "settings_stores",
-                  "settings_products", "settings_home_screen", "settings_feedback", "settings_about"]
+                  "settings_products", "settings_home_screen", "settings_feedback", "settings_data", "settings_about"]
 
 
 def settings_screen():
@@ -539,6 +539,18 @@ def operation_screen():
     rows = (srow(s("operation_show_bought_button"), s("operation_show_bought_button_detail"), tog=True)
             + srow(s("operation_vibration"), s("operation_vibration_detail"), tog=True))
     return phone(appbar(s("settings_operation"), back=True) + f'<div class="body">{rows}</div>', cls="short")
+
+
+def data_screen(dialog_on=None):
+    keys = [("data_export_zip_title", "data_export_zip_detail"), ("data_export_json_title", "data_export_json_detail"),
+            ("data_export_csv_title", "data_export_csv_detail"), ("data_import_title", "data_import_detail"),
+            ("data_erase_title", "data_erase_detail")]
+    body = '<div class="body">' + "".join(srow(s(t), s(d)) for t, d in keys) + '</div>'
+    overlay = ""
+    if dialog_on:
+        overlay = sheet(f'<div style="font-size:22px">{s(dialog_on + "_confirm_title")}</div><div style="margin:8px 0">{s(dialog_on + "_confirm_detail")}</div>'
+                        f'<div style="display:flex;justify-content:flex-end"><span class="tbtn">{s("reminder_settings_cancel")}</span><span class="tbtn">{s(dialog_on + "_confirm")}</span></div>')
+    return phone(appbar(s("settings_data"), back=True) + body + overlay, cls="short")
 
 
 def reminder_settings_screen():
@@ -663,7 +675,7 @@ def ch_flow():
     f = lambda t, c="": f'<div class="fb {c}">{t}</div>'
     a = '<span class="ar">→</span>'
     flows = [
-        [f("初回起動", "s"), a, f("はじめての案内（3 枚＋ホーム画面に置く）"), f(s("tab_memo"))],
+        [f("初回起動", "s"), a, f("初めての案内（3 枚＋ホーム画面に置く）"), f(s("tab_memo"))],
         [f("下タブ", "s"), f(s("tab_memo")), f(s("tab_calendar")), f(s("tab_reminder"))],
         [f(s("tab_memo"), "s"), a, f("追加シート（" + s("memo_add_by_voice") + " / " + s("memo_add_by_text") + "）"), f("編集シート"), f("お店を選ぶシート"),
          f("使い方のページ（" + s("help_open") + "）")],
@@ -676,7 +688,7 @@ def ch_flow():
          f(s("tab_calendar")), f(s("tab_reminder"))],
     ]
     body = "".join(f'<div class="flow">{"".join(x)}</div>' for x in flows)
-    return section("flow", "2. 画面構成と遷移", "下タブ 3 つ＋右上の ⚙ せってい（PLAN §3）。点線は外部。", body)
+    return section("flow", "2. 画面構成と遷移", "下タブ 3 つ＋右上の ⚙ 設定（PLAN §3）。点線は外部。", body)
 
 
 def ch_screens():
@@ -688,7 +700,7 @@ def ch_screens():
         fig(memo_screen(), "メモ（項目あり）", "上にお店のチップ、下に 🎤 話して追加（64dp）と文字で追加。左の ○ で「買った」。"),
         fig(swipe_screen(), "スワイプと元に戻す", "右へで「買った」、左へで「やめた」。しきい値は画面幅の 40%。下に「元に戻す」。"),
         fig(memo_screen(items=False), "メモ（空）", "最初の案内の文言と「" + s("help_open") + "」（話して入れるページへ、H-03）。"),
-        fig(memo_screen(voice=False, circle=False), "音声入力が無い端末・○ を消した設定", "マイクのボタンを出さず案内文と「" + s("help_open") + "」を出す。○ はそうさの設定で消せる。"),
+        fig(memo_screen(voice=False, circle=False), "音声入力が無い端末・○ を消した設定", "マイクのボタンを出さず案内文と「" + s("help_open") + "」を出す。○ は操作の設定で消せる。"),
     )
     sheets = grid(
         fig(add_sheet(), "追加シート（文字）", "入力中の候補と「いつもの」チップ。チップは押すたびに 1 件入る。"),
@@ -703,26 +715,26 @@ def ch_screens():
     )
     others = grid(
         fig(calendar_screen(), "カレンダー", "月の表示（日曜は赤・土曜は青、CalendarColors）、お店の色のドット、選んだ日の記録と「" + s("calendar_add_record") + "」。"),
-        fig(calendar_screen(search=True), "カレンダー（さがす）", "品名で記録を検索し、日付へ移れる。"),
-        fig(add_record_sheet(), "あとから記録（F-17）", "メモに入れていなかった物を、選んだ日に買った物として記録する。品名が空のうちは押せない。"),
-        fig(reminder_screen(), "おしらせ", "最近買った物（期限を決める）と、期限が近い順の一覧。"),
+        fig(calendar_screen(search=True), "カレンダー（探す）", "品名で記録を検索し、日付へ移れる。"),
+        fig(add_record_sheet(), "後から記録（F-17）", "メモに入れていなかった物を、選んだ日に買った物として記録する。品名が空のうちは押せない。"),
+        fig(reminder_screen(), "お知らせ", "最近買った物（期限を決める）と、期限が近い順の一覧。"),
         fig(reminder_screen(due_sheet=True), "期限を決めるシート", "チップで選び、日付の入力をなるべく要らなくする。"),
     )
     guide = grid(
-        fig(onboarding_screen(0), "はじめての案内（1 枚目）", "初回起動時だけ全画面で出す。「とばす」は常に出す。権限は求めない。「" + s("onboarding_demo_spoken") + "」が 2 つに分かれる手本を動かす（絵は最後の形）。"),
-        fig(onboarding_screen(3), "はじめての案内（最後）", "ホーム画面に置く（W-03）。「置く」では閉じず、「あとで」で閉じる。"),
+        fig(onboarding_screen(0), "初めての案内（1 枚目）", "初回起動時だけ全画面で出す。「飛ばす」は常に出す。権限は求めない。「" + s("onboarding_demo_spoken") + "」が 2 つに分かれる手本を動かす（絵は最後の形）。"),
+        fig(onboarding_screen(3), "初めての案内（最後）", "ホーム画面に置く（W-03）。「置く」では閉じず、「後で」で閉じる。"),
         fig(memo_screen(items=False, spot="mic", overlay=guide_bubble("guide_g02", top=330)), "その場のガイド G-02",
             "空のメモで 🎤 を照らす。暗くするのは見た目だけで、照らした部品はそのまま押せる。"),
-        fig(memo_screen(practice=True, spot="practice", overlay=guide_bubble("guide_g03", top=200)), "G-03 と「れんしゅう」",
+        fig(memo_screen(practice=True, spot="practice", overlay=guide_bubble("guide_g03", top=200)), "G-03 と「練習」",
             "一番上に DB に入れない「" + s("guide_practice_item") + "」を出し、動かすと練習を終える（記録・候補・元に戻すに残さない）。"),
         fig(memo_screen(overlay=guide_bubble("guide_g06")), "読み上げ利用時のガイド（R-56）",
             "TalkBack を使っているときは照らさず、画面下のカードで同じ内容を出して「" + s("guide_ok") + "」へ移る。"),
     )
     return section("screens", "3. 各画面", "状態の違いはコードの分岐から代表的な組み合わせを選んだ。",
                    "<h3>3.0 実際の描画（スクリーンショットテスト）</h3>"
-                   "<p class='lead'>テーマ「ポップ」・明るい・ふつう。4 テーマ × 明暗 × 文字の大きさ 3 段階の 72 枚は mobile/screenshots/ にある。</p>"
+                   "<p class='lead'>テーマ「ポップ」・明るい・普通。4 テーマ × 明暗 × 文字の大きさ 3 段階の 72 枚は mobile/screenshots/ にある。</p>"
                    + actual + "<h3>3.1 メモ</h3>" + memo + "<h3>3.2 メモのシート</h3>" + sheets + "<h3>3.3 話して追加</h3>" + voice
-                   + "<h3>3.4 カレンダー・おしらせ</h3>" + others + "<h3>3.5 はじめての案内とその場のガイド</h3>" + guide)
+                   + "<h3>3.4 カレンダー・お知らせ</h3>" + others + "<h3>3.5 初めての案内とその場のガイド</h3>" + guide)
 
 
 def ch_settings():
@@ -737,14 +749,17 @@ def ch_settings():
         fig(store_manage_screen(dialog_on=True), "使わないお店にする確認", "記録のお店名は残ると説明する。"),
         fig(product_manage_screen(), s("settings_products"), "買った回数の多い順。オフにすると候補に出ない。"),
         fig(feedback_screen(), s("settings_feedback"), "よくある質問（押すと答え）→ GitHub。版と機種名をコピーできる。"),
+        fig(data_screen(), s("settings_data"), "書き出し 3 種（写真つき ZIP・写真なし JSON・記録だけ CSV）、読み込み、すべて消す。"),
+        fig(data_screen(dialog_on="data_import"), "データを読み込む確認", "今のデータが置き換わると説明してから、ファイルを選ぶ。"),
+        fig(data_screen(dialog_on="data_erase"), "データをすべて消す確認", "取り消せない操作のため確認を 1 回だけ出す（§1.3-4 の例外）。"),
         fig(about_screen(), s("settings_about"), "版・名前の由来・ライセンス一覧・外部のページ。"),
     )
     g3 = grid(
-        fig(help_index_screen(), s("settings_help") + "（目次）", "せっていの一番上。章とページは assets/help/index.md（先頭 3 章を表示）。"),
+        fig(help_index_screen(), s("settings_help") + "（目次）", "設定の一番上。章とページは assets/help/index.md（先頭 3 章を表示）。"),
         fig(help_page_screen(), s("settings_help") + "（ページ）", "本文は assets/help/ の Markdown。下に「" + s("help_show_guide") + "」「" + s("help_try") + "」。"),
         fig(home_screen_settings(), s("settings_home_screen"), "2 種の見本と「" + s("home_screen_pin") + "」。メモ一覧は 4×4 で置かれる。"),
     )
-    return section("settings", "4. せってい", "右上の ⚙ から開く画面。", g1 + g2 + g3)
+    return section("settings", "4. 設定", "右上の ⚙ から開く画面。", g1 + g2 + g3)
 
 
 def ch_dialogs():
@@ -754,17 +769,17 @@ def ch_dialogs():
         ["音声入力", s("voice_not_heard"), "聞き取れなかったとき"],
         ["音声入力", s("voice_permission_denied") + "（" + s("voice_open_settings") + "）", "マイクの許可を断られたとき（R-44）"],
         ["通知の許可", s("reminder_permission_rationale") + "（" + s("reminder_permission_allow") + " ／ " + s("reminder_permission_later") + "）", "初めて期限を決めたとき（Android 13 以降）"],
-        ["通知がオフ", s("reminder_notifications_off") + "（" + s("reminder_enable_notifications") + "）", "おしらせ画面の上"],
+        ["通知がオフ", s("reminder_notifications_off") + "（" + s("reminder_enable_notifications") + "）", "お知らせ画面の上"],
         ["お店", s("stores_archive_title", "○○") + " ／ " + s("stores_merge_title", "○○"), "お店の管理"],
-        ["時刻", s("reminder_settings_pick_time") + "（" + s("common_done") + " ／ " + s("reminder_settings_cancel") + "）", "おしらせの設定"],
+        ["時刻", s("reminder_settings_pick_time") + "（" + s("common_done") + " ／ " + s("reminder_settings_cancel") + "）", "お知らせの設定"],
         ["ウィジェットから追加", s("widget_voice_added", 3), "トースト"],
         ["外部のページ", s("about_no_browser"), "ブラウザが無いとき"],
     ]
     guide_rows = [[g, s("guide_" + g.lower().replace("-", "")), w] for g, w in [
-        ("G-02", "空のメモを初めて開いた（🎤）"), ("G-03", "初めてメモに項目が入った（れんしゅう項目）"),
+        ("G-02", "空のメモを初めて開いた（🎤）"), ("G-03", "初めてメモに項目が入った（練習項目）"),
         ("G-04", "練習を終えた・とばした（一番上の ○。○ を出す設定のときだけ）"), ("G-05", "初めて「買った」にした（元に戻す）"),
         ("G-06", "G-05 の後でお店を選んでいない（お店のチップ）"), ("G-07", "初めてカレンダーを開いた（その月の最初の買い物の日）"),
-        ("G-08", "初めて「買った」の後におしらせを開いた（一番上の「期限を決める」）")]]
+        ("G-08", "初めて「買った」の後にお知らせを開いた（一番上の「期限を決める」）")]]
     rows_n = [
         ["前日", s("notification_due_tomorrow", "豆腐"), s("notification_due_many_tomorrow", "豆腐", 2)],
         ["当日", s("notification_due_today", "食パン"), s("notification_due_many_today", "食パン", 2)],
@@ -773,7 +788,7 @@ def ch_dialogs():
     ]
     return section("dialogs", "5. ダイアログ・知らせ・通知", "文言はすべて strings.xml から。", table(["場面", "文言", "出す条件"], rows)
                    + "<h3>通知（チャンネル「" + s("notification_channel_due") + "」）</h3>"
-                   + grid(fig(notification(), "1 品目の通知", "押すとおしらせの一覧。ボタンは 1 品目の時だけ。"))
+                   + grid(fig(notification(), "1 品目の通知", "押すとお知らせの一覧。ボタンは 1 品目の時だけ。"))
                    + table(["種類", "1 品目", "まとめた時（同じ日の 1 通）"], rows_n)
                    + "<h3>その場のガイド（1 画面に 1 つ・各 1 回。シート表示中は出さない）</h3>"
                    + table(["ID", "吹き出しの文", "きっかけ（照らす場所）"], guide_rows))
@@ -786,7 +801,7 @@ def ch_widgets():
             f'{voice_widget(theme="COOL", mode="dark")}{memo_widget(theme="COOL", mode="dark")}</div>')
     rows = [
         ["話して追加（1×1〜2×2）", s("widget_voice_name"), "押すと音声入力シートを重ねて開く。横 2 マス以上で文字を横に並べる。音声入力が無い端末は「" + s("widget_write_label") + "」"],
-        ["メモ一覧（既定 4×4、3×2〜5×6）", s("widget_memo_name"), "表示専用。行はその項目、期限が近い件数はおしらせ、ほかはメモを開く。幅 250dp 未満で品名 2 件・数量を下へ。"
+        ["メモ一覧（既定 4×4、3×2〜5×6）", s("widget_memo_name"), "表示専用。行はその項目、期限が近い件数はお知らせ、ほかはメモを開く。幅 250dp 未満で品名 2 件・数量を下へ。"
          "アプリから置く（W-03）と 4×4 で置かれ、長押しで 4×2 などへ小さくできる"],
         ["ショートカット（アイコンの長押し）", "、".join(s(k) for k in ["shortcut_voice", "shortcut_text", "shortcut_calendar", "shortcut_reminder"]),
          "起動時に動的ショートカットとして登録（debug 版でも動くように）。ホーム画面アプリが対応していれば単独で置ける"],
@@ -845,9 +860,9 @@ def ch_findings():
         ("実機で未確認", "画面は Robolectric の画面テスト・コントラストのテスト・スクリーンショットテスト（72 枚）で確認。実機での配置、"
                        "ガイドの吹き出しの位置、背景の写真の見え方、ホーム画面アプリごとのウィジェットの大きさは<span class='tag unk'>未確認</span>（人手検証として BACKLOG に残っている）。"),
         ("未実装の UI", "PLAN の MVP の UI はすべて実装済み（「LINE などで送る」F-08 など S 以下の機能は対象外）。"),
-        ("動き", "はじめての案内 1 枚目は「牛乳とたまご」が 2 つに分かれる手本を 3 回、G-03 はれんしゅう項目を右へ少し動かす手本を 2 回見せて止まる。"
+        ("動き", "初めての案内 1 枚目は「牛乳とたまご」が 2 つに分かれる手本を 3 回、G-03 は練習項目を右へ少し動かす手本を 2 回見せて止まる。"
                "端末の「アニメーションを減らす」では動かさない（R-56）。本書の絵は止まった最後の形。"),
-        ("アクセシビリティ", "アイコンだけのボタンには説明を付け、色だけで伝えず文字を添えている（スワイプの背景、せっていの ⚙ に文字）。"
+        ("アクセシビリティ", "アイコンだけのボタンには説明を付け、色だけで伝えず文字を添えている（スワイプの背景、設定の ⚙ に文字）。"
                           "メモの行は読み上げの操作の一覧に「" + s("memo_bought") + "」「" + s("memo_dismissed") + "」を出す。TalkBack での実際の読み上げ順は<span class='tag unk'>未確認</span>。"),
         ("暗い画面のカレンダー", "端末は明るい設定・アプリだけ暗い画面のとき、曜日の色とお店の点が明るい画面用の色になる不具合があり、スクリーンショットテストで見つけて直した（LocalDarkTheme）。"),
         ("ウィジェットの見出し", "メモ一覧（幅 250dp）の見出しは「" + s("widget_memo_title") + "」「" + s("widget_memo_count", 5) + "」「"
@@ -861,7 +876,7 @@ def ch_findings():
 
 
 def build():
-    toc = [("overview", "概要"), ("flow", "画面構成"), ("screens", "各画面"), ("settings", "せってい"), ("dialogs", "知らせ・通知"),
+    toc = [("overview", "概要"), ("flow", "画面構成"), ("screens", "各画面"), ("settings", "設定"), ("dialogs", "知らせ・通知"),
            ("widgets", "ウィジェット"), ("tokens", "トークン"), ("variants", "版の違い"), ("findings", "所見")]
     nav = "".join(f'<a href="#{i}">{t}</a>' for i, t in toc)
     body = (ch_overview() + ch_flow() + ch_screens() + ch_settings() + ch_dialogs() + ch_widgets() + ch_tokens()

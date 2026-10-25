@@ -23,15 +23,15 @@
 ## 見返す
 
 - [カレンダー](calendar.md)
-- [さがす](search.md)
-- [あとから記録する](add-later.md)
+- [探す](search.md)
+- [後から記録する](add-later.md)
 - [記録を直す・消す](edit-record.md)
 
-## おしらせ
+## お知らせ
 
 - [期限を決める](due.md)
-- [おしらせが来たら](notified.md)
-- [おしらせが来ないときは](not-arriving.md)
+- [お知らせが来たら](notified.md)
+- [お知らせが来ないときは](not-arriving.md)
 
 ## ホーム画面に置く
 
@@ -50,5 +50,6 @@
 
 - [声で入れられない](no-voice.md)
 - [機種変更のとき](device-change.md)
+- [データの書き出しと読み込み](data-export.md)
 - [よくある質問](faq.md)
 - [ご意見・ご要望](feedback.md)

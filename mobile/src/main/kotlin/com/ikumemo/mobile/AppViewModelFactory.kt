@@ -10,6 +10,7 @@ import com.ikumemo.mobile.calendar.CalendarViewModel
 import com.ikumemo.mobile.guide.GuideViewModel
 import com.ikumemo.mobile.reminder.ReminderViewModel
 import com.ikumemo.mobile.settings.AppearanceViewModel
+import com.ikumemo.mobile.settings.DataViewModel
 import com.ikumemo.mobile.settings.OperationViewModel
 import com.ikumemo.mobile.settings.ProductManageViewModel
 import com.ikumemo.mobile.settings.ReminderSettingsViewModel
@@ -52,6 +53,17 @@ object AppViewModelFactory {
             }
             initializer { AppearanceViewModel(container().appearancePrefs, container().backgroundStore) }
             initializer { OperationViewModel(container().operationPrefs) }
+            initializer {
+                val container = container()
+                val resolver = (requireNotNull(this[APPLICATION_KEY])).contentResolver
+                DataViewModel(
+                    container.dataEraser,
+                    container.backupExporter,
+                    container.backupImporter,
+                    openOutput = { resolver.openOutputStream(it) },
+                    openInput = { resolver.openInputStream(it) },
+                )
+            }
             initializer { GuideViewModel(container().guidePrefs) }
             initializer { StoreManageViewModel(container().storeRepository) }
             initializer { ProductManageViewModel(container().shoppingRepository.products) }

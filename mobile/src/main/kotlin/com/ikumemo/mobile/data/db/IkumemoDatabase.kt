@@ -38,6 +38,12 @@ abstract class IkumemoDatabase : RoomDatabase() {
 
     abstract fun photoDao(): PhotoDao
 
+    abstract fun backupReadDao(): BackupReadDao
+
+    abstract fun backupInsertDao(): BackupInsertDao
+
+    abstract fun backupDeleteDao(): BackupDeleteDao
+
     companion object {
         const val FILE_NAME = "ikumemo.db"
 
