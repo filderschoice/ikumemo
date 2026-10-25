@@ -224,7 +224,8 @@
 - detekt は sesami-wear の設定（`maxIssues: 0`、`MagicNumber` 無効、`LongMethod` 60）に加え、`@Preview` 関数を
   `UnusedPrivateMember` の対象外にする
 - 品質ゲートは `CLAUDE.md`「本リポジトリの品質ゲート定義」が正本（ktlintCheck・detekt・lintDebug・
-  testDebugUnitTest test・assembleDebug、markdownlint、記録ファイルの検証）
+  testDebugUnitTest :core:test・assembleDebug、markdownlint、記録ファイルの検証）。時間のかかるテストは
+  `@Category(SlowTest::class)` を付け、`-PslowTests` の時だけ流す。Gradle のビルドキャッシュを使う
 
 ### 運用制約
 

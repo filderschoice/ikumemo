@@ -6,6 +6,32 @@
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
 - date: 2026-10-25 09:37
+  summary: 品質ゲートを速くした（release 側の重複テストをやめる・遅いテストを分ける・ビルドキャッシュ）
+  details:
+    変更内容: >-
+      単体テストのゲートを testDebugUnitTest test から testDebugUnitTest :core:test に変え、debug と同じ内容の mobile の release 側の
+      テスト（とそのコンパイル）をやめた。時間のかかるテストに付ける JUnit のカテゴリ SlowTest を作り、2 万件の検索性能テストに付けて、
+      -PslowTests の時だけ流すようにした（性能に関わる変更の時とマイルストーンの区切りに流す）。gradle.properties で Gradle のビルド
+      キャッシュを有効にした。並列実行と常駐プロセスの維持はメモリを多く使うため入れない（オーナー判断）
+    変更ファイル:
+      - CLAUDE.md
+      - CHANGELOG.md
+      - README.md
+      - docs/records/managed/DESIGN.md
+      - gradle.properties
+      - mobile/build.gradle.kts
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordSearchPerformanceTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/SlowTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      ./gradlew testDebugUnitTest -PslowTests --tests "*RecordSearchPerformanceTest"、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（新しい定義で約 2 分 30 秒。単体テスト 170 件〔mobile の debug 側 122 件・core 48 件、遅いテストは除外〕。
+      遅いテストは -PslowTests で 1 件流れて成功。BL-083 の追加はバックアップの規則 2 件）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-094
+- date: 2026-10-25 09:37
   summary: 自動バックアップの対象を設定（写真はクラウドから外し、端末間転送では移す）（M8）
   details:
     変更内容: >-

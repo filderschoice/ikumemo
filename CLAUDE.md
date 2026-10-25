@@ -23,14 +23,17 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 | コードスタイル（ktlint） | `./gradlew ktlintCheck` | 終了コード0 |
 | 静的解析（detekt） | `./gradlew detekt` | 終了コード0（`config/detekt/detekt.yml` の `maxIssues: 0`） |
 | Android Lint | `./gradlew lintDebug` | 終了コード0 |
-| 単体テスト | `./gradlew testDebugUnitTest test` | 終了コード0（`core` / `mobile` 全モジュール） |
+| 単体テスト | `./gradlew testDebugUnitTest :core:test` | 終了コード0（`core` / `mobile` 全モジュール。`mobile` は debug 側だけ流す。遅いテストは下記） |
 | ビルド（型検査を兼ねる） | `./gradlew assembleDebug` | 終了コード0 |
 | 脆弱性チェック | (未導入) | Gradle の依存脆弱性スキャン（`dependencyCheck` 等）は導入しない（sesami-wear に合わせたオーナー判断、2026-10-24）。導入した場合は本節を更新する |
 | Markdown の静的解析 | `npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml` | `Summary: 0 issues`、かつ出力の `Linting: N files` が `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致（対象漏れの検出） |
 | 記録ファイルの検証 | `python scripts/validate-records.py`（PyYAMLが必要） | 終了コード0 |
 
-- Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug` で一度に実行できる。
+- Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug` で一度に実行できる。
   ktlint の違反は `./gradlew ktlintFormat` で自動修正できる（品質ゲートには含めない）
+- `mobile` の release 側の単体テスト（`testReleaseUnitTest`）は debug 側と同じ内容のため流さない。時間のかかるテスト（`@Category(SlowTest::class)`、
+  例 2 万件の検索性能）は通常は外し、性能に関わる変更の時とマイルストーンの区切りに
+  `./gradlew testDebugUnitTest -PslowTests` で流す（オーナー判断、2026-10-25）
 - 本リポジトリに CI はなく（sesami-wear に合わせたオーナー判断）、上記コマンドのローカル実行が唯一の品質ゲート
 - 実機・エミュレータでの確認は自動実行の対象外とし、`BACKLOG.md` へ `区分: 人手検証` として記録する
 

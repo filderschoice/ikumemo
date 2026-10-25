@@ -98,6 +98,12 @@ android {
     testOptions {
         // Robolectric で Room・リソースを使うテストを JVM 上で動かす（PLAN §11）
         unitTests.isIncludeAndroidResources = true
+        // 時間のかかるテスト（SlowTest）は -PslowTests の時だけ流す（CLAUDE.md「本リポジトリの品質ゲート定義」）
+        unitTests.all { test ->
+            if (!project.hasProperty("slowTests")) {
+                test.useJUnit { excludeCategories("com.ikumemo.mobile.testing.SlowTest") }
+            }
+        }
     }
 }
 

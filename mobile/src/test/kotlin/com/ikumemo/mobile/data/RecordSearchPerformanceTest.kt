@@ -6,6 +6,7 @@ import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.ProductEntity
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ShoppingTripEntity
+import com.ikumemo.mobile.testing.SlowTest
 import com.ikumemo.mobile.testing.inMemoryDatabase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -14,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
@@ -21,6 +23,7 @@ import java.time.LocalDate
 
 /** PLAN §8「5 年分（購入記録 2 万件）でもカレンダー・検索が 1 秒以内」（BL-042 の完了条件）。 */
 @RunWith(RobolectricTestRunner::class)
+@Category(SlowTest::class)
 class RecordSearchPerformanceTest {
     private lateinit var db: IkumemoDatabase
     private val normalizer = ProductNameNormalizer()

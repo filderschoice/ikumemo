@@ -71,3 +71,15 @@ sesami-wear に合わせてリポジトリ文書を作成しました（BL-005�
 - main から引き継いだ M0 の 3 件（BL-001・BL-003・BL-004）は UTC で書かれていたとみなし、9 時間足した（オーナー判断）
 - BL-032 のコミットで BL-031 の記録を誤って重ねて追記し、BL-032 の記録が無かったため、重なった 1 件をコミットの内容から
   書き直した BL-032 の記録へ置き換えた
+
+## 2026-10-25（品質ゲートの高速化）
+
+`CLAUDE.md`「本リポジトリの品質ゲート定義」の単体テストのコマンドを見直しました（オーナー判断、BL-094）。
+
+- `testDebugUnitTest test` を `testDebugUnitTest :core:test` に変更。`test` は mobile の release 側の単体テストも流し、
+  debug と同じテストを 2 回動かしていたため
+- 時間のかかるテスト（`@Category(SlowTest::class)`、例 2 万件の検索性能）は通常のゲートから外し、性能に関わる変更の時と
+  マイルストーンの区切りに `./gradlew testDebugUnitTest -PslowTests` で流す
+- `gradle.properties` で Gradle のビルドキャッシュを有効化
+- 並列実行と Gradle の常駐プロセスの維持は、メモリ不足で処理が止められる環境のため入れない
+
