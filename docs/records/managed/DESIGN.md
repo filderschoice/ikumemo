@@ -18,7 +18,7 @@
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
 - 進捗: マイルストーン M0（準備）・M1 の完了条件（手入力で追加 → スワイプで記録 → 元に戻す）・M2 の完了条件
-  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4（カレンダーと写真。あとから記録・写真の掃除を含む）・M5（おしらせ）・M6 のうちテーマ・暗い画面・文字の大きさを実装済み。
+  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4（カレンダーと写真。あとから記録・写真の掃除を含む）・M5（おしらせ）・M6（きせかえ。テーマ・背景の写真・暗い画面・文字の大きさ）を実装済み。
   ほかの実装済みの要件は下の表のとおり
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
@@ -70,6 +70,7 @@
 | F-52・R-26・R-27 | 1 品目の通知だけ「使い切った」「また買う」（メモへ入れて使い切った）「あとで」（翌日にもう一度） | `reminder/ReminderActions.kt` |
 | PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
 | F-60・F-63・F-65 | きせかえ（各テーマの色で描いた見本のカードでテーマを選ぶ、暗い画面「端末に合わせる / 明るい / 暗い」、文字の大きさ 3 段階）。選んだらすぐ保存しアプリ全体へ反映 | `settings/AppearanceScreen.kt`、`data/AppearancePrefs.kt`、`MainActivity.kt` |
+| F-61 | 背景の写真（きせかえの「写真を選ぶ」「外す」、Photo Picker）。`filesDir/background/` へ写真と同じ形（長辺 1600px・Exif 無し）で取り込み、差し替え・解除で前の画像を消す。画面いっぱいに写真を描き、その上にテーマの背景色の半透明の膜（濃さ 0.3〜0.9、既定 0.6。スライダーを離すと保存）を敷く。暗い画面では膜を 0.15 濃くする（上限 0.95）。メモの行・上部のバー・下タブは不透明のまま写真を覆う。音声入力シート（他アプリの上に出す）とウィジェットには描かない | `designsystem/BackgroundScrim.kt`、`AppThemeHost`、`AppearanceViewModel` |
 | PLAN §3（一部） | メモ画面の右上に「⚙ せってい」（文字付き）。項目は今は「きせかえ」「そうさ」「おしらせ」「お店の管理」「よく買う物の管理」「ご意見・ご要望」「このアプリについて」（使い方は BL-081、ホーム画面に置くは BL-072、データは F-72・F-76〔S〕で足す） | `settings/SettingsScreen.kt`、`settings/SettingsNavigation.kt` |
 | F-77（GitHub のみ） | ご意見・ご要望: よくある質問 4 つ（押すと答え）→ GitHub の Issue を開く。アプリの版・Android の版・機種名を画面に出しコピーできる。ご意見フォームは site/ の転送ページができるまで置かない（オーナー判断） | `settings/FeedbackScreen.kt` |
 | PLAN §3・§5・§7 | このアプリについて: 版・名前の由来・ライセンス一覧（AboutLibraries）・プライバシーポリシー・GitHub・ストアのページ（評価のお願い） | `settings/AboutScreen.kt`、`settings/LicensesScreen.kt`、`settings/ExternalLink.kt` |

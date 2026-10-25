@@ -70,6 +70,9 @@ class AppContainer(
 
     val widgetUpdater by lazy { WidgetUpdater(appContext, this) }
 
+    /** 背景画像の保存先（F-61、`filesDir/background/`）。 */
+    val backgroundStore by lazy { PhotoStore(appContext, PhotoStore.BACKGROUND_DIR) }
+
     val photoCleaner by lazy { PhotoCleaner(database, PhotoStore(appContext), clock) }
 
     /** 音声認識の窓口を作る。ViewModel ごとに 1 つ作り、ViewModel の破棄で片付ける。 */

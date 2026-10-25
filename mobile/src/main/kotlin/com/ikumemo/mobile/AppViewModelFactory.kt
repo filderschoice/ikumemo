@@ -38,7 +38,7 @@ object AppViewModelFactory {
                 val container = container()
                 ReminderViewModel(container.reminderRepository, container.reminderPrefs, container.clock)
             }
-            initializer { AppearanceViewModel(container().appearancePrefs) }
+            initializer { AppearanceViewModel(container().appearancePrefs, container().backgroundStore) }
             initializer { OperationViewModel(container().operationPrefs) }
             initializer { StoreManageViewModel(container().storeRepository) }
             initializer { ProductManageViewModel(container().shoppingRepository.products) }

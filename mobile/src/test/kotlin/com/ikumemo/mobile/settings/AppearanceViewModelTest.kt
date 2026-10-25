@@ -1,12 +1,19 @@
 package com.ikumemo.mobile.settings
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.net.Uri
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.viewModelScope
+import androidx.test.core.app.ApplicationProvider
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.data.AppearancePrefs
+import com.ikumemo.mobile.data.PhotoStore
+import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
@@ -16,28 +23,40 @@ import com.ikumemo.mobile.testing.testDataStore
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.GraphicsMode
+import java.io.File
 
-/** BL-060 の完了条件「テーマ・ダークモード・文字サイズの変更が保存され、画面に反映される」。 */
+/**
+ * BL-060 の完了条件「テーマ・ダークモード・文字サイズの変更が保存され、画面に反映される」と、
+ * BL-061 の完了条件「背景画像の設定・解除・膜の濃さ変更が保存される」。背景画像は実際に JPEG を読み書きするためネイティブ描画で動かす。
+ */
 @RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class AppearanceViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     private val dataStore = testDataStore()
     private val prefs = AppearancePrefs(dataStore)
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val backgroundStore = PhotoStore(context, PhotoStore.BACKGROUND_DIR)
     private lateinit var viewModel: AppearanceViewModel
 
     // Main の差し替え（MainDispatcherRule）の後に作る
     @Before
     fun setUp() {
-        viewModel = AppearanceViewModel(prefs)
+        viewModel = AppearanceViewModel(prefs, backgroundStore)
     }
 
     @After
@@ -86,10 +105,79 @@ class AppearanceViewModelTest {
             assertEquals(Appearance(), prefs.appearance.first())
         }
 
+    private fun jpeg(name: String): Uri {
+        val file = File(context.cacheDir, "$name.jpg")
+        val bitmap = Bitmap.createBitmap(200, 100, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.BLUE) }
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
+        return Uri.fromFile(file)
+    }
+
+    /** 保存（別スレッドの書き込み）の後に消すため、実時間で少し待つ。消えたら true。 */
+    private suspend fun awaitDeleted(file: File): Boolean {
+        repeat(DELETE_WAIT_TRIES) {
+            if (!file.exists()) return true
+            Thread.sleep(DELETE_WAIT_MILLIS)
+            yield()
+        }
+        return !file.exists()
+    }
+
+    @Test
+    fun backgroundIsSavedReplacedAndRemoved() =
+        runTest {
+            viewModel.appearance.test(timeout = TURBINE_TIMEOUT) {
+                viewModel.onEvent(AppearanceEvent.PickBackground(jpeg("first")))
+                val first = requireNotNull(awaitUntil { it.backgroundImage != null }.backgroundImage)
+                assertTrue(first.startsWith("background/"))
+                assertTrue(backgroundStore.fileOf(first).exists())
+
+                // 差し替えたら前の画像は消す
+                viewModel.onEvent(AppearanceEvent.PickBackground(jpeg("second")))
+                val second = requireNotNull(awaitUntil { it.backgroundImage != first }.backgroundImage)
+                assertNotEquals(first, second)
+                // 前の画像は新しい設定を保存した後に消す（表示中の画像を先に消さない）ので、消えるまで待つ
+                assertTrue(awaitDeleted(backgroundStore.fileOf(first)))
+                assertEquals(second, AppearancePrefs(dataStore).appearance.first().backgroundImage)
+
+                viewModel.onEvent(AppearanceEvent.RemoveBackground)
+                assertNull(awaitUntil { it.backgroundImage == null }.backgroundImage)
+                assertTrue(awaitDeleted(backgroundStore.fileOf(second)))
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun scrimLevelIsSavedWithinRange() =
+        runTest {
+            assertEquals(BackgroundScrim.DEFAULT, prefs.appearance.first().scrimLevel)
+            viewModel.appearance.test(timeout = TURBINE_TIMEOUT) {
+                viewModel.onEvent(AppearanceEvent.SetScrimLevel(0.8f))
+                assertEquals(0.8f, awaitUntil { it.scrimLevel == 0.8f }.scrimLevel)
+                viewModel.onEvent(AppearanceEvent.SetScrimLevel(5f))
+                assertEquals(BackgroundScrim.MAX, awaitUntil { it.scrimLevel == BackgroundScrim.MAX }.scrimLevel)
+                cancelAndIgnoreRemainingEvents()
+            }
+            assertEquals(BackgroundScrim.MAX, AppearancePrefs(dataStore).appearance.first().scrimLevel)
+        }
+
+    @Test
+    fun scrimIsDarkerInDarkTheme() {
+        assertEquals(0.6f, BackgroundScrim.effectiveAlpha(0.6f, darkTheme = false), 0.0001f)
+        assertEquals(0.75f, BackgroundScrim.effectiveAlpha(0.6f, darkTheme = true), 0.0001f)
+        // 暗い画面で足しても写真が少し見える濃さまで
+        assertEquals(BackgroundScrim.MAX_EFFECTIVE, BackgroundScrim.effectiveAlpha(BackgroundScrim.MAX, true), 0.0001f)
+        assertEquals(BackgroundScrim.MIN, BackgroundScrim.effectiveAlpha(0f, darkTheme = false), 0.0001f)
+    }
+
     @Test
     fun darkModeFollowsSystemOnlyWhenSystem() {
         assertEquals(true, DarkMode.SYSTEM.isDark(systemDark = true))
         assertEquals(false, DarkMode.LIGHT.isDark(systemDark = true))
         assertEquals(true, DarkMode.DARK.isDark(systemDark = false))
+    }
+
+    private companion object {
+        const val DELETE_WAIT_TRIES = 500
+        const val DELETE_WAIT_MILLIS = 10L
     }
 }

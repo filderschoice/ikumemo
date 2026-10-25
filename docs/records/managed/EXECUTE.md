@@ -5,6 +5,41 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:29
+  summary: 背景の写真と膜の濃さを選べるようにした（F-61）（M6）
+  details:
+    変更内容: >-
+      きせかえに「背景の写真」（写真を選ぶ・外す、Photo Picker）と膜の濃さのスライダー（0.3〜0.9、既定 0.6、離したときに保存）を追加した。
+      写真は PhotoStore に保存先フォルダを渡せるようにして filesDir/background/ へ写真と同じ形（長辺 1600px・Exif 無し）で取り込み、
+      差し替え・解除では新しい設定を保存してから前の画像を消す。AppThemeHost に showBackground を足し、アプリ本体（MainActivity）だけ
+      画面いっぱいに写真とテーマの背景色の膜を描いて、Scaffold の背景を透かす（LocalHasBackgroundImage）。暗い画面では膜を 0.15 濃くする
+      （上限 0.95、BackgroundScrim）。メモの行・上部のバー・下タブは不透明のまま覆う。音声入力シートとウィジェットには描かない。
+      背景の設定は AppearancePrefs の背景画像のパスと膜の濃さ（範囲外は丸める）として保存する
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/BackgroundScrim.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目は背景の差し替えテストが失敗（前の画像を消すのが設定の保存の後で、テストが消える前に確かめていた）。
+      テストを「消えるまで実時間で短く待つ」形に直して再実行し BUILD SUCCESSFUL（約 2 分。単体テスト 186 件。追加は背景の設定・差し替え・解除で
+      前の画像が消える・膜の濃さが範囲内で保存される・暗い画面で膜が濃くなる 3 件）、markdownlint 0 issues、記録ファイル OK。
+      実機での見た目（写真と膜・各テーマ・暗い画面）は未確認で、BL-062 のスクリーンショットテストと M6 の組み合わせ確認で見る
+    関連ID:
+      - BL-061
 - date: 2026-10-25 10:12
   summary: カレンダーの日付から買った物をあとから記録する（F-17）（M4）
   details:

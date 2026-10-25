@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val appearance = (application as IkumemoApplication).container.appearancePrefs.appearance
         setContent {
-            AppThemeHost(appearance) {
+            AppThemeHost(appearance, showBackground = true) {
                 IkumemoApp(requestedScreen = requestedScreen, onTabOpened = { requestedScreen = null })
             }
         }

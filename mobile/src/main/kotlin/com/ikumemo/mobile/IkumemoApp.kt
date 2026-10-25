@@ -8,6 +8,7 @@ import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ikumemo.mobile.calendar.CalendarScreen
+import com.ikumemo.mobile.designsystem.LocalHasBackgroundImage
 import com.ikumemo.mobile.reminder.ReminderScreen
 import com.ikumemo.mobile.settings.SettingsRoute
 import com.ikumemo.mobile.settings.settingsGraph
@@ -98,6 +101,9 @@ private fun AppScaffold(
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        // 背景画像を設定していれば、背景色を塗らずに写真と膜を透かす（F-61）
+        containerColor =
+            if (LocalHasBackgroundImage.current) Color.Transparent else MaterialTheme.colorScheme.background,
         bottomBar = { BottomTabs(navController) },
     ) { innerPadding ->
         NavHost(
