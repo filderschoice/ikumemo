@@ -3,7 +3,6 @@ package com.ikumemo.mobile.calendar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.designsystem.CalendarColors
+import com.ikumemo.mobile.designsystem.LocalDarkTheme
 import com.ikumemo.mobile.guide.GuideId
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.guideTarget
@@ -85,7 +85,7 @@ fun MonthGrid(
     shoppingDays: Map<LocalDate, List<Long?>>,
     onSelect: (LocalDate) -> Unit,
 ) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalDarkTheme.current
     val weekdays = stringResource(R.string.calendar_weekdays).split(",")
     Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
         Row(Modifier.fillMaxWidth()) {
@@ -152,7 +152,7 @@ private fun DayCell(
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
-    val dark = isSystemInDarkTheme()
+    val dark = LocalDarkTheme.current
     val textColor = weekdayColor(date.dayOfWeek.value % DAYS_IN_WEEK, dark)
     val description =
         if (stores.isEmpty()) {

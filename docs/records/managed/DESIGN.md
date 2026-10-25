@@ -201,6 +201,11 @@
   画面テストは `testDebug/.../testing/ComposeWait.kt` の `awaitCondition`（`waitForIdle` でメインスレッドを進めながら待つ。
   Robolectric の `waitUntil` は待つ間にメインスレッドの処理を進めない）で待ち、ボトムシートの中のボタンは座標のタップが
   届かないため `performSemanticsAction(SemanticsActions.OnClick)` で押す
+- スクリーンショットテスト（Roborazzi 1.38）は `testDebug/.../screenshot/MainScreensScreenshotTest`。メモ・カレンダー・おしらせを
+  4 テーマ × ライト/ダーク × 文字の大きさ 3 段階（72 枚、360×640dp・mdpi）で記録し、正解画像を `mobile/screenshots/<画面>/` に置く。
+  アプリの外側の Scaffold の代わりにテーマの背景色の `Surface` を敷いて描く。遅いテスト（`SlowTest`）扱いで、メモリが足りないため画面ごとに流す
+- テーマの外の色（カレンダーの曜日・お店の点）は、端末の設定ではなく `LocalDarkTheme`（`IkumemoTheme` がきせかえの「暗い画面」を反映して渡す）で明暗を決める
+- Gradle は Kotlin のコンパイルを Gradle の中で行い（`kotlin.compiler.execution.strategy=in-process`）、並列の作業を 2 つまでにする（PC のメモリが 8GB のため）
 - 単体テストの Application は `TestIkumemoApplication`（`robolectric.properties` で指定。起動時の通知の確認などを行わない）
 - テスト用 DB（`inMemoryDatabase()`）は実行スレッドを DB ごとに持つ（共有プールに前のテストの処理が残って止まるのを避ける）。
   写真の読み書きのテストは `@GraphicsMode(NATIVE)` で動かす

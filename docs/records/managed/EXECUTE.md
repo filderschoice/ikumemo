@@ -5,6 +5,42 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 14:58
+  summary: スクリーンショットテスト（Roborazzi）の導入と、品質ゲートのメモリ対策・カレンダーの暗い画面の色の不具合修正
+  details:
+    変更内容: >-
+      Roborazzi 1.38.0（テスト専用）を入れ、メモ・カレンダー・おしらせを 4 テーマ × ライト/ダーク × 文字の大きさ 3 段階で記録する
+      MainScreensScreenshotTest を追加した（遅いテスト扱い、正解画像 72 枚を mobile/screenshots/ に置く）。最初の記録で暗い画面なのに
+      背景が白い画像になったため、アプリの Scaffold の代わりにテーマの背景色の Surface を敷くようにした。その画像で、端末が明るい設定のまま
+      アプリだけ暗くするとカレンダーの日曜・土曜の数字とお店の点が明るい画面用の濃い色になる不具合を見つけ、IkumemoTheme が渡す
+      LocalDarkTheme で明暗を決めるように直した（MonthGrid が isSystemInDarkTheme を見ていた）。品質ゲートが PC のメモリ不足で
+      Claude Code に止められていたため、gradle.properties で Kotlin のコンパイルを Gradle の中で行い、並列の作業を 2 つまでにした。
+      CLAUDE.md にスクリーンショットの比較・記録の手順（画面ごとに流す）と、Claude Code ではゲートを通常のコマンドで流す旨を足した
+    変更ファイル:
+      - CHANGELOG.md
+      - CLAUDE.md
+      - build.gradle.kts
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - gradle.properties
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/screenshots/（memo・calendar・reminder の 72 枚）
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/IkumemoTheme.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/designsystem/DarkThemeLocalTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/MainScreensScreenshotTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.<画面>*"（memo・calendar・reminder）、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - バックグラウンドでの記録・比較は 3 回メモリ不足で止められ、メモリ対策のあと全ゲート（--rerun-tasks、82 タスク）と画面ごとの記録は
+      通ったが、比較が再び止められたため、オーナーの指示で通常のコマンドに切り替えて実行した。スクリーンショットの比較は 3 画面とも成功
+      （結果はすべて unchanged、Java の合計は最大約 1.3GB）、全ゲート BUILD SUCCESSFUL（約 2 分 50 秒、単体テスト 229 件。追加は暗い画面の設定が
+      テーマの外へ伝わる 1 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-062
 - date: 2026-10-25 14:02
   summary: 使い方（H-01〜H-03）と Web 版 docs/USER_GUIDE.md の生成（M8）
   details:
