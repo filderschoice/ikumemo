@@ -104,8 +104,8 @@ fun MemoListContent(
         modifier =
             GlanceModifier
                 .fillMaxSize()
-                .background(colors.surface)
-                .cornerRadius(16.dp)
+                .background(colors.background)
+                .cornerRadius(colors.corners.large.dp)
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.OPEN_MEMO))),
     ) {
@@ -134,13 +134,13 @@ private fun MemoHeader(
     ) {
         Text(
             context.getString(R.string.widget_memo_title),
-            style = TextStyle(color = colors.primary, fontWeight = FontWeight.Bold),
+            style = TextStyle(color = colors.onBackground, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
         Spacer(GlanceModifier.width(8.dp))
         Text(
             context.getString(R.string.widget_memo_count, state.items.size),
-            style = TextStyle(color = colors.onSurface),
+            style = TextStyle(color = colors.onBackground),
             maxLines = 1,
         )
         if (state.dueSoonCount > 0) {
@@ -238,7 +238,7 @@ private fun MemoRow(
     Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             names,
-            style = TextStyle(color = colors.onSurface),
+            style = TextStyle(color = colors.onBackground),
             maxLines = 1,
             modifier = GlanceModifier.defaultWeight(),
         )
@@ -303,7 +303,7 @@ private fun MemoLine(
             .fillMaxWidth()
             .height(TAP_HEIGHT)
             .clickable(actionStartActivity(MainActivity.itemIntent(context, item.id)))
-    val nameStyle = TextStyle(color = colors.onSurface)
+    val nameStyle = TextStyle(color = colors.onBackground)
     val quantityStyle = TextStyle(color = colors.onSurfaceVariant)
     if (wide || item.quantity == null) {
         Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {

@@ -5,6 +5,27 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 22:29
+  summary: ウィジェットの色と角の丸みを本体のテーマに合わせる
+  details:
+    変更内容: >-
+      本体の画面は background と onBackground、テーマごとの角の丸み（CornerSet）で描いているのに、ウィジェットは surface と固定の 16dp だった。
+      WidgetColors に background・onBackground と corners（テーマの角の丸み）を足し、メモ一覧は background と onBackground、角は large、見出しの
+      「いくメモ」は本体のタイトルと同じ文字色（onBackground）にした。1×1 の角は medium。色の値そのものは本体のパレットと同じものを
+      ライト・ダークとも使っている。背景の写真とペンの色はウィジェットには使わない（既存の方針）
+    変更ファイル:
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/VoiceWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 既存のウィジェットのテストが通る。実機での見た目の比較は BL-106 に含めて確認する
+    関連ID:
+      - BL-112
 - date: 2026-10-25 22:24
   summary: ウィジェットの更新中に回る表示を出す。1×1 の「話して追加」で足したメモが 4×4 に反映されない不具合を直す
   details:

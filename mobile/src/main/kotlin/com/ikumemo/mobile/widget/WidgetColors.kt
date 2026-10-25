@@ -6,8 +6,10 @@ import androidx.glance.color.ColorProvider
 import androidx.glance.unit.ColorProvider
 import com.ikumemo.mobile.IkumemoApplication
 import com.ikumemo.mobile.data.Appearance
+import com.ikumemo.mobile.designsystem.CornerSet
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.IkumemoPalette
+import com.ikumemo.mobile.designsystem.ThemePreset
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -19,7 +21,11 @@ import kotlinx.coroutines.flow.map
 class WidgetColors(
     private val day: IkumemoPalette,
     private val night: IkumemoPalette,
+    /** 本体と同じ、テーマの角の丸み。 */
+    val corners: CornerSet = ThemePreset.DEFAULT.corners,
 ) {
+    val background get() = pick { it.background }
+    val onBackground get() = pick { it.onBackground }
     val primary get() = pick { it.primary }
     val onPrimary get() = pick { it.onPrimary }
     val surface get() = pick { it.surface }
@@ -52,9 +58,9 @@ class WidgetColors(
             val light = appearance.theme.palette(darkTheme = false)
             val dark = appearance.theme.palette(darkTheme = true)
             return when (appearance.darkMode) {
-                DarkMode.SYSTEM -> WidgetColors(light, dark)
-                DarkMode.LIGHT -> WidgetColors(light, light)
-                DarkMode.DARK -> WidgetColors(dark, dark)
+                DarkMode.SYSTEM -> WidgetColors(light, dark, appearance.theme.corners)
+                DarkMode.LIGHT -> WidgetColors(light, light, appearance.theme.corners)
+                DarkMode.DARK -> WidgetColors(dark, dark, appearance.theme.corners)
             }
         }
     }

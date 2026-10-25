@@ -97,7 +97,7 @@ private fun VoiceWidgetContent(
         GlanceModifier
             .fillMaxSize()
             .background(colors.primary)
-            .cornerRadius(16.dp)
+            .cornerRadius(colors.corners.medium.dp)
             .clickable(actionStartActivity(intent))
             .semantics { contentDescription = description }
     val text = LocalContext.current.getString(label)
