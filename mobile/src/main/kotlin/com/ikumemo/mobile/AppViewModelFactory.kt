@@ -29,6 +29,7 @@ object AppViewModelFactory {
                     container.storeRepository,
                     Suggestions(container.normalizer),
                     container.operationPrefs.settings,
+                    container.guidePrefs,
                 )
             }
             initializer {

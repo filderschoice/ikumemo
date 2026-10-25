@@ -5,6 +5,40 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 11:17
+  summary: メモ画面のその場のガイド（G-02〜G-06）と「れんしゅう」項目（R-51・R-54・R-56）（M8）
+  details:
+    変更内容: >-
+      その場のガイドの吹き出し GuideOverlay（照らす場所の周りを暗くするのは見た目だけで、照らした部品はそのまま操作できる。「わかった」
+      「ガイドを出さない」。読み上げを使っているときは照らさず画面下のカードで出し「わかった」へ移動する）と、照らす場所を集める guideTarget を
+      追加した。メモ画面では 🎤・れんしゅう項目・一番上の項目の ○・「元に戻す」・お店チップを照らし、きっかけは MemoGuides.candidates、
+      出すかの判定・れんしゅう項目・先に使った機能の記録は MemoGuideController にまとめた（ViewModel が detekt の上限を超えないよう分けた）。
+      れんしゅう項目（ID -1）は DB に入れず、スワイプ・○ で練習を終える（記録・品目・元に戻すに残さない）。○ に照らす目印を渡すため
+      LocalBoughtButtonModifier を足した（行の引数を増やさない）。G-03 の手本のアニメーションは BL-098 に含めた
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideOverlay.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/MemoGuides.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/MemoGuideController.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListGuideTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/GuideOverlayTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目は detekt（handleScreenEvent の複雑度・ViewModel の関数の数・SwipeableItemRow の引数の数）で失敗し、MemoGuideController と
+      LocalBoughtButtonModifier へ分けた。2 回目はメモリ不足で Claude Code にゲートを止められ、オーナーの指示で再実行して BUILD SUCCESSFUL
+      （約 2 分 45 秒。単体テスト 213 件。追加は空のメモで G-02・シート中は出さない・れんしゅうは記録に残らず次は G-04・先に本物を動かすと
+      れんしゅうを出さず G-05・ガイドを出さないで全部止まる・G-05 の後にお店チップ 5 件、吹き出しとカード 2 件）、markdownlint 0 issues、記録ファイル OK。
+      実機での吹き出しの位置は未確認
+    関連ID:
+      - BL-096
 - date: 2026-10-25 10:59
   summary: はじめての案内（G-01）とその場のガイドの土台（R-50・R-52・R-53・R-55）（M8）
   details:

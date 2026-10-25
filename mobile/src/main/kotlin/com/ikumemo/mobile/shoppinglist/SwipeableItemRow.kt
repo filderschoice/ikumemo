@@ -46,6 +46,9 @@ private const val SWIPE_THRESHOLD_FRACTION = 0.4f
 /** そうさの設定（○ の表示・振動）。メモ画面が渡す。 */
 val LocalOperationSettings = staticCompositionLocalOf { OperationSettings() }
 
+/** 行の ○ に足す Modifier（G-04 で照らす場所にするため、メモの一番上の行にだけ渡す）。 */
+val LocalBoughtButtonModifier = staticCompositionLocalOf<Modifier> { Modifier }
+
 /**
  * メモの 1 行。右へスワイプで「買った」、左へスワイプで「やめた」（D-4・F-10・F-11）。左の ○ を押しても「買った」（F-13）。
  * しきい値を超えた瞬間に軽く振動させる（`performHapticFeedback` のため VIBRATE 権限は不要、R-05）。
@@ -85,7 +88,12 @@ fun SwipeableItemRow(
         backgroundContent = { SwipeBackground(dismissState.dismissDirection) },
         modifier = Modifier.testTag(TestTags.item(item.id)),
     ) {
-        ItemRowContent(item = item, highlighted = highlighted, onClick = onClick, onBoughtClick = onBought)
+        ItemRowContent(
+            item = item,
+            highlighted = highlighted,
+            onClick = onClick,
+            onBoughtClick = onBought,
+        )
     }
 }
 
@@ -142,7 +150,10 @@ private fun ItemRowContent(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (LocalOperationSettings.current.showBoughtButton) {
-            IconButton(onClick = onBoughtClick, modifier = Modifier.testTag(TestTags.boughtButton(item.id))) {
+            IconButton(
+                onClick = onBoughtClick,
+                modifier = LocalBoughtButtonModifier.current.testTag(TestTags.boughtButton(item.id)),
+            ) {
                 Icon(
                     Icons.Rounded.RadioButtonUnchecked,
                     contentDescription = stringResource(R.string.memo_mark_bought_description, item.displayName),

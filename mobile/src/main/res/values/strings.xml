@@ -120,6 +120,16 @@
     <string name="settings_products">よく買う物の管理</string>
     <string name="settings_home_screen">ホーム画面に置く</string>
     <string name="onboarding_skip">とばす</string>
+    <string name="guide_ok">わかった</string>
+    <string name="guide_disable_all">ガイドを出さない</string>
+    <string name="guide_practice_item">れんしゅう：にんじん</string>
+    <string name="guide_g02">ここを押して、買いたい物を話してみましょう</string>
+    <string name="guide_g03">買ったら右へ、やめたら左へ動かします。この「れんしゅう」で試してみましょう</string>
+    <string name="guide_g04">動かすのが苦手なら、ここを押しても「買った」になります</string>
+    <string name="guide_g05">まちがえたら、ここで元に戻せます</string>
+    <string name="guide_g06">買うお店を選んでおくと、どこで買ったかも残ります。前に使ったお店から選べます</string>
+    <string name="guide_g07">買った物は日付ごとに残ります。日付を押すと中身が見られます</string>
+    <string name="guide_g08">期限を決めると、前の日におしらせします</string>
     <string name="onboarding_next">つぎへ</string>
     <string name="onboarding_later">あとで</string>
     <string name="onboarding_page_position">%1$d / %2$d 枚目</string>
