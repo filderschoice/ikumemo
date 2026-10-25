@@ -5,7 +5,7 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
-- date: 2026-10-25 10:20
+- date: 2026-10-25 09:03
   summary: せっていに お店の管理（使わない・まとめる）と よく買う物の管理（候補に出す／出さない）を追加（M6）
   details:
     変更内容: >-
@@ -32,7 +32,7 @@
       確認を経て操作が届くこと・スイッチの切り替え 2 件）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-092
-- date: 2026-10-25 09:40
+- date: 2026-10-25 08:54
   summary: せっていに そうさ（○ の表示・振動）と おしらせ（時刻・当日のおしらせ）の画面を追加（M6）
   details:
     変更内容: >-
@@ -66,7 +66,7 @@
       切り替えが届くこと・○ を消すと行から消えること 2 件）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-082
-- date: 2026-10-25 08:40
+- date: 2026-10-25 08:42
   summary: メモ一覧ウィジェット（W-02、4×2〜4×4、表示専用）と、データ変更・日付の変わり目での描き直しを追加（M7）
   details:
     変更内容: >-
@@ -110,7 +110,7 @@
       Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-071
-- date: 2026-10-25 07:50
+- date: 2026-10-25 07:45
   summary: 1×1 ウィジェット「話して追加」（W-01）と、ホーム画面に重ねて開く音声入力シートを追加（M7）
   details:
     変更内容: >-
@@ -159,7 +159,7 @@
       確認カードからの追加とトースト、途中で閉じると何も追加されないこと）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-070
-- date: 2026-10-26 01:20
+- date: 2026-10-25 05:16
   summary: きせかえ画面（テーマのプレビュー付きカード・暗い画面・文字の大きさ）とせっていの入口を追加（M6）
   details:
     変更内容: >-
@@ -190,7 +190,7 @@
       画面テスト 1 件でカードとチップの選択が届く）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-060
-- date: 2026-10-26 00:40
+- date: 2026-10-25 05:08
   summary: 期限の通知の予約・表示・ボタン操作と、再起動・時刻変更での予約し直しを追加（M5）
   details:
     変更内容: >-
@@ -237,7 +237,7 @@
       実機での確認は BL-053（人手検証）
     関連ID:
       - BL-052
-- date: 2026-10-25 23:30
+- date: 2026-10-25 04:54
   summary: おしらせ画面（最近買った物の期限設定・期限が近い順の一覧・使い切った／捨てた・通知オフの案内）を追加（M5）
   details:
     変更内容: >-
@@ -266,7 +266,7 @@
       DB に残り一覧から消える、1 か月後の計算、通知オフの表示）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-051
-- date: 2026-10-25 22:50
+- date: 2026-10-25 04:46
   summary: core/reminder に通知日の計算と同じ日のまとめを追加（M5）
   details:
     変更内容: >-
@@ -286,7 +286,7 @@
       種類の混在、あとで、通知時刻前・電源オフ後の即時・当日分の通知後、時刻の設定、期限切れ、期限が近い判定）、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-050
-- date: 2026-10-25 22:30
+- date: 2026-10-25 04:42
   summary: カレンダー（月表示・お店色のドット・日の詳細・品名検索・記録の編集シート）を追加（M4）
   details:
     変更内容: >-
@@ -322,7 +322,7 @@
       Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-042
-- date: 2026-10-25 20:40
+- date: 2026-10-25 03:38
   summary: 写真の添付（撮る・選ぶ・縮小と Exif の除去・記録への引き継ぎ）と編集シートの買うお店を追加（M4）
   details:
     変更内容: >-
@@ -363,7 +363,32 @@
       markdownlint 0 issues、記録ファイル OK。マニフェストに CAMERA・保存領域の権限は無い
     関連ID:
       - BL-040
-- date: 2026-10-25 19:10
+- date: 2026-10-25 02:54
+  summary: 追加シートに入力中の候補（表記ゆれを吸収）と「いつもの」チップを追加（M3）
+  details:
+    変更内容: >-
+      追加シートの入力を ViewModel で持ち、core/suggest の Suggestions で表記ゆれを吸収した入力中の候補（F-20）と、よく買う物の
+      「いつもの」チップ（F-21）を出すようにした。メモにある物は出さず、チップは押すたびに 1 件ずつ入る。品質ゲートの detekt で
+      ShoppingRepository の関数数が上限に達したため、どこからも呼ばれていない getItem を削除した（修正コミット 30f1ca9）。
+      本記録は BL-032 のコミット時に誤って BL-031 の記録を重ねて追記していたものを、コミットの内容から書き直した（2026-10-25）
+    変更ファイル:
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ItemSheets.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/AddSuggestionsTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 修正コミット 30f1ca9 の後に BUILD SUCCESSFUL（追加のテスト 3 件。表記ゆれでも同じ候補が出る、いつものを続けて入れられる、
+      文字で追加すると入力が空になる）。BL-032 のコミット 8a0b60b の時点では detekt の関数数超過で失敗していた
+    関連ID:
+      - BL-032
+- date: 2026-10-25 02:50
   summary: いつものお店（お店チップ・選ぶシート・登録・自動解除・使わない印と統合）を追加（M3）
   details:
     変更内容: >-
@@ -398,42 +423,7 @@
       markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-031
-- date: 2026-10-25 19:10
-  summary: いつものお店（お店チップ・選ぶシート・登録・自動解除・使わない印と統合）を追加（M3）
-  details:
-    変更内容: >-
-      メモの上部にお店チップ（買うお店を選ぶ／○○ で買う）を置き、いつものお店から選ぶシート（最近使った順の上位 5 件、ほかのお店、
-      新しいお店の登録、選ばない）を追加した（F-14・F-30・F-31）。選んだお店は「買った」の記録とお買い物に付き、お店の最近使った日時を更新する。
-      選んだお店は DataStore（AppSettings）に保存し、選んだ時か最後の「買った」から 3 時間たつか日付が変わったら解除する（R-06）。
-      表示も 1 分ごとに見直す。お店の登録は同じ名前（表記ゆれを含む）があればそれを使い、使わない印があれば外す。
-      お店の管理用に、行を残して使わない印を付ける archive と、記録・メモ・お買い物を移して 1 つにまとめる merge を用意した（R-16。画面は BL-082）。
-      DataStore Preferences 1.1.7 を導入した。detekt の分岐数の上限に合わせ、ViewModel のイベント処理を画面だけの操作と書き換えの操作に分けた
-    変更ファイル:
-      - gradle/libs.versions.toml
-      - mobile/build.gradle.kts
-      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
-      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
-      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppSettings.kt
-      - mobile/src/main/kotlin/com/ikumemo/mobile/data/StoreRepository.kt
-      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
-      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
-      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
-      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/StorePicker.kt
-      - mobile/src/main/res/values/strings.xml
-      - mobile/src/test/kotlin/com/ikumemo/mobile/testing/TestDatabase.kt
-      - mobile/src/test/kotlin/com/ikumemo/mobile/data/StoreRepositoryTest.kt
-      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
-      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
-    検証コマンド: >-
-      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest test assembleDebug、
-      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
-    検証結果: >-
-      成功 - BUILD SUCCESSFUL（お店のテスト 8 件。選んだお店が「買った」に記録される、3 時間で解除、「買った」で 3 時間を数え直す、
-      日付が変わると解除、同じ名前の再利用、最近使った順、使わない印でも過去の記録のお店名が残る、統合でお買い物がまとまる）、
-      markdownlint 0 issues、記録ファイル OK
-    関連ID:
-      - BL-031
-- date: 2026-10-25 18:00
+- date: 2026-10-25 02:32
   summary: core/suggest に「いつもの」の並び順と入力中の候補の照合を追加（M3）
   details:
     変更内容: >-
@@ -451,7 +441,7 @@
       markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-030
-- date: 2026-10-25 17:40
+- date: 2026-10-25 02:29
   summary: 音声入力部品（話して追加・確認カード・マイクの許可・聞き取れないときの案内）を追加（M2）
   details:
     変更内容: >-
@@ -491,7 +481,7 @@
       画面テストは 3 回とも成功、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-021
-- date: 2026-10-25 16:20
+- date: 2026-10-25 01:49
   summary: core/voice に音声テキストの分割・数量抽出・不要語除去・誤変換補正を追加（M2）
   details:
     変更内容: >-
@@ -514,7 +504,7 @@
       N-best の選択を含む）、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-020
-- date: 2026-10-25 15:30
+- date: 2026-10-25 01:43
   summary: 記録の修正・削除と品目の集計の再計算を追加（M1）
   details:
     変更内容: >-
@@ -534,7 +524,7 @@
       お店の変更でのお買い物の付け替え）、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-014
-- date: 2026-10-25 15:00
+- date: 2026-10-25 01:39
   summary: スワイプで買った／やめた、○ で買った、元に戻すを追加（M1 完了）
   details:
     変更内容: >-
@@ -569,7 +559,7 @@
       3 回とも成功）、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-013
-- date: 2026-10-25 13:30
+- date: 2026-10-25 01:13
   summary: メモ画面の基本（文字で追加・編集シート・重複判定）と下タブ 3 つの画面骨格を追加（M1）
   details:
     変更内容: >-
@@ -604,7 +594,7 @@
       編集での重複を確認）、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-012
-- date: 2026-10-25 12:40
+- date: 2026-10-25 00:55
   summary: core/text に品名の正規化（表記ゆれの吸収）と自作の読み辞書を追加（M1）
   details:
     変更内容: >-
@@ -624,7 +614,7 @@
       markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-011
-- date: 2026-10-25 12:10
+- date: 2026-10-25 00:52
   summary: Room のデータモデル（6 テーブル）・DAO・スキーマ JSON・手動 DI の入れ物を追加（M1）
   details:
     変更内容: >-
@@ -655,7 +645,7 @@
       成功 - BUILD SUCCESSFUL（DAO テスト 5 件を含む）、markdownlint 0 issues（27 files、対象件数と一致）、記録ファイル OK
     関連ID:
       - BL-010
-- date: 2026-10-25 10:40
+- date: 2026-10-24 19:40
   summary: バージョン管理とリリースビルドの仕組みを sesami-wear 準拠で追加（M0）
   details:
     変更内容: >-
@@ -679,7 +669,7 @@
       アプリ名「いくメモ（debug）」、署名なしの mobile-release.aab（約 1.7MB）を生成、構文エラー 0 件
     関連ID:
       - BL-004
-- date: 2026-10-25 10:10
+- date: 2026-10-24 19:10
   summary: デザインシステムの土台（4 テーマ × ライト/ダーク、文字サイズ、コントラスト自動テスト）を追加（M0）
   details:
     変更内容: >-
@@ -706,7 +696,7 @@
       Lint No issues found、markdownlint 0 issues、記録ファイル OK
     関連ID:
       - BL-003
-- date: 2026-10-25 09:30
+- date: 2026-10-24 18:30
   summary: Gradle プロジェクトの雛形を sesami-wear 準拠で作成（M0）
   details:
     変更内容: >-
