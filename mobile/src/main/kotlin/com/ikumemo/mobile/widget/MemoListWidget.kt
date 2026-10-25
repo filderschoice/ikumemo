@@ -2,6 +2,7 @@ package com.ikumemo.mobile.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
@@ -29,6 +30,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -40,6 +42,7 @@ import androidx.glance.semantics.semantics
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import com.ikumemo.mobile.IkumemoApplication
 import com.ikumemo.mobile.MainActivity
 import com.ikumemo.mobile.R
@@ -94,6 +97,8 @@ fun MemoListContent(
                 .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.OPEN_MEMO))),
     ) {
         MemoHeader(state, colors)
+        // 見出しの下の太めの線（メモ帳の上端）
+        Rule(colors.primary, HEADER_RULE)
         when {
             state.items.isEmpty() -> EmptyMemo(colors)
             large -> MemoColumn(state, colors, wide)
@@ -232,11 +237,25 @@ private fun MemoColumn(
             modifier = GlanceModifier.padding(bottom = 4.dp),
         )
     }
-    LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-        items(state.items, itemId = { it.id }) { item ->
-            MemoLine(item, colors, wide)
+    // 左の余白の縦線と、行ごとの横罫線（メモ帳風）
+    Row(modifier = GlanceModifier.fillMaxSize()) {
+        Box(modifier = GlanceModifier.width(MARGIN_RULE).fillMaxHeight().background(colors.rule)) {}
+        LazyColumn(modifier = GlanceModifier.fillMaxSize().padding(start = 6.dp)) {
+            items(state.items, itemId = { it.id }) { item ->
+                // 1 項目につき根は 1 つにする（行と罫線をまとめる）
+                Column(modifier = GlanceModifier.fillMaxWidth()) { MemoLine(item, colors, wide) }
+            }
         }
     }
+}
+
+/** 横線 1 本（[thickness] の高さ）。 */
+@Composable
+private fun Rule(
+    color: ColorProvider,
+    thickness: Dp = LINE_RULE,
+) {
+    Box(modifier = GlanceModifier.fillMaxWidth().height(thickness).background(color)) {}
 }
 
 @Composable
@@ -266,6 +285,7 @@ private fun MemoLine(
             Text(item.quantity, style = quantityStyle, maxLines = 1, modifier = GlanceModifier.padding(start = 12.dp))
         }
     }
+    Rule(colors.rule)
 }
 
 private fun MemoWidgetItem.label(): String = quantity?.let { "$name $it" } ?: name
@@ -274,6 +294,11 @@ private fun MemoWidgetItem.label(): String = quantity?.let { "$name $it" } ?: na
 private val TAP_HEIGHT = 48.dp
 
 private val REFRESH_ICON = 24.dp
+
+/** メモ帳の線の太さ（見出しの下・行の下・左の余白）。 */
+private val HEADER_RULE = 2.dp
+private val LINE_RULE = 1.dp
+private val MARGIN_RULE = 2.dp
 
 private const val NAME_SEPARATOR = "　"
 

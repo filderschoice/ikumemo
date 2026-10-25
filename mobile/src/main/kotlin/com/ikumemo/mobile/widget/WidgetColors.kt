@@ -22,13 +22,21 @@ class WidgetColors(
     val surface get() = pick { it.surface }
     val onSurface get() = pick { it.onSurface }
     val onSurfaceVariant get() = pick { it.onSurfaceVariant }
+
+    /** メモ帳の罫線（うすい線）。 */
+    val rule get() = pick(alpha = RULE_ALPHA) { it.onSurfaceVariant }
     val secondaryContainer get() = pick { it.secondaryContainer }
     val onSecondaryContainer get() = pick { it.onSecondaryContainer }
 
-    private fun pick(role: (IkumemoPalette) -> Long): ColorProvider =
-        ColorProvider(day = Color(role(day)), night = Color(role(night)))
+    private fun pick(
+        alpha: Float = 1f,
+        role: (IkumemoPalette) -> Long,
+    ): ColorProvider =
+        ColorProvider(day = Color(role(day)).copy(alpha = alpha), night = Color(role(night)).copy(alpha = alpha))
 
     companion object {
+        private const val RULE_ALPHA = 0.35f
+
         suspend fun load(context: Context): WidgetColors {
             val container = (context.applicationContext as IkumemoApplication).container
             val appearance = container.appearancePrefs.appearance.first()

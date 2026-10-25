@@ -5,6 +5,25 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 20:57
+  summary: メモ一覧ウィジェットをメモ帳風にする（見出しの下の線・行ごとの罫線・左の余白の縦線）
+  details:
+    変更内容: >-
+      裏紙のような平らな表示に、メモ帳の線を足した。見出しの下にテーマ色の 2dp の線、大きい表示の各行の下にうすい 1dp の横罫線（onSurfaceVariant の
+      透明度 0.35、WidgetColors.rule）、一覧の左に 2dp の余白の縦線。色はテーマと暗い画面に追従する。1 項目の根を 1 つにするため行と罫線を Column にまとめた。
+      レイアウトの指定は PLAN・設計書に無かったため、この形を既定として選んだ（DESIGN に記録）
+    変更ファイル:
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 既存の MemoListWidgetTest（文言・タップ先）が通る。線の見え方は実機での確認が要る（BL-106 に含めて確認する）
+    関連ID:
+      - BL-107
 - date: 2026-10-25 18:35
   summary: メモ一覧ウィジェットの見出しに更新ボタンを追加（メモを足した直後に反映されないときに、押してその場で描き直せる）
   details:
