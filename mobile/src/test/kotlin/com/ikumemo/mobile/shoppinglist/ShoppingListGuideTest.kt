@@ -130,7 +130,8 @@ class ShoppingListGuideTest {
                 assertEquals(GuideId.G05_UNDO, bought.guide)
                 cancelAndIgnoreRemainingEvents()
             }
-            assertTrue(GuideId.G03_SWIPE_PRACTICE in shown())
+            // 「買った」の結果は G-03 の保存（別スレッドの書き込み）より先に届くことがあるため、保存されるまで待つ
+            guidePrefs.state.first { GuideId.G03_SWIPE_PRACTICE in it.shown }
         }
 
     @Test

@@ -5,6 +5,29 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 15:39
+  summary: メモの行に読み上げ用の「買った」「やめた」の操作を追加（アクセシビリティの仕上げ）（M8）
+  details:
+    変更内容: >-
+      メモの行（SwipeableItemRow）に CustomAccessibilityAction の「買った」「やめた」を付け、TalkBack の操作の一覧からスワイプせずに
+      操作できるようにした（PLAN §8）。アイコンの説明を見直し、アイコンだけのボタン（前の月・次の月・戻る・○・マイクなど）と写真ありの印には
+      説明があり、文字と並ぶアイコンは説明なしで正しいことを確かめた。「元に戻す」の表示時間（R-04）は実装済み。あわせて、前回追加した
+      ShoppingListGuideTest の 1 件が、G-03 の保存より先に「買った」の結果が届くと失敗するため、保存されるまで待つように直した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListGuideTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/AccessibilityTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 1 回目のゲートで ShoppingListGuideTest の 1 件が失敗（保存より先に結果が届くタイミング）。テストを直して再実行し
+      BUILD SUCCESSFUL（約 2 分 30 秒、単体テスト 232 件。追加は行の「買った」「やめた」の操作・行のアイコンの説明・月の切り替えボタンの説明 3 件）、
+      markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK。描画は変えていないためスクリーンショットの比較は流していない
+    関連ID:
+      - BL-085
 - date: 2026-10-25 14:58
   summary: スクリーンショットテスト（Roborazzi）の導入と、品質ゲートのメモリ対策・カレンダーの暗い画面の色の不具合修正
   details:

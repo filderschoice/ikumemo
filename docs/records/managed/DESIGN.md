@@ -41,6 +41,7 @@
 | R-14 | 使われなくなった写真の掃除。メモ・お買い物・記録のどれからも参照されていない写真を WorkManager で 1 日 1 回消す（端末を使っていない間・電池残量が少なくない時に限り、「元に戻す」を待つ写真を消さない）。書いてから 1 日未満の写真は保存前の可能性があるため残す | `data/PhotoCleaner.kt`、`data/PhotoCleanupWorker.kt`、`PhotoDao` |
 | R-01・R-02 | 同じ物がメモにあれば追加せず、既存の項目を一瞬光らせて「○○はもうメモにあります」 | `data/ShoppingRepository.kt`、`ShoppingListViewModel` |
 | F-10・F-11・D-4・R-05 | 右へスワイプで「買った」、左へで「やめた」。幅の 40% で確定し、超えた瞬間に軽い振動。背景は色＋アイコン＋文字 | `shoppinglist/SwipeableItemRow.kt` |
+| PLAN §8 アクセシビリティ | メモの行は読み上げ（TalkBack）の操作の一覧に「買った」「やめた」を出し、スワイプしなくても操作できる（`CustomAccessibilityAction`）。アイコンだけのボタン・写真ありの印には説明を付け、文字と並ぶアイコンは説明なし（読み上げの重複を防ぐ）。「元に戻す」は読み上げ利用時に端末の推奨時間まで延ばす（R-04） | `shoppinglist/SwipeableItemRow.kt` |
 | F-13 | 行の左の ○ でも「買った」（○ を隠す設定は未実装） | `SwipeableItemRow.kt` の `ItemRowContent` |
 | F-12・R-04 | 「買った：牛乳 ／ 元に戻す」を 5 秒表示（TalkBack 等の利用時は推奨時間まで延長）。元に戻せるのは最新の 1 件 | `ShoppingListScreen.kt` の `UndoEffect` |
 | R-03・R-10・R-11・R-15 | 「やめた」は記録せず品目を残す。「買った」は端末の今日の日付で記録、同じ日の 2 回目も別記録、写真は同じファイルを参照 | `data/ShoppingRepository.kt` |

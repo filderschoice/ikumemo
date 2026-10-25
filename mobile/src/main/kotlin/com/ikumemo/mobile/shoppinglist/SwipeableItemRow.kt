@@ -35,6 +35,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.OperationSettings
@@ -83,10 +86,27 @@ fun SwipeableItemRow(
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
+    // スワイプできない・しにくい人のため、読み上げ（TalkBack）の操作の一覧に「買った」「やめた」を出す（PLAN §8、R-04）
+    val boughtLabel = stringResource(R.string.memo_bought)
+    val dismissedLabel = stringResource(R.string.memo_dismissed)
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = { SwipeBackground(dismissState.dismissDirection) },
-        modifier = Modifier.testTag(TestTags.item(item.id)),
+        modifier =
+            Modifier
+                .semantics {
+                    customActions =
+                        listOf(
+                            CustomAccessibilityAction(boughtLabel) {
+                                currentOnBought()
+                                true
+                            },
+                            CustomAccessibilityAction(dismissedLabel) {
+                                currentOnDismissed()
+                                true
+                            },
+                        )
+                }.testTag(TestTags.item(item.id)),
     ) {
         ItemRowContent(
             item = item,
