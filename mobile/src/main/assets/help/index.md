@@ -50,5 +50,6 @@
 
 - [声で入れられない](no-voice.md)
 - [機種変更のとき](device-change.md)
+- [データの書き出しと読み込み](data-export.md)
 - [よくある質問](faq.md)
 - [ご意見・ご要望](feedback.md)

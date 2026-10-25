@@ -16,6 +16,9 @@ import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
+import com.ikumemo.mobile.data.backup.BackupExporter
+import com.ikumemo.mobile.data.backup.BackupImporter
+import com.ikumemo.mobile.data.backup.BackupSettingsStore
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.reminder.ReminderActions
 import com.ikumemo.mobile.reminder.ReminderNotifier
@@ -83,6 +86,29 @@ class AppContainer(
     val dataEraser by lazy {
         DataEraser(database, dataStore, listOf(PhotoStore(appContext), backgroundStore)) {
             reminderNotifier.cancel()
+            reminderScheduler.reschedule()
+            widgetUpdater.refresh()
+        }
+    }
+
+    private val backupSettings by lazy {
+        BackupSettingsStore(settings, appearancePrefs, operationPrefs, reminderPrefs)
+    }
+
+    /** データの書き出し（F-72）。 */
+    val backupExporter by lazy {
+        BackupExporter(
+            database,
+            backupSettings,
+            PhotoStore(appContext),
+            backgroundStore,
+            clock,
+        )
+    }
+
+    /** 書き出したファイルの読み込み（F-72）。入れ替えたあとはお知らせを予約し直し、ウィジェットを描き直す。 */
+    val backupImporter by lazy {
+        BackupImporter(appContext, database, backupSettings, PhotoStore(appContext), backgroundStore) {
             reminderScheduler.reschedule()
             widgetUpdater.refresh()
         }

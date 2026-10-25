@@ -5,6 +5,62 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 20:10
+  summary: データの書き出し・読み込み（F-72）。ZIP（写真つき）・JSON・CSV（記録だけ）で書き出し、ZIP と JSON を読み込んで置き換える
+  details:
+    変更内容: >-
+      設定の「データ」に「データを書き出す（写真つき）」「データを書き出す（写真なし）」「買った記録を表計算用に書き出す」「データを読み込む」を足した。
+      DB の全表を ID ごと写す書き出しファイル（BackupFile、版 1）を JSON で作り、ZIP には写真と背景画像を同じ相対パスで入れる。CSV は買った記録だけ
+      （BOM 付き、式になる先頭文字は無害化）。読み込みは外から来たファイルとして一時フォルダへ取り出し、BackupValidator が版・ID の重複・外部キー・
+      写真のパス・日付の範囲を検査し、通ったときだけ 1 つのトランザクションで入れ替える（大きさにも上限）。ZIP の決まった名前以外の項目は読み飛ばす。
+      detekt の関数数と引数の上限に収めるため、DAO を読む・入れる・消すの 3 つに分け、設定の読み書きを BackupSettingsStore、変換を 2 ファイル、
+      上限つきコピーを LimitedIo に分けた（detekt の設定は変えない）。使い方に「データの書き出しと読み込み」を足し、機種変更の案内・SUPPORT・
+      プライバシーポリシー・DESIGN・WIREFRAME・UI デザイン設計書に反映した
+    変更ファイル:
+      - docs/SUPPORT.md
+      - docs/USER_GUIDE.md
+      - docs/design/UI_DESIGN.html
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/store/PRIVACY_POLICY.md
+      - mobile/src/main/assets/help/data-export.md
+      - mobile/src/main/assets/help/device-change.md
+      - mobile/src/main/assets/help/index.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupExportMapping.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupExporter.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupImportMapping.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupImporter.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupValidator.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/LimitedIo.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/RecordCsv.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/BackupDao.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/IkumemoDatabase.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/help/HelpScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupRoundTripTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupValidatorTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/RecordCsvTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/help/HelpContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - scripts/ui-doc/gen_ui_doc.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 追加は BackupRoundTripTest 7 件（ZIP で DB・写真・背景画像・設定が戻る、JSON は写真だけ外れる、読み込みで置き換わる、壊れたファイルと
+      壊れた参照を拒否して今のデータが変わらない、ZIP の範囲外の名前を無視する、CSV）、BackupValidatorTest 6 件、RecordCsvTest 4 件、DataContentTest 5 件。
+      途中で detekt の指摘（関数数・引数の数・入れ子・return の数）を分割で解消し、使い方の「やってみる」の行き先に「データ」を足した。BUILD SUCCESSFUL。
+      実機のファイル選択（Storage Access Framework）での確認は人手検証
+    関連ID:
+      - BL-102
 - date: 2026-10-25 18:30
   summary: データをすべて消す（F-76・R-43）。設定に「データ」を足し、確認のあとで記録・写真・設定を消して初めて使う状態に戻す
   details:

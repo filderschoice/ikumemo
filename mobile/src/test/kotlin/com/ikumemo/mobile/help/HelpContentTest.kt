@@ -24,6 +24,7 @@ class HelpContentTest {
             HelpScreens.APPEARANCE,
             HelpScreens.HOME_SCREEN,
             HelpScreens.FEEDBACK,
+            HelpScreens.DATA,
         )
 
     @Test

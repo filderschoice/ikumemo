@@ -541,12 +541,15 @@ def operation_screen():
     return phone(appbar(s("settings_operation"), back=True) + f'<div class="body">{rows}</div>', cls="short")
 
 
-def data_screen(dialog_on=False):
-    body = f'<div class="body">{srow(s("data_erase_title"), s("data_erase_detail"))}</div>'
+def data_screen(dialog_on=None):
+    keys = [("data_export_zip_title", "data_export_zip_detail"), ("data_export_json_title", "data_export_json_detail"),
+            ("data_export_csv_title", "data_export_csv_detail"), ("data_import_title", "data_import_detail"),
+            ("data_erase_title", "data_erase_detail")]
+    body = '<div class="body">' + "".join(srow(s(t), s(d)) for t, d in keys) + '</div>'
     overlay = ""
     if dialog_on:
-        overlay = sheet(f'<div style="font-size:22px">{s("data_erase_confirm_title")}</div><div style="margin:8px 0">{s("data_erase_confirm_detail")}</div>'
-                        f'<div style="display:flex;justify-content:flex-end"><span class="tbtn">{s("reminder_settings_cancel")}</span><span class="tbtn">{s("data_erase_confirm")}</span></div>')
+        overlay = sheet(f'<div style="font-size:22px">{s(dialog_on + "_confirm_title")}</div><div style="margin:8px 0">{s(dialog_on + "_confirm_detail")}</div>'
+                        f'<div style="display:flex;justify-content:flex-end"><span class="tbtn">{s("reminder_settings_cancel")}</span><span class="tbtn">{s(dialog_on + "_confirm")}</span></div>')
     return phone(appbar(s("settings_data"), back=True) + body + overlay, cls="short")
 
 
@@ -746,8 +749,9 @@ def ch_settings():
         fig(store_manage_screen(dialog_on=True), "使わないお店にする確認", "記録のお店名は残ると説明する。"),
         fig(product_manage_screen(), s("settings_products"), "買った回数の多い順。オフにすると候補に出ない。"),
         fig(feedback_screen(), s("settings_feedback"), "よくある質問（押すと答え）→ GitHub。版と機種名をコピーできる。"),
-        fig(data_screen(), s("settings_data"), "データをすべて消す。"),
-        fig(data_screen(dialog_on=True), "データをすべて消す確認", "取り消せない操作のため確認を 1 回だけ出す（§1.3-4 の例外）。"),
+        fig(data_screen(), s("settings_data"), "書き出し 3 種（写真つき ZIP・写真なし JSON・記録だけ CSV）、読み込み、すべて消す。"),
+        fig(data_screen(dialog_on="data_import"), "データを読み込む確認", "今のデータが置き換わると説明してから、ファイルを選ぶ。"),
+        fig(data_screen(dialog_on="data_erase"), "データをすべて消す確認", "取り消せない操作のため確認を 1 回だけ出す（§1.3-4 の例外）。"),
         fig(about_screen(), s("settings_about"), "版・名前の由来・ライセンス一覧・外部のページ。"),
     )
     g3 = grid(

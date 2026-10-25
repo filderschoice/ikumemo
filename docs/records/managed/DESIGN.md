@@ -20,7 +20,7 @@
 - 進捗: マイルストーン M0〜M8（準備・メモ・音声入力・候補とお店・カレンダーと写真・お知らせ・着せ替え・ウィジェットと
   ショートカット・初めての案内と使い方・スクリーンショットテスト・公開用ドキュメント）を実装済み。公開前の外部作業
   （Google フォーム・Play Console の申告・実機での確認・クローズドテスト）と site/ は `BACKLOG.md` を参照する。
-  書き出し・読み込み（F-72）は未実装。ほかの実装済みの要件は下の表のとおり
+  書き出し・読み込み（F-72）と「データをすべて消す」（F-76）まで実装済みで、M0〜M8 の機能は出そろった。ほかの実装済みの要件は下の表のとおり
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
 ## 実装済み機能要件
@@ -74,7 +74,7 @@
 | PLAN §5・R-29 | POST_NOTIFICATIONS は Android 13 以降で初めて期限を決めた時に「期限が近づいたら、お知らせします。」を添えて求める。案内からは 2 回まで求め、その後は端末の設定 | `reminder/NotificationPermission.kt` |
 | F-60・F-63・F-65 | 着せ替え（各テーマの色で描いた見本のカードでテーマを選ぶ、暗い画面「端末に合わせる / 明るい / 暗い」、文字の大きさ 3 段階）。選んだらすぐ保存しアプリ全体へ反映 | `settings/AppearanceScreen.kt`、`data/AppearancePrefs.kt`、`MainActivity.kt` |
 | F-61 | 背景の写真（着せ替えの「写真を選ぶ」「外す」、Photo Picker）。`filesDir/background/` へ写真と同じ形（長辺 1600px・Exif 無し）で取り込み、差し替え・解除で前の画像を消す。画面いっぱいに写真を描き、その上にテーマの背景色の半透明の膜（濃さ 0.3〜0.9、既定 0.6。スライダーを離すと保存）を敷く。暗い画面では膜を 0.15 濃くする（上限 0.95）。メモの行・上部のバー・下タブは不透明のまま写真を覆う。音声入力シート（他アプリの上に出す）とウィジェットには描かない | `designsystem/BackgroundScrim.kt`、`AppThemeHost`、`AppearanceViewModel` |
-| PLAN §3（一部） | メモ画面の右上に「⚙ 設定」（文字付き）。項目は上から「使い方」「着せ替え」「操作」「お知らせ」「お店の管理」「よく買う物の管理」「ホーム画面に置く」「ご意見・ご要望」「データ」「このアプリについて」（データの書き出し・読み込みは F-72〔S〕で足す。BL-102） | `settings/SettingsScreen.kt`、`settings/SettingsNavigation.kt` |
+| PLAN §3（一部） | メモ画面の右上に「⚙ 設定」（文字付き）。項目は上から「使い方」「着せ替え」「操作」「お知らせ」「お店の管理」「よく買う物の管理」「ホーム画面に置く」「ご意見・ご要望」「データ」「このアプリについて」 | `settings/SettingsScreen.kt`、`settings/SettingsNavigation.kt` |
 | F-77（GitHub のみ） | ご意見・ご要望: よくある質問 4 つ（押すと答え）→ GitHub の Issue を開く。アプリの版・Android の版・機種名を画面に出しコピーできる。ご意見フォームは site/ の転送ページができるまで置かない（オーナー判断） | `settings/FeedbackScreen.kt` |
 | PLAN §3・§5・§7 | このアプリについて: 版・名前の由来・ライセンス一覧（AboutLibraries）・プライバシーポリシー・GitHub・ストアのページ（評価のお願い） | `settings/AboutScreen.kt`、`settings/LicensesScreen.kt`、`settings/ExternalLink.kt` |
 | F-13・R-05・PLAN §3 操作 | ○ の表示と振動のオン/オフ（初期値はどちらもオン）。○ を消した行は左に余白を取る | `settings/OperationScreen.kt`、`data/OperationPrefs.kt`、`shoppinglist/SwipeableItemRow.kt` |
@@ -89,6 +89,7 @@
 | H-01〜H-03 | 使い方。設定の一番上に「使い方」。目次（PLAN §2.12 の章立て。未実装の「LINE などで送る」は載せない）から 1 ページずつ文で説明し、通信なしで見られる（画面の絵はスクリーンショットテスト BL-062 が保留のため無い）。各ページの下に「ガイドをもう一度見る」（そのガイドを未表示に戻して画面を開く）と「やってみる」、目次の先頭に「初めての案内をもう一度見る」。メモが空の画面・音声が使えない機種の表示・お知らせ一覧の「お知らせが来ないときは」から関係するページへ移る。本文の正本は `mobile/src/main/assets/help/` の Markdown（見出し・段落・箇条書きと `<!-- try: 画面; guide: g02 -->` だけ）で、`HelpParser` で読む。Web 版 `docs/USER_GUIDE.md` は `scripts/make-user-guide.py` で作り、品質ゲートで一致を確かめる | `help/HelpContent.kt`、`help/HelpScreen.kt`、`assets/help/`、`scripts/make-user-guide.py` |
 | G-02〜G-06・R-51・R-54・R-56 | メモ画面のその場のガイド。照らす場所（🎤・練習項目・一番上の項目の ○・「元に戻す」・お店チップ）の位置を `guideTarget` で集め、`GuideOverlay` が周りを暗くして吹き出し（「分かった」「ガイドを出さない」）を出す。暗くするのは見た目だけで、照らした部品はそのまま操作できる。きっかけは `MemoGuides.candidates`（空のメモ → G-02、項目が入った → G-03、G-03 の後 → G-04（○ を出す設定のときだけ）、初めての「買った」の「元に戻す」→ G-05、G-05 の後でお店未選択 → G-06）。G-03 の間はメモの一番上に「練習：にんじん」（ID -1、DB に入れない）を出し、スワイプ・○ で練習を終える（記録・品目・元に戻すに残さない）。先に 🎤 を押す・本物の項目を動かす・元に戻す・お店を選ぶ画面を開くと、そのガイドは出さない。シート表示中（音声入力を含む）とウィジェットの行から開いて光らせている間は出さない。読み上げ（タッチで探索）を使っているときは照らさず画面下のカードで出し「分かった」へ移動する。G-03 の間は練習項目を右へ少し動かして戻す手本を 2 回見せて止まる（`SwipeNudge`）。どちらの手本も、端末の「アニメーションを減らす」（`ANIMATOR_DURATION_SCALE` が 0）では動かさない | `guide/GuideOverlay.kt`、`guide/MemoGuides.kt`、`ShoppingListViewModel`、`ShoppingListScreen.kt` |
 | R-41 | アプリが動いている間はメモ・お知らせ・お店・見た目の変化で描き直す。日付の変わり目と選んだお店の解除は省電力のアラーム（`set`）で描き直す。定期的な自動更新はしない | `widget/WidgetUpdater.kt` |
+| F-72 | 設定の「データ」→「データを書き出す（写真つき／写真なし）」「買った記録を表計算用に書き出す」「データを読み込む」。ZIP は `ikumemo.json` と `photos/`・`background/` の画像、JSON は写真のパスを空にしたもの、CSV は買った記録だけ（UTF-8 の BOM 付き、`=` `+` `-` `@` で始まる欄は `'` を足して式にならないようにする。読み込みには使えない）。保存先と読み込むファイルは Storage Access Framework で利用者が選び、アプリは通信しない。読み込みは今のデータをすべて置き換える（確認を 1 回出す）。外から来たファイルとして、一時フォルダへ取り出したうえで `BackupValidator` が版・ID の重複・外部キー・写真のパス（`photos/` か `background/` 直下の安全な名前だけ）・日付の範囲を検査し、通ったときだけ 1 つのトランザクションで入れ替える（失敗しても今のデータは変わらない）。大きさの上限は全体 2GB・JSON 64MB・写真 1 枚 32MB・項目 10 万。ファイルに無い写真のパスは空にする。設定は見た目・操作・おしらせの時刻だけを入れ、ガイドの表示済みと選んでいるお店は入れない。読み込んだあとはお知らせを予約し直し、ウィジェットを描き直す | `data/backup/`（`BackupExporter`・`BackupImporter`・`BackupValidator`・`RecordCsv`・`BackupSettingsStore`）、`data/db/BackupDao.kt`、`settings/DataScreen.kt`、`settings/DataViewModel.kt` |
 | F-76・R-43 | 設定の「データ」→「データをすべて消す」。確認を 1 回だけ出し（取り消せない操作の例外、§1.3-4）、DB（`clearAllTables`）・設定（DataStore）・写真と背景画像のファイルを消して初めて使うときの状態に戻す。消したあとはお知らせの通知と予約を片付け、ウィジェットを空の表示に更新する | `settings/DataScreen.kt`、`settings/DataViewModel.kt`、`data/DataEraser.kt`、`AppContainer.dataEraser` |
 | F-71 | 自動バックアップ。クラウドからは写真（`filesDir/photos/`）だけを外し、DB・設定・背景画像は残す。端末間転送（Android 12 以降）は全部を移す。Android 11 以前は区分を分けられないため写真を外すだけ | `res/xml/data_extraction_rules.xml`、`res/xml/backup_rules.xml` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |

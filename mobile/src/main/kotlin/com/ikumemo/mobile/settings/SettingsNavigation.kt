@@ -65,6 +65,7 @@ fun NavGraphBuilder.settingsGraph(
             HelpScreens.APPEARANCE -> navController.navigate(AppearanceRoute)
             HelpScreens.HOME_SCREEN -> navController.navigate(HomeScreenRoute)
             HelpScreens.FEEDBACK -> navController.navigate(FeedbackRoute)
+            HelpScreens.DATA -> navController.navigate(DataRoute)
             else -> onOpenMainScreen(screen)
         }
     }

@@ -53,7 +53,17 @@ object AppViewModelFactory {
             }
             initializer { AppearanceViewModel(container().appearancePrefs, container().backgroundStore) }
             initializer { OperationViewModel(container().operationPrefs) }
-            initializer { DataViewModel(container().dataEraser) }
+            initializer {
+                val container = container()
+                val resolver = (requireNotNull(this[APPLICATION_KEY])).contentResolver
+                DataViewModel(
+                    container.dataEraser,
+                    container.backupExporter,
+                    container.backupImporter,
+                    openOutput = { resolver.openOutputStream(it) },
+                    openInput = { resolver.openInputStream(it) },
+                )
+            }
             initializer { GuideViewModel(container().guidePrefs) }
             initializer { StoreManageViewModel(container().storeRepository) }
             initializer { ProductManageViewModel(container().shoppingRepository.products) }

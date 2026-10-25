@@ -173,6 +173,7 @@ object HelpScreens {
     const val APPEARANCE = "appearance"
     const val HOME_SCREEN = "home_screen"
     const val FEEDBACK = "feedback"
+    const val DATA = "data"
 }
 
 /** 困ったときの入口（H-03）から開くページ。 */
