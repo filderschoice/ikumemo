@@ -5,6 +5,29 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 09:37
+  summary: 自動バックアップの対象を設定（写真はクラウドから外し、端末間転送では移す）（M8）
+  details:
+    変更内容: >-
+      マニフェストに dataExtractionRules（Android 12 以降）と fullBackupContent（Android 11 以前）を指定した。クラウドへのバックアップは
+      1 アプリ 25MB を超えると全体が止まるため写真のフォルダ（filesDir/photos/）だけを外し、DB・設定（DataStore）・背景画像は残す。
+      端末間転送は容量の制限が無いため全部を移す。Android 11 以前はクラウドと端末間転送を分けられないため写真を外すだけにした
+      （写真の引き継ぎは書き出し F-72 で補う）。カメラの一時ファイルはキャッシュにあり、もともと対象外。
+      写真の保存先の名前を変えたときに気づけるよう、規則の XML を読んで PhotoStore.PHOTOS_DIR と突き合わせるテストを足した
+    変更ファイル:
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/res/xml/backup_rules.xml
+      - mobile/src/main/res/xml/data_extraction_rules.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/BackupRulesTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      ./gradlew testDebugUnitTest -PslowTests --tests "*RecordSearchPerformanceTest"、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（新しい定義で約 2 分 30 秒。単体テスト 170 件〔mobile の debug 側 122 件・core 48 件、遅いテストは除外〕。
+      遅いテストは -PslowTests で 1 件流れて成功。BL-083 の追加はバックアップの規則 2 件）、Lint No issues found、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-083
 - date: 2026-10-25 09:30
   summary: せっていに このアプリについて（ライセンス一覧つき）と ご意見・ご要望（よくある質問 → GitHub）を追加（M8）
   details:

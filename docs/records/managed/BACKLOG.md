@@ -80,14 +80,6 @@
   担当: AIエージェント
   完了条件: 各文書が PLAN の記載（データを収集しない構成、フォームの扱い、通知が届かないときの設定）と矛盾なく揃い、markdownlint が成功する
   依存: []
-- id: BL-083
-  区分: 機能追加
-  タスク内容: バックアップ設定（F-71）。dataExtractionRules / fullBackupContent で DB・DataStore・背景画像を対象、filesDir/photos/ をクラウドバックアップ対象外・端末間転送の対象にする
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: マニフェストと XML ルールが PLAN §4.3 の指定どおりで、lintDebug が成功する
-  依存: []
 - id: BL-081
   区分: 機能追加
   タスク内容: 使い方（H-01〜H-03）。mobile/src/main/assets/help/ の Markdown を正本とした簡易表示、scripts/make-user-guide.py による docs/USER_GUIDE.md の生成と一致確認

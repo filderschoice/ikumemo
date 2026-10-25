@@ -75,6 +75,7 @@
 | W-01・R-42・R-44・R-45 | 1×1 ウィジェット「話して追加」（横 2 マス以上で文字を横並び）。押すと透明な専用 Activity で音声入力シートが重なって開き、追加したらトーストを出して閉じる。途中で閉じたら何も追加しない。音声入力が使えない端末では「書いて追加」でアプリの追加シートを開く。色はきせかえのテーマと暗い画面の設定に合わせる | `widget/VoiceWidget.kt`、`widget/WidgetColors.kt`、`voice/VoiceSheetActivity.kt` |
 | W-02・R-40・R-43・D-18 | メモ一覧ウィジェット（表示専用）。高さ 2 マスは見出し（メモの件数・期限が近い件数）と先頭の品名を横に数件＋「ほか N件」（幅が狭いと 2 件、広いと 3 件）、3 マス以上は選んだお店と品名の縦一覧（数量付き、幅が狭いと数量を下に）。空なら「メモは空です」。行はその項目まで送って光らせ、「期限が近い」はおしらせ画面、ほかはメモ画面を開く | `widget/MemoListWidget.kt`、`widget/MemoWidgetState.kt` |
 | R-41 | アプリが動いている間はメモ・おしらせ・お店・見た目の変化で描き直す。日付の変わり目と選んだお店の解除は省電力のアラーム（`set`）で描き直す。定期的な自動更新はしない | `widget/WidgetUpdater.kt` |
+| F-71 | 自動バックアップ。クラウドからは写真（`filesDir/photos/`）だけを外し、DB・設定・背景画像は残す。端末間転送（Android 12 以降）は全部を移す。Android 11 以前は区分を分けられないため写真を外すだけ | `res/xml/data_extraction_rules.xml`、`res/xml/backup_rules.xml` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
 | PLAN §4.5・§6 | バージョンの正本 `scripts/version.properties`、`-PappVersionCode` / `-PappVersionName` での注入、リリースビルドスクリプト | `scripts/version.properties`、`scripts/release-build.ps1` / `.bat`、`mobile/build.gradle.kts` |
 | PLAN §6 | リリース署名は手元の PC だけに置き、`local.properties` から読む。未設定なら署名なし | `mobile/build.gradle.kts` の `signingConfigs` |
