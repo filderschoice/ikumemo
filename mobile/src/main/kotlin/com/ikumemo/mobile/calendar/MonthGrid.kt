@@ -35,6 +35,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.designsystem.CalendarColors
+import com.ikumemo.mobile.guide.GuideId
+import com.ikumemo.mobile.guide.LocalGuideTargets
+import com.ikumemo.mobile.guide.guideTarget
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -98,11 +101,20 @@ fun MonthGrid(
         }
         // 日曜始まりにするため、1 日の曜日（日曜 = 0）の数だけ空ける
         val leading = month.atDay(1).dayOfWeek.value % DAYS_IN_WEEK
+        // G-07 で照らす「買い物のあった日」（この月で最初の日）
+        val guideDay = shoppingDays.keys.minOrNull()
+        val targets = LocalGuideTargets.current
         val cells = List(leading) { null } + (1..month.lengthOfMonth()).map(month::atDay)
         cells.chunked(DAYS_IN_WEEK).forEach { week ->
             Row(Modifier.fillMaxWidth()) {
                 week.forEachIndexed { index, date ->
-                    Box(Modifier.weight(1f)) {
+                    val target =
+                        if (date != null && date == guideDay) {
+                            Modifier.guideTarget(GuideId.G07_CALENDAR_DAY, targets)
+                        } else {
+                            Modifier
+                        }
+                    Box(Modifier.weight(1f).then(target)) {
                         if (date != null) {
                             DayCell(
                                 date = date,

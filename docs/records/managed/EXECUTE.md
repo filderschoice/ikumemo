@@ -5,6 +5,39 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 11:32
+  summary: カレンダーとおしらせのその場のガイド（G-07・G-08）（M8）
+  details:
+    変更内容: >-
+      カレンダー・おしらせ画面用の ScreenGuides（保存と判定）を追加し、CalendarViewModel と ReminderViewModel にガイドを渡せるようにした
+      （渡さなければ出さない）。G-07 は見ている月に買い物のあった日があるとき、その月の最初の買い物の日を照らす（検索中・記録のシート表示中は
+      出さない。先に日付を押したら出さない）。G-08 は最近買った物があるとき一番上の「期限を決める」を照らす（期限の設定シート表示中は出さない。
+      先に「期限を決める」を押したら出さない）。「ガイドを出さない」は表示済みと止める設定を GuidePrefs.disableAll で 1 回で保存するようにした
+      （2 回に分けると、画面が先に片方だけを読んでしまうため）。通知から開いた直後の判定（R-52）は画面へ開いた元を渡す仕組みが無く、BL-099 に分けた
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/GuidePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/ScreenGuides.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/MemoGuideController.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/guide/ScreenGuidesTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目のゲートで既存の CalendarViewModelTest 2 件が Turbine の 15 秒待ちで時間切れになった（単体では成功、続けて流し直した
+      testDebugUnitTest 全件でも成功したため、負荷の高いときの待ち時間切れと判断。再発したら待ち方を見直す）。全ゲートを流し直して
+      BUILD SUCCESSFUL（単体テスト 217 件。追加は G-07 が買い物の日があるときだけ 1 回・先に日付を押したら出さない・G-08 が初めての買い物の後に出て
+      シート中・先に押したら出さない・ガイドを出さないで止まる 4 件）、markdownlint 0 issues、記録ファイル OK。実機での吹き出しの位置は未確認
+    関連ID:
+      - BL-097
 - date: 2026-10-25 11:17
   summary: メモ画面のその場のガイド（G-02〜G-06）と「れんしゅう」項目（R-51・R-54・R-56）（M8）
   details:

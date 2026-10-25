@@ -41,6 +41,14 @@ class GuidePrefs(
         dataStore.edit { it[DISABLED] = disabled }
     }
 
+    /** 吹き出しの「ガイドを出さない」（R-53）。いま出しているガイドも出したことにし、まとめて 1 回で保存する。 */
+    suspend fun disableAll(current: GuideId) {
+        dataStore.edit {
+            it[SHOWN] = it[SHOWN].orEmpty() + current.storageKey
+            it[DISABLED] = true
+        }
+    }
+
     /** 使い方の「ガイドをもう一度見る」用。表示済みを消し、止めていたガイドも再開する（はじめての案内は出し直さない）。 */
     suspend fun resetGuides() {
         dataStore.edit {

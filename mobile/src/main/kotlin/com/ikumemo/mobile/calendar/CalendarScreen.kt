@@ -2,6 +2,7 @@ package com.ikumemo.mobile.calendar
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +48,9 @@ import coil.compose.AsyncImage
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.PhotoStore
+import com.ikumemo.mobile.guide.GuideOverlay
+import com.ikumemo.mobile.guide.LocalGuideTargets
+import com.ikumemo.mobile.guide.rememberGuideTargets
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -76,12 +81,24 @@ fun CalendarContent(
     onEvent: (CalendarEvent) -> Unit,
 ) {
     var enlargedPhoto by rememberSaveable { mutableStateOf<String?>(null) }
-    Column(Modifier.fillMaxSize()) {
-        CalendarTopBar(searchOpen = state.searchOpen, onEvent = onEvent)
-        if (state.searchOpen) {
-            SearchPane(state, onEvent)
-        } else {
-            MonthPane(state, photoStore, onEvent, onPhotoClick = { enlargedPhoto = it })
+    val guideTargets = rememberGuideTargets()
+    CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
+                CalendarTopBar(searchOpen = state.searchOpen, onEvent = onEvent)
+                if (state.searchOpen) {
+                    SearchPane(state, onEvent)
+                } else {
+                    MonthPane(state, photoStore, onEvent, onPhotoClick = { enlargedPhoto = it })
+                }
+            }
+            state.guide?.let { guide ->
+                GuideOverlay(
+                    guide = guide,
+                    onDismiss = { onEvent(CalendarEvent.GuideDismissed(guide)) },
+                    onDisableAll = { onEvent(CalendarEvent.GuideDisableAll(guide)) },
+                )
+            }
         }
     }
     enlargedPhoto?.let { photo ->

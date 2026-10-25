@@ -30,10 +30,7 @@ class GuideViewModel(
 
     /** 吹き出しの「ガイドを出さない」（R-53）。いま出しているガイドも出したものとして閉じる。 */
     fun disableAll(current: GuideId) {
-        viewModelScope.launch {
-            prefs.markShown(current)
-            prefs.setDisabled(true)
-        }
+        viewModelScope.launch { prefs.disableAll(current) }
     }
 
     private companion object {

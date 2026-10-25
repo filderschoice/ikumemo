@@ -34,11 +34,21 @@ object AppViewModelFactory {
             }
             initializer {
                 val container = container()
-                CalendarViewModel(container.recordRepository, container.storeRepository, container.clock)
+                CalendarViewModel(
+                    container.recordRepository,
+                    container.storeRepository,
+                    container.clock,
+                    container.guidePrefs,
+                )
             }
             initializer {
                 val container = container()
-                ReminderViewModel(container.reminderRepository, container.reminderPrefs, container.clock)
+                ReminderViewModel(
+                    container.reminderRepository,
+                    container.reminderPrefs,
+                    container.clock,
+                    container.guidePrefs,
+                )
             }
             initializer { AppearanceViewModel(container().appearancePrefs, container().backgroundStore) }
             initializer { OperationViewModel(container().operationPrefs) }

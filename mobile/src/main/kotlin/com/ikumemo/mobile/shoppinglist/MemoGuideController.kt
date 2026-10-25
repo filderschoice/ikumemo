@@ -54,11 +54,7 @@ internal class MemoGuideController(
                 (event as? ShoppingListEvent.Dismiss)?.itemId == MemoGuides.PRACTICE_ITEM_ID
         when {
             event is ShoppingListEvent.GuideDismissed -> markShown(event.guide)
-            event is ShoppingListEvent.GuideDisableAll ->
-                scope.launch {
-                    prefs?.markShown(event.guide)
-                    prefs?.setDisabled(true)
-                }
+            event is ShoppingListEvent.GuideDisableAll -> scope.launch { prefs?.disableAll(event.guide) }
             // れんしゅうを動かしたら練習を終える。記録・品目（候補）には残さず、元に戻すの対象にもしない（R-54）
             practice -> markShown(GuideId.G03_SWIPE_PRACTICE)
             else -> {
