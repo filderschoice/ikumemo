@@ -116,3 +116,14 @@ BL-032（追加シートの候補といつものチップ）はコミット 8a0b
 - PC のメモリ（8GB）が足りずゲートが Claude Code に強制停止されていたため、`gradle.properties` で Kotlin のコンパイルを
   Gradle の中で行い（別プロセスの kotlin-daemon を立てない）、並列の作業を 2 つまでにした
 - `CLAUDE.md` に、Claude Code では Gradle 系のゲートを通常のコマンドで流す（バックグラウンドは待機中に強制停止される）旨を追加した
+
+## 2026-10-25（公開用ドキュメント）
+
+Google Play 公開とクローズドテストに使う文書を作りました（BL-084、PLAN §5・§6・§7.2・§7.3）。
+
+- `docs/store/PRIVACY_POLICY.md`（公開版。アプリの「このアプリについて」から開く URL の正本）、`docs/store/STORE_LISTING.md`（掲載文と
+  Play Console の申告内容）、`docs/SUPPORT.md`、`docs/FEEDBACK.md`（オーナー向けの運用手順）、`docs/CLOSED_TEST.md`、`docs/RELEASE_NOTES.md`
+- アプリのご意見はいまは GitHub だけで送れるため、Google フォームは「準備中」と書き分けた（フォームは BL-087、転送ページは BL-086）。
+  ストアの連絡先メールアドレスは未定のため書かず、テスター用グループの URL は記入欄にした
+- アイコン 512px・フィーチャーグラフィック・ストアのスクリーンショットは未作成（掲載文に一覧だけ記載）
+- README の文書一覧に上記と `docs/USER_GUIDE.md` を追加した

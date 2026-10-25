@@ -80,8 +80,7 @@
   状態: 未着手
   担当: ユーザー
   完了条件: フォームの URL が決まり、Play Console の各申告が完了し、名前・商標の確認結果が記録されている
-  依存:
-    - BL-084
+  依存: []
   根拠: 外部サービスのアカウント操作が必要で、エージェントが実行できないため
 - id: BL-086
   区分: 機能追加
@@ -100,14 +99,6 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: Compose UI Test で主要操作のアクセシビリティアクションと説明文の存在を確認するテストが成功する
-  依存: []
-- id: BL-084
-  区分: 品質ゲート
-  タスク内容: 公開用ドキュメントの作成。docs/store/PRIVACY_POLICY.md、docs/store/STORE_LISTING.md、docs/SUPPORT.md、docs/FEEDBACK.md、docs/CLOSED_TEST.md、docs/RELEASE_NOTES.md（PLAN §5・§6・§7.2・§7.3）
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: 各文書が PLAN の記載（データを収集しない構成、フォームの扱い、通知が届かないときの設定）と矛盾なく揃い、markdownlint が成功する
   依存: []
 - id: BL-073
   区分: 人手検証
