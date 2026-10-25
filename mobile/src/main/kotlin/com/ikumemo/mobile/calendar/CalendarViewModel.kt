@@ -2,11 +2,16 @@ package com.ikumemo.mobile.calendar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikumemo.mobile.data.GuidePrefs
+import com.ikumemo.mobile.data.NewRecord
 import com.ikumemo.mobile.data.RecordEdit
 import com.ikumemo.mobile.data.RecordRepository
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.StoreEntity
+import com.ikumemo.mobile.guide.GuideId
+import com.ikumemo.mobile.guide.GuideScene
+import com.ikumemo.mobile.guide.ScreenGuides
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,7 +47,11 @@ data class CalendarUiState(
     val searchResults: List<RecordRow> = emptyList(),
     /** 編集中の記録（F-16）。 */
     val editing: PurchaseRecordEntity? = null,
+    /** あとから記録のシートを開いているか（F-17）。 */
+    val adding: Boolean = false,
     val stores: List<StoreEntity> = emptyList(),
+    /** いま出すその場のガイド（G-07）。 */
+    val guide: GuideId? = null,
 )
 
 sealed interface CalendarEvent {
@@ -81,6 +90,23 @@ sealed interface CalendarEvent {
     data class DeleteRecord(
         val recordId: Long,
     ) : CalendarEvent
+
+    /** 選んだ日に、メモに入れていなかった物を記録する（F-17）。 */
+    data object OpenAddRecord : CalendarEvent
+
+    data object CloseAddRecord : CalendarEvent
+
+    data class AddRecord(
+        val record: NewRecord,
+    ) : CalendarEvent
+
+    data class GuideDismissed(
+        val guide: GuideId,
+    ) : CalendarEvent
+
+    data class GuideDisableAll(
+        val guide: GuideId,
+    ) : CalendarEvent
 }
 
 private data class CalendarLocal(
@@ -89,15 +115,19 @@ private data class CalendarLocal(
     val searchOpen: Boolean = false,
     val query: String = "",
     val editingId: Long? = null,
+    val adding: Boolean = false,
 )
 
-/** カレンダー（F-40 月表示、F-41 日の詳細、F-42 検索、F-16 記録の修正・削除）。日曜始まり。 */
+/** カレンダー（F-40 月表示、F-41 日の詳細、F-42 検索、F-16 記録の修正・削除、F-17 あとから記録）。日曜始まり。 */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CalendarViewModel(
     private val records: RecordRepository,
     stores: StoreRepository,
     private val clock: Clock,
+    guidePrefs: GuidePrefs? = null,
 ) : ViewModel() {
+    private val guides = ScreenGuides(guidePrefs, viewModelScope)
+
     private val today get() = LocalDate.now(clock)
     private val local = MutableStateFlow(CalendarLocal(YearMonth.from(today), today))
 
@@ -114,7 +144,13 @@ class CalendarViewModel(
             .mapLatest { records.search(it) }
 
     val uiState: StateFlow<CalendarUiState> =
-        combine(local, monthRecords, searchResults, stores.observeAllStores()) { state, inMonth, found, allStores ->
+        combine(
+            local,
+            monthRecords,
+            searchResults,
+            stores.observeAllStores(),
+            guides.state,
+        ) { state, inMonth, found, allStores, guideState ->
             val names = allStores.associate { it.id to it.name }
             val rows = { list: List<PurchaseRecordEntity> -> list.map { RecordRow(it, it.storeId?.let(names::get)) } }
             CalendarUiState(
@@ -131,7 +167,16 @@ class CalendarViewModel(
                 query = state.query,
                 searchResults = if (state.searchOpen) rows(found) else emptyList(),
                 editing = state.editingId?.let { id -> inMonth.firstOrNull { it.id == id } },
+                adding = state.adding,
                 stores = allStores.filter { !it.archived },
+                // G-07: 初めてカレンダーを開いた。照らす「買い物のあった日」が見えている月に限る。
+                // 検索中・シート表示中は出さない（R-52）
+                guide =
+                    guides.next(
+                        if (inMonth.isEmpty()) emptyList() else listOf(GuideId.G07_CALENDAR_DAY),
+                        guideState,
+                        GuideScene(sheetOpen = state.searchOpen || state.editingId != null || state.adding),
+                    ),
             )
         }.stateIn(
             viewModelScope,
@@ -143,7 +188,11 @@ class CalendarViewModel(
         when (event) {
             CalendarEvent.PreviousMonth -> showMonth(local.value.month.minusMonths(1))
             CalendarEvent.NextMonth -> showMonth(local.value.month.plusMonths(1))
-            is CalendarEvent.SelectDate -> local.update { it.copy(selectedDate = event.date) }
+            is CalendarEvent.SelectDate -> {
+                // R-51: 自分で日付を押して中身を見たら、G-07 は要らない
+                guides.markShown(GuideId.G07_CALENDAR_DAY)
+                local.update { it.copy(selectedDate = event.date) }
+            }
             CalendarEvent.OpenSearch -> local.update { it.copy(searchOpen = true) }
             CalendarEvent.CloseSearch -> local.update { it.copy(searchOpen = false, query = "") }
             is CalendarEvent.QueryChanged -> local.update { it.copy(query = event.text) }
@@ -156,10 +205,23 @@ class CalendarViewModel(
                         query = "",
                     )
                 }
+            else -> onRecordEvent(event)
+        }
+    }
+
+    /** 記録の修正・削除（F-16）とあとから記録（F-17）のシートの操作。 */
+    private fun onRecordEvent(event: CalendarEvent) {
+        when (event) {
             is CalendarEvent.EditRecord -> local.update { it.copy(editingId = event.recordId) }
             CalendarEvent.CloseEditor -> local.update { it.copy(editingId = null) }
             is CalendarEvent.SaveRecord -> saveRecord(event)
             is CalendarEvent.DeleteRecord -> deleteRecord(event.recordId)
+            CalendarEvent.OpenAddRecord -> local.update { it.copy(adding = true) }
+            CalendarEvent.CloseAddRecord -> local.update { it.copy(adding = false) }
+            is CalendarEvent.AddRecord -> addRecord(event.record)
+            is CalendarEvent.GuideDismissed -> guides.markShown(event.guide)
+            is CalendarEvent.GuideDisableAll -> guides.disableAll(event.guide)
+            else -> Unit
         }
     }
 
@@ -178,6 +240,21 @@ class CalendarViewModel(
                     editingId = null,
                     month = YearMonth.from(event.edit.purchasedDate),
                     selectedDate = event.edit.purchasedDate,
+                )
+            }
+        }
+    }
+
+    private fun addRecord(record: NewRecord) {
+        viewModelScope.launch {
+            // 品名が空なら記録せず、シートを開いたままにする
+            records.addRecord(record) ?: return@launch
+            // 買った日を別の日・月へ直して記録したときも、記録した日が見えるようその日へ移る
+            local.update {
+                it.copy(
+                    adding = false,
+                    month = YearMonth.from(record.purchasedDate),
+                    selectedDate = record.purchasedDate,
                 )
             }
         }

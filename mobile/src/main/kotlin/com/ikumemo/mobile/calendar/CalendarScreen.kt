@@ -2,6 +2,7 @@ package com.ikumemo.mobile.calendar
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,10 +22,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,18 +48,32 @@ import coil.compose.AsyncImage
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.PhotoStore
+import com.ikumemo.mobile.guide.GuideOverlay
+import com.ikumemo.mobile.guide.LocalGuideTargets
+import com.ikumemo.mobile.guide.rememberGuideTargets
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewModelFactory.Factory)) {
+fun CalendarScreen(
+    showGuide: Boolean = true,
+    viewModel: CalendarViewModel = viewModel(factory = AppViewModelFactory.Factory),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val photoStore = remember(context) { PhotoStore(context) }
-    CalendarContent(state = state, photoStore = photoStore, onEvent = viewModel::onEvent)
+    CalendarContent(state = state, photoStore = photoStore, onEvent = viewModel::onEvent, showGuide = showGuide)
     state.editing?.let { record ->
         RecordEditSheet(record = record, stores = state.stores, photoStore = photoStore, onEvent = viewModel::onEvent)
+    }
+    if (state.adding) {
+        AddRecordSheet(
+            date = state.selectedDate,
+            stores = state.stores,
+            photoStore = photoStore,
+            onEvent = viewModel::onEvent,
+        )
     }
 }
 
@@ -65,14 +82,28 @@ fun CalendarContent(
     state: CalendarUiState,
     photoStore: PhotoStore,
     onEvent: (CalendarEvent) -> Unit,
+    showGuide: Boolean = true,
 ) {
     var enlargedPhoto by rememberSaveable { mutableStateOf<String?>(null) }
-    Column(Modifier.fillMaxSize()) {
-        CalendarTopBar(searchOpen = state.searchOpen, onEvent = onEvent)
-        if (state.searchOpen) {
-            SearchPane(state, onEvent)
-        } else {
-            MonthPane(state, photoStore, onEvent, onPhotoClick = { enlargedPhoto = it })
+    val guideTargets = rememberGuideTargets()
+    CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
+                CalendarTopBar(searchOpen = state.searchOpen, onEvent = onEvent)
+                if (state.searchOpen) {
+                    SearchPane(state, onEvent)
+                } else {
+                    MonthPane(state, photoStore, onEvent, onPhotoClick = { enlargedPhoto = it })
+                }
+            }
+            // 通知などから開いた直後は出さない（表示済みにもしないので、次に開いたときに出る、R-52）
+            state.guide?.takeIf { showGuide }?.let { guide ->
+                GuideOverlay(
+                    guide = guide,
+                    onDismiss = { onEvent(CalendarEvent.GuideDismissed(guide)) },
+                    onDisableAll = { onEvent(CalendarEvent.GuideDisableAll(guide)) },
+                )
+            }
         }
     }
     enlargedPhoto?.let { photo ->
@@ -150,6 +181,19 @@ private fun MonthPane(
                 onPhotoClick = { onPhotoClick(row.record.photoUri) },
                 modifier = Modifier.testTag(CalendarTestTags.record(row.record.id)),
             )
+        }
+        item {
+            // あとから記録（F-17）。買い物が無い日も、ある日も記録の下に出す
+            OutlinedButton(
+                onClick = { onEvent(CalendarEvent.OpenAddRecord) },
+                modifier =
+                    Modifier
+                        .padding(16.dp)
+                        .heightIn(min = 48.dp)
+                        .testTag(CalendarTestTags.ADD_RECORD),
+            ) {
+                Text(stringResource(R.string.calendar_add_record))
+            }
         }
     }
 }

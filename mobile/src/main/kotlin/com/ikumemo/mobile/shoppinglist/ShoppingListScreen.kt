@@ -10,7 +10,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Keyboard
@@ -49,6 +50,14 @@ import com.ikumemo.mobile.R
 import com.ikumemo.mobile.ScreenRequest
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.UndoableAction
+import com.ikumemo.mobile.guide.GuideId
+import com.ikumemo.mobile.guide.GuideOverlay
+import com.ikumemo.mobile.guide.LocalGuideTargets
+import com.ikumemo.mobile.guide.MemoGuides
+import com.ikumemo.mobile.guide.SwipeNudge
+import com.ikumemo.mobile.guide.guideTarget
+import com.ikumemo.mobile.guide.rememberGuideTargets
+import com.ikumemo.mobile.help.HelpPages
 import com.ikumemo.mobile.voice.VoiceInputSheet
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.delay
@@ -72,6 +81,8 @@ private const val UNDO_MILLIS = 5_000L
  */
 data class HomeNavigation(
     val onOpenSettings: () -> Unit = {},
+    /** 困ったときの入口から使い方のページを開く（H-03）。 */
+    val onOpenHelp: (String) -> Unit = {},
     val request: ScreenRequest? = null,
     val onRequestHandled: () -> Unit = {},
 )
@@ -106,6 +117,7 @@ fun ShoppingListScreen(
         voiceAvailable = voiceViewModel.isAvailable,
         onEvent = onEvent,
         onOpenSettings = navigation.onOpenSettings,
+        onOpenHelp = navigation.onOpenHelp,
     )
     when (val sheet = state.sheet) {
         HomeSheet.Voice ->
@@ -143,9 +155,11 @@ fun ShoppingListContent(
     voiceAvailable: Boolean,
     onEvent: (ShoppingListEvent) -> Unit,
     onOpenSettings: () -> Unit = {},
+    onOpenHelp: (String) -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
+    val guideTargets = rememberGuideTargets()
     MessageEffect(state.message, snackbarHostState) { onEvent(ShoppingListEvent.MessageShown) }
     UndoEffect(state.undo, snackbarHostState, onEvent)
     LaunchedEffect(state.highlightedItemId) {
@@ -155,42 +169,92 @@ fun ShoppingListContent(
         delay(HIGHLIGHT_MILLIS)
         onEvent(ShoppingListEvent.HighlightShown)
     }
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
-            TopAppBar(
-                title = { Text(stringResource(R.string.memo_title)) },
-                actions = { SettingsButton(onOpenSettings) },
-                windowInsets = WindowInsets(0),
+    CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.memo_title)) },
+                    actions = { SettingsButton(onOpenSettings) },
+                    windowInsets = WindowInsets(0),
+                )
+                StoreChip(
+                    selectedStore = state.selectedStore,
+                    onClick = { onEvent(ShoppingListEvent.OpenStorePicker) },
+                    modifier = Modifier.padding(horizontal = 16.dp).guideTarget(GuideId.G06_STORE_CHIP, guideTargets),
+                )
+                if (state.loaded && state.items.isEmpty()) {
+                    EmptyMemo(onOpenHelp = { onOpenHelp(HelpPages.VOICE) }, modifier = Modifier.weight(1f))
+                } else {
+                    MemoList(state, listState, onEvent, Modifier.weight(1f))
+                }
+                AddButtons(voiceAvailable = voiceAvailable, onEvent = onEvent, onOpenHelp = onOpenHelp)
+            }
+            SnackbarHost(
+                snackbarHostState,
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .guideTarget(GuideId.G05_UNDO, guideTargets)
+                    .testTag(TestTags.SNACKBAR),
             )
-            StoreChip(
-                selectedStore = state.selectedStore,
-                onClick = { onEvent(ShoppingListEvent.OpenStorePicker) },
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
-            if (state.loaded && state.items.isEmpty()) {
-                EmptyMemo(Modifier.weight(1f))
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.weight(1f).fillMaxWidth().testTag(TestTags.MEMO_LIST),
-                ) {
-                    items(state.items, key = { it.id }) { item ->
-                        CompositionLocalProvider(LocalOperationSettings provides state.operation) {
-                            SwipeableItemRow(
-                                item = item,
-                                highlighted = item.id == state.highlightedItemId,
-                                onClick = { onEvent(ShoppingListEvent.OpenEditor(item.id)) },
-                                onBought = { onEvent(ShoppingListEvent.MarkBought(item.id)) },
-                                onDismissed = { onEvent(ShoppingListEvent.Dismiss(item.id)) },
-                            )
-                        }
-                        HorizontalDivider()
+            // G-02 は 🎤 を照らすため、音声入力が使えない端末では出さない
+            state.guide?.takeIf { it != GuideId.G02_VOICE_BUTTON || voiceAvailable }?.let { guide ->
+                GuideOverlay(
+                    guide = guide,
+                    onDismiss = { onEvent(ShoppingListEvent.GuideDismissed(guide)) },
+                    onDisableAll = { onEvent(ShoppingListEvent.GuideDisableAll(guide)) },
+                )
+            }
+        }
+    }
+}
+
+/** メモの一覧。G-03 の間は一番上に「れんしゅう：にんじん」を出す（DB には入れない、R-54）。 */
+@Composable
+private fun MemoList(
+    state: ShoppingListUiState,
+    listState: LazyListState,
+    onEvent: (ShoppingListEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val targets = LocalGuideTargets.current
+    val practiceName = stringResource(R.string.guide_practice_item)
+    val rows =
+        if (state.practice) listOf(MemoGuides.practiceItem(practiceName)) + state.items else state.items
+    LazyColumn(state = listState, modifier = modifier.fillMaxWidth().testTag(TestTags.MEMO_LIST)) {
+        itemsIndexed(rows, key = { _, item -> item.id }) { index, item ->
+            val practice = item.id == MemoGuides.PRACTICE_ITEM_ID
+            val rowModifier = if (practice) Modifier.guideTarget(GuideId.G03_SWIPE_PRACTICE, targets) else Modifier
+            // G-03 の間は、れんしゅう項目を右へ少し動かして戻す手本を見せる
+            SwipeNudge(
+                active = practice && state.guide == GuideId.G03_SWIPE_PRACTICE,
+                modifier = rowModifier.testTag(TestTags.PRACTICE),
+            ) {
+                // G-04 は一番上の項目の ○ を照らす
+                val boughtButton =
+                    if (index == 0) {
+                        Modifier.guideTarget(
+                            GuideId.G04_BOUGHT_BUTTON,
+                            targets,
+                        )
+                    } else {
+                        Modifier
                     }
+                CompositionLocalProvider(
+                    LocalOperationSettings provides state.operation,
+                    LocalBoughtButtonModifier provides boughtButton,
+                ) {
+                    SwipeableItemRow(
+                        item = item,
+                        highlighted = item.id == state.highlightedItemId,
+                        // れんしゅう項目は編集しない
+                        onClick = { if (!practice) onEvent(ShoppingListEvent.OpenEditor(item.id)) },
+                        onBought = { onEvent(ShoppingListEvent.MarkBought(item.id)) },
+                        onDismissed = { onEvent(ShoppingListEvent.Dismiss(item.id)) },
+                    )
                 }
             }
-            AddButtons(voiceAvailable = voiceAvailable, onEvent = onEvent)
+            HorizontalDivider()
         }
-        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).testTag(TestTags.SNACKBAR))
     }
 }
 
@@ -262,14 +326,25 @@ private fun SettingsButton(onClick: () -> Unit) {
     }
 }
 
+/** メモが空のときの案内。「使い方を見る」で話して入れるページへ（H-03）。 */
 @Composable
-private fun EmptyMemo(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+private fun EmptyMemo(
+    onOpenHelp: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier.fillMaxWidth().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Text(
             text = stringResource(R.string.home_empty),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
+        TextButton(onClick = onOpenHelp, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EMPTY_HELP)) {
+            Text(stringResource(R.string.help_open))
+        }
     }
 }
 
@@ -278,6 +353,7 @@ private fun EmptyMemo(modifier: Modifier = Modifier) {
 private fun AddButtons(
     voiceAvailable: Boolean,
     onEvent: (ShoppingListEvent) -> Unit,
+    onOpenHelp: (String) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -287,7 +363,12 @@ private fun AddButtons(
         if (voiceAvailable) {
             Button(
                 onClick = { onEvent(ShoppingListEvent.OpenVoice) },
-                modifier = Modifier.heightIn(min = 64.dp).widthIn(min = 220.dp).testTag(TestTags.ADD_BY_VOICE),
+                modifier =
+                    Modifier
+                        .heightIn(min = 64.dp)
+                        .widthIn(min = 220.dp)
+                        .guideTarget(GuideId.G02_VOICE_BUTTON, LocalGuideTargets.current)
+                        .testTag(TestTags.ADD_BY_VOICE),
             ) {
                 Icon(Icons.Rounded.Mic, contentDescription = null)
                 Text(
@@ -310,6 +391,13 @@ private fun AddButtons(
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
+            // 困ったときの入口（H-03）
+            TextButton(
+                onClick = { onOpenHelp(HelpPages.NO_VOICE) },
+                modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.NO_VOICE_HELP),
+            ) {
+                Text(stringResource(R.string.help_open))
+            }
             Button(
                 onClick = { onEvent(ShoppingListEvent.OpenAddByText) },
                 modifier = Modifier.heightIn(min = 56.dp).widthIn(min = 200.dp).testTag(TestTags.ADD_BY_TEXT),
@@ -337,6 +425,9 @@ object TestTags {
     const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
     const val SETTINGS = "settings"
+    const val EMPTY_HELP = "empty_help"
+    const val PRACTICE = "memo_practice"
+    const val NO_VOICE_HELP = "no_voice_help"
 
     /** お店チップ（G-06 で照らす場所）。 */
     const val STORE_CHIP = "store_chip"

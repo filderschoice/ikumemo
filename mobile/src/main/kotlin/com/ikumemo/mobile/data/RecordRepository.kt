@@ -6,6 +6,7 @@ import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ShoppingTripEntity
 import kotlinx.coroutines.flow.Flow
+import java.time.Clock
 import java.time.LocalDate
 
 /** 記録を修正するときの内容（F-16）。 */
@@ -17,13 +18,25 @@ data class RecordEdit(
     val photoUri: String?,
 )
 
+/** あとから記録するときの内容（F-17）。 */
+data class NewRecord(
+    val name: String,
+    val purchasedDate: LocalDate,
+    val storeId: Long?,
+    val quantity: String?,
+    val note: String?,
+    val photoUri: String?,
+)
+
 /** 買った記録の読み書き（カレンダー・おしらせから使う）。 */
 class RecordRepository(
     private val db: IkumemoDatabase,
     private val normalizer: ProductNameNormalizer = ProductNameNormalizer(),
+    private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     private val recordDao = db.purchaseRecordDao()
     private val tripDao = db.shoppingTripDao()
+    private val products = ProductRepository(db, normalizer, clock)
     private val statsUpdater = ProductStatsUpdater(db)
 
     fun observeBetween(
@@ -69,6 +82,34 @@ class RecordRepository(
             )
             tripDao.deleteUnused()
             statsUpdater.recalculate(record.productId)
+        }
+    }
+
+    /**
+     * メモに入れていなかった物を、選んだ日に買った物として記録する（F-17）。メモは変えない。
+     * 初めての品名は品目として登録し、品目の購入回数などを計算し直す（R-12）。品名が空なら何もせず null を返す。
+     */
+    suspend fun addRecord(record: NewRecord): Long? {
+        val displayName = record.name.trim()
+        if (displayName.isEmpty()) return null
+        return db.withTransaction {
+            val product = products.findOrCreate(displayName)
+            val recordId =
+                recordDao.insert(
+                    PurchaseRecordEntity(
+                        tripId = findOrCreateTrip(record.purchasedDate, record.storeId),
+                        productId = product.id,
+                        displayName = displayName,
+                        quantity = record.quantity?.trim()?.ifEmpty { null },
+                        note = record.note?.trim()?.ifEmpty { null },
+                        photoUri = record.photoUri,
+                        purchasedDate = record.purchasedDate,
+                        recordedAt = clock.instant(),
+                        storeId = record.storeId,
+                    ),
+                )
+            statsUpdater.recalculate(product.id)
+            recordId
         }
     }
 

@@ -123,10 +123,10 @@ private fun DeleteAndSave(
     }
 }
 
-/** 買った日を選ぶ（DatePicker は UTC の 0 時のミリ秒で日付を扱う）。 */
+/** 買った日を選ぶ（DatePicker は UTC の 0 時のミリ秒で日付を扱う）。記録の修正とあとから記録で使う。 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecordDatePicker(
+internal fun RecordDatePicker(
     epochDay: Long,
     onPicked: (Long) -> Unit,
     onDismiss: () -> Unit,

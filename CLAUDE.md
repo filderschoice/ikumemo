@@ -28,12 +28,20 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 | 脆弱性チェック | (未導入) | Gradle の依存脆弱性スキャン（`dependencyCheck` 等）は導入しない（sesami-wear に合わせたオーナー判断、2026-10-24）。導入した場合は本節を更新する |
 | Markdown の静的解析 | `npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml` | `Summary: 0 issues`、かつ出力の `Linting: N files` が `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致（対象漏れの検出） |
 | 記録ファイルの検証 | `python scripts/validate-records.py`（PyYAMLが必要） | 終了コード0 |
+| 使い方の Web 版 | `python scripts/make-user-guide.py --check` | 終了コード0（`docs/USER_GUIDE.md` がアプリ内の使い方の正本 `mobile/src/main/assets/help/` と一致。正本を直したら `python scripts/make-user-guide.py` で作り直す） |
 
 - Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug` で一度に実行できる。
   ktlint の違反は `./gradlew ktlintFormat` で自動修正できる（品質ゲートには含めない）
 - `mobile` の release 側の単体テスト（`testReleaseUnitTest`）は debug 側と同じ内容のため流さない。時間のかかるテスト（`@Category(SlowTest::class)`、
   例 2 万件の検索性能）は通常は外し、性能に関わる変更の時とマイルストーンの区切りに
   `./gradlew testDebugUnitTest -PslowTests` で流す（オーナー判断、2026-10-25）
+- スクリーンショットテスト（Roborazzi、`mobile/screenshots/` の正解画像と比べる。遅いテスト扱い）は、見た目に関わる変更の時と
+  マイルストーンの区切りに、画面ごとに比べる（3 画面をまとめて流すと PC のメモリが足りない）。
+  `./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"`
+  （`calendar`・`reminder` も同様）で終了コード0。見た目を意図して変えたときは `-Proborazzi.test.record=true` で記録し直し、
+  画像の差分も確認してコミットする
+- Claude Code では Gradle 系のゲートをバックグラウンドで流さず、通常のコマンド（タイムアウト 10 分）で流す。PC のメモリが少なく、
+  バックグラウンドのコマンドはセッションの待機中に Claude Code に強制停止されるため。流す前に `./gradlew --stop` で常駐プロセスを止める
 - 本リポジトリに CI はなく（sesami-wear に合わせたオーナー判断）、上記コマンドのローカル実行が唯一の品質ゲート
 - 実機・エミュレータでの確認は自動実行の対象外とし、`BACKLOG.md` へ `区分: 人手検証` として記録する
 

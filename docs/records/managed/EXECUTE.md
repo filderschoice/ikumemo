@@ -5,6 +5,422 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 16:39
+  summary: 通知などから開いた直後はおしらせ・カレンダーでもガイドを出さない（R-52）、外から開いたあとのタブの切り替えの不具合を修正
+  details:
+    変更内容: >-
+      IkumemoApp で通知・ウィジェット・ショートカットから開いた画面を覚え、その画面にいる間はおしらせ・カレンダーの吹き出しを出さないようにした
+      （CalendarScreen・ReminderScreen の showGuide。表示済みにはしないので、ほかの画面へ移ってから自分で開くと出る）。ほかの画面へ移ったら忘れる。
+      UI テストを書く中で、外から開くときに画面をメモの上に積んでいたため、そのあとメモのタブを押すとタブの戻る履歴の復元で開いた画面へ戻ってしまう
+      不具合を見つけ、外から開くときも下タブと同じ切り替え方（navigateToTab）にした。DESIGN と UI デザイン設計書の所見を直した
+    変更ファイル:
+      - docs/design/UI_DESIGN.html
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/OpenedFromOutsideGuideTest.kt
+      - scripts/ui-doc/gen_ui_doc.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 途中で、外から開いたおしらせからメモのタブへ移れない現象をナビゲーションの状態の出力で調べ、上記の不具合と特定した
+      （最初に疑った NavHost の画面一覧の作り直しは原因ではなかったため、その変更は戻した）。BUILD SUCCESSFUL（約 3 分 15 秒、単体テスト 237 件。
+      追加は通知から開いたおしらせで G-08 を出さず、メモへ移ってから自分で開くと出る 1 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-099
+- date: 2026-10-25 16:16
+  summary: はじめての案内 1 枚目と G-03 の手本のアニメーション（R-56 のアニメーションを減らす設定に対応）（M8）
+  details:
+    変更内容: >-
+      はじめての案内 1 枚目に、「牛乳とたまご」が 2 つの品目に分かれる手本 VoiceSplitDemo を入れた（3 回くり返して分かれた形で止まる）。
+      G-03 の間は、れんしゅう項目を右へ少し動かして戻す手本 SwipeNudge を 2 回見せて止まる。どちらも回数を決めて止まる動きにし、
+      いつまでも動き続けない（UI テストの待ち合わせが止まらないようにするため）。端末の「アニメーションを減らす」
+      （ANIMATOR_DURATION_SCALE が 0）では動かさず、案内は最初から分かれた形で出す。UI デザイン設計書の案内の絵と所見、
+      DESIGN、リリースノートの「分かっている問題」を合わせて直した
+    変更ファイル:
+      - docs/RELEASE_NOTES.md
+      - docs/design/UI_DESIGN.html
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideDemos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/OnboardingScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/GuideDemosTest.kt
+      - scripts/ui-doc/gen_ui_doc.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check、
+      python -I scripts/ui-doc/gen_ui_doc.py docs/design/UI_DESIGN.html とヘッドレスブラウザでの目視
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（約 3 分 20 秒、単体テスト 236 件。追加は案内の手本が話した文→分かれた形と動いて止まる・減らす設定では止まる・
+      れんしゅう項目が右へ動く・減らす設定では動かない 4 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK、
+      設計書の案内の絵を目視。メモ・カレンダー・おしらせの描画は変えていないためスクリーンショットの比較は流していない
+    関連ID:
+      - BL-098
+- date: 2026-10-25 15:58
+  summary: Baseline Profile をビルドに含め、リリースのサイズを確認（R8 は有効済み）（非機能要件）
+  details:
+    変更内容: >-
+      release の R8（縮小・難読化）はすでに有効だった。Baseline Profile として、アプリのコード全体を対象にした広い規則を
+      mobile/src/main/baseline-prof.txt に置き、Compose 経由で入っていた profileinstaller 1.3.1 を同じ版で明示的に依存に書いた。
+      署名なしの assembleRelease で APK が約 3.2MB（上限 15MB）であること、APK に assets/dexopt/baseline.prof が入り、
+      アプリの規則がライブラリの規則と合わせて入っていること（merged_art_profile 4374 行）を確かめた。署名鍵の設定（local.properties）は
+      無く、本番の資格情報は使っていない。実機での Baseline Profile の作成と起動時間の計測は人手検証 BL-100 として起票した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/baseline-prof.txt
+    検証コマンド: >-
+      ./gradlew :mobile:assembleRelease（署名なし）、unzip -l で APK の中身を確認、
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - assembleRelease BUILD SUCCESSFUL（約 8 分）、mobile-release-unsigned.apk 3,206,422 バイト、assets/dexopt/baseline.prof あり。
+      全ゲート BUILD SUCCESSFUL（依存の追加で作り直しになり約 8 分、単体テスト 232 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-089
+- date: 2026-10-25 15:39
+  summary: メモの行に読み上げ用の「買った」「やめた」の操作を追加（アクセシビリティの仕上げ）（M8）
+  details:
+    変更内容: >-
+      メモの行（SwipeableItemRow）に CustomAccessibilityAction の「買った」「やめた」を付け、TalkBack の操作の一覧からスワイプせずに
+      操作できるようにした（PLAN §8）。アイコンの説明を見直し、アイコンだけのボタン（前の月・次の月・戻る・○・マイクなど）と写真ありの印には
+      説明があり、文字と並ぶアイコンは説明なしで正しいことを確かめた。「元に戻す」の表示時間（R-04）は実装済み。あわせて、前回追加した
+      ShoppingListGuideTest の 1 件が、G-03 の保存より先に「買った」の結果が届くと失敗するため、保存されるまで待つように直した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListGuideTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/AccessibilityTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 1 回目のゲートで ShoppingListGuideTest の 1 件が失敗（保存より先に結果が届くタイミング）。テストを直して再実行し
+      BUILD SUCCESSFUL（約 2 分 30 秒、単体テスト 232 件。追加は行の「買った」「やめた」の操作・行のアイコンの説明・月の切り替えボタンの説明 3 件）、
+      markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK。描画は変えていないためスクリーンショットの比較は流していない
+    関連ID:
+      - BL-085
+- date: 2026-10-25 14:58
+  summary: スクリーンショットテスト（Roborazzi）の導入と、品質ゲートのメモリ対策・カレンダーの暗い画面の色の不具合修正
+  details:
+    変更内容: >-
+      Roborazzi 1.38.0（テスト専用）を入れ、メモ・カレンダー・おしらせを 4 テーマ × ライト/ダーク × 文字の大きさ 3 段階で記録する
+      MainScreensScreenshotTest を追加した（遅いテスト扱い、正解画像 72 枚を mobile/screenshots/ に置く）。最初の記録で暗い画面なのに
+      背景が白い画像になったため、アプリの Scaffold の代わりにテーマの背景色の Surface を敷くようにした。その画像で、端末が明るい設定のまま
+      アプリだけ暗くするとカレンダーの日曜・土曜の数字とお店の点が明るい画面用の濃い色になる不具合を見つけ、IkumemoTheme が渡す
+      LocalDarkTheme で明暗を決めるように直した（MonthGrid が isSystemInDarkTheme を見ていた）。品質ゲートが PC のメモリ不足で
+      Claude Code に止められていたため、gradle.properties で Kotlin のコンパイルを Gradle の中で行い、並列の作業を 2 つまでにした。
+      CLAUDE.md にスクリーンショットの比較・記録の手順（画面ごとに流す）と、Claude Code ではゲートを通常のコマンドで流す旨を足した
+    変更ファイル:
+      - CHANGELOG.md
+      - CLAUDE.md
+      - build.gradle.kts
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - gradle.properties
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/screenshots/（memo・calendar・reminder の 72 枚）
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/IkumemoTheme.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/designsystem/DarkThemeLocalTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/MainScreensScreenshotTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.<画面>*"（memo・calendar・reminder）、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - バックグラウンドでの記録・比較は 3 回メモリ不足で止められ、メモリ対策のあと全ゲート（--rerun-tasks、82 タスク）と画面ごとの記録は
+      通ったが、比較が再び止められたため、オーナーの指示で通常のコマンドに切り替えて実行した。スクリーンショットの比較は 3 画面とも成功
+      （結果はすべて unchanged、Java の合計は最大約 1.3GB）、全ゲート BUILD SUCCESSFUL（約 2 分 50 秒、単体テスト 229 件。追加は暗い画面の設定が
+      テーマの外へ伝わる 1 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-062
+- date: 2026-10-25 14:02
+  summary: 使い方（H-01〜H-03）と Web 版 docs/USER_GUIDE.md の生成（M8）
+  details:
+    変更内容: >-
+      使い方の正本を mobile/src/main/assets/help/ の Markdown（目次 index.md と 27 ページ。見出し・段落・箇条書きと
+      「<!-- try: 画面; guide: g02 -->」だけ）として書き、HelpParser・HelpRepository で読んで、せっていの一番上の「使い方」から
+      目次と 1 ページずつ表示するようにした。各ページの下に「ガイドをもう一度見る」（GuidePrefs.showGuideAgain でそのガイドを未表示に戻して
+      画面を開く）と「やってみる」、目次の先頭に「はじめての案内をもう一度見る」（showOnboardingAgain）を置いた（H-02）。メモが空の画面・
+      音声が使えない機種の表示・おしらせ一覧の「おしらせが来ないときは」から関係するページへ移る（H-03）。scripts/make-user-guide.py で
+      docs/USER_GUIDE.md を作り、--check で正本との一致を確かめる行を CLAUDE.md の品質ゲートに足した（CHANGELOG に記録）。
+      未実装の「LINE などで送る」（F-08）は目次に載せず、画面の絵はスクリーンショットテスト（BL-062）が無いため入れていない
+    変更ファイル:
+      - CHANGELOG.md
+      - CLAUDE.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/assets/help/（index.md と 27 ページ）
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/GuidePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/help/HelpContent.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/help/HelpScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/GuidePrefsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/help/HelpContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/help/HelpScreenTest.kt
+      - scripts/make-user-guide.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 途中で detekt の MaxLineLength を直した。1 回目の全ゲートはメモリ不足で Claude Code に止められ、オーナーの指示した時刻に
+      流し直して BUILD SUCCESSFUL（単体テスト 228 件。追加は目次の全ページが読める・G-02〜G-08 をどこかのページから出し直せる・
+      困ったときの入口のページがある・読み方・無いページで落ちない 5 件、ガイドの出し直しと案内の出し直しの保存 2 件、ページのボタン 2 件、
+      せってい→使い方→ガイドをもう一度見るでカレンダーが開く・空のメモから話して入れるページへ 2 件）、markdownlint 0 issues（56 ファイル）、
+      記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-081
+- date: 2026-10-25 11:32
+  summary: カレンダーとおしらせのその場のガイド（G-07・G-08）（M8）
+  details:
+    変更内容: >-
+      カレンダー・おしらせ画面用の ScreenGuides（保存と判定）を追加し、CalendarViewModel と ReminderViewModel にガイドを渡せるようにした
+      （渡さなければ出さない）。G-07 は見ている月に買い物のあった日があるとき、その月の最初の買い物の日を照らす（検索中・記録のシート表示中は
+      出さない。先に日付を押したら出さない）。G-08 は最近買った物があるとき一番上の「期限を決める」を照らす（期限の設定シート表示中は出さない。
+      先に「期限を決める」を押したら出さない）。「ガイドを出さない」は表示済みと止める設定を GuidePrefs.disableAll で 1 回で保存するようにした
+      （2 回に分けると、画面が先に片方だけを読んでしまうため）。通知から開いた直後の判定（R-52）は画面へ開いた元を渡す仕組みが無く、BL-099 に分けた
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/GuidePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/ScreenGuides.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/MemoGuideController.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/guide/ScreenGuidesTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目のゲートで既存の CalendarViewModelTest 2 件が Turbine の 15 秒待ちで時間切れになった（単体では成功、続けて流し直した
+      testDebugUnitTest 全件でも成功したため、負荷の高いときの待ち時間切れと判断。再発したら待ち方を見直す）。全ゲートを流し直して
+      BUILD SUCCESSFUL（単体テスト 217 件。追加は G-07 が買い物の日があるときだけ 1 回・先に日付を押したら出さない・G-08 が初めての買い物の後に出て
+      シート中・先に押したら出さない・ガイドを出さないで止まる 4 件）、markdownlint 0 issues、記録ファイル OK。実機での吹き出しの位置は未確認
+    関連ID:
+      - BL-097
+- date: 2026-10-25 11:17
+  summary: メモ画面のその場のガイド（G-02〜G-06）と「れんしゅう」項目（R-51・R-54・R-56）（M8）
+  details:
+    変更内容: >-
+      その場のガイドの吹き出し GuideOverlay（照らす場所の周りを暗くするのは見た目だけで、照らした部品はそのまま操作できる。「わかった」
+      「ガイドを出さない」。読み上げを使っているときは照らさず画面下のカードで出し「わかった」へ移動する）と、照らす場所を集める guideTarget を
+      追加した。メモ画面では 🎤・れんしゅう項目・一番上の項目の ○・「元に戻す」・お店チップを照らし、きっかけは MemoGuides.candidates、
+      出すかの判定・れんしゅう項目・先に使った機能の記録は MemoGuideController にまとめた（ViewModel が detekt の上限を超えないよう分けた）。
+      れんしゅう項目（ID -1）は DB に入れず、スワイプ・○ で練習を終える（記録・品目・元に戻すに残さない）。○ に照らす目印を渡すため
+      LocalBoughtButtonModifier を足した（行の引数を増やさない）。G-03 の手本のアニメーションは BL-098 に含めた
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideOverlay.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/MemoGuides.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/MemoGuideController.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListGuideTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/GuideOverlayTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目は detekt（handleScreenEvent の複雑度・ViewModel の関数の数・SwipeableItemRow の引数の数）で失敗し、MemoGuideController と
+      LocalBoughtButtonModifier へ分けた。2 回目はメモリ不足で Claude Code にゲートを止められ、オーナーの指示で再実行して BUILD SUCCESSFUL
+      （約 2 分 45 秒。単体テスト 213 件。追加は空のメモで G-02・シート中は出さない・れんしゅうは記録に残らず次は G-04・先に本物を動かすと
+      れんしゅうを出さず G-05・ガイドを出さないで全部止まる・G-05 の後にお店チップ 5 件、吹き出しとカード 2 件）、markdownlint 0 issues、記録ファイル OK。
+      実機での吹き出しの位置は未確認
+    関連ID:
+      - BL-096
+- date: 2026-10-25 10:59
+  summary: はじめての案内（G-01）とその場のガイドの土台（R-50・R-52・R-53・R-55）（M8）
+  details:
+    変更内容: >-
+      はじめての案内 OnboardingContent（「話すだけでメモ」「買ったらスワイプ」「あとから見返せる」の 3 枚と、最後に「ホーム画面に置く」
+      の「置く」2 つ・「あとで」。「とばす」は常に出す。非対応のホーム画面アプリでは置き方を説明）を追加し、IkumemoApp で初回起動時だけ
+      全画面で出すようにした（保存値を読み終えるまでは何も出さない。通知・ウィジェット・ショートカットからの起動では挟まない）。
+      ガイドの保存 GuidePrefs（見終えたか・ガイドを出さない・表示済みのガイドの集合）と GuideViewModel、出すガイドの判定 GuidePolicy
+      （未表示の最初の 1 つだけ、音声入力中・シート表示中・外から開いた直後・ガイドを出さない・案内の前は出さない）と GuideId（G-02〜G-08）を
+      追加した。外から開く画面への移動は、NavHost が画面の一覧を設定し終えるまで待ってから行うようにした（ショートカットから起動した
+      テストで setGraph 前に移動して落ちたため）。下タブにテスト用の目印を付けた。1 枚目のアニメーションは BL-098 に分けた
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/GuidePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/Guide.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/OnboardingScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/GuidePrefsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/guide/GuidePolicyTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/OnboardingTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 途中、ショートカットから起動したテストの setGraph 前の移動、Robolectric を使わない DataStore テストの Windows でのファイル置き換え失敗、
+      detekt の ReturnCount（GuidePolicy.next）を直して再実行し BUILD SUCCESSFUL（約 3 分。単体テスト 206 件。追加は判定 4 件・保存 4 件・
+      案内の画面 3 件・初回だけ出る/見終えたら出ない/外からの起動では挟まない 3 件）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-080
+- date: 2026-10-25 10:47
+  summary: アプリからウィジェットを置く（W-03）とアイコン長押しのショートカット（F-74）（M7）
+  details:
+    変更内容: >-
+      せっていに「ホーム画面に置く」を追加し、ウィジェット 2 種の見本（話して追加 1×1・メモ一覧 4×4）と「置く」
+      （WidgetPinner、requestPinAppWidget）を置いた。置く大きさは Android の API で指定できないため、オーナー判断により
+      メモ一覧の既定の大きさを 4×2 から 4×4 に変え（targetCellHeight 4、minHeight 250dp）、4×2 は置いた後に長押しで小さくできると
+      説明だけ添えた。ホーム画面アプリが対応していなければボタンの代わりに置き方を説明する。ショートカット「話して追加」「文字で追加」
+      「カレンダー」「おしらせ」は、debug 版の applicationId が違い静的な shortcuts.xml にはパッケージ名を固定で書くしかないため、
+      起動時に ShortcutManagerCompat の動的ショートカットとして登録する（AppShortcuts、アイコンは Material Icons の形を丸い地に載せた
+      ic_shortcut_*）。BL-073 の実機確認の対象に今回の 2 つを足した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppShortcuts.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/HomeScreenScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetPinner.kt
+      - mobile/src/main/res/drawable/ic_shortcut_calendar.xml
+      - mobile/src/main/res/drawable/ic_shortcut_reminder.xml
+      - mobile/src/main/res/drawable/ic_shortcut_text.xml
+      - mobile/src/main/res/drawable/ic_shortcut_voice.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/res/xml/widget_memo_info.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/AppShortcutsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/WidgetPinnerTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/HomeScreenContentTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（約 3 分 40 秒。単体テスト 192 件。追加はショートカット 4 種が各画面を開く・登録し直しても増えない・
+      2 種の追加要求が出せる・非対応のホーム画面アプリでは要求しない・置くボタンが各ウィジェットを求める・非対応時は置き方を説明する 6 件）、
+      markdownlint 0 issues、記録ファイル OK。実機のホーム画面アプリでの見え方は BL-073 で確認する
+    関連ID:
+      - BL-072
+- date: 2026-10-25 10:29
+  summary: 背景の写真と膜の濃さを選べるようにした（F-61）（M6）
+  details:
+    変更内容: >-
+      きせかえに「背景の写真」（写真を選ぶ・外す、Photo Picker）と膜の濃さのスライダー（0.3〜0.9、既定 0.6、離したときに保存）を追加した。
+      写真は PhotoStore に保存先フォルダを渡せるようにして filesDir/background/ へ写真と同じ形（長辺 1600px・Exif 無し）で取り込み、
+      差し替え・解除では新しい設定を保存してから前の画像を消す。AppThemeHost に showBackground を足し、アプリ本体（MainActivity）だけ
+      画面いっぱいに写真とテーマの背景色の膜を描いて、Scaffold の背景を透かす（LocalHasBackgroundImage）。暗い画面では膜を 0.15 濃くする
+      （上限 0.95、BackgroundScrim）。メモの行・上部のバー・下タブは不透明のまま覆う。音声入力シートとウィジェットには描かない。
+      背景の設定は AppearancePrefs の背景画像のパスと膜の濃さ（範囲外は丸める）として保存する
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/MainActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/BackgroundScrim.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目は背景の差し替えテストが失敗（前の画像を消すのが設定の保存の後で、テストが消える前に確かめていた）。
+      テストを「消えるまで実時間で短く待つ」形に直して再実行し BUILD SUCCESSFUL（約 2 分。単体テスト 186 件。追加は背景の設定・差し替え・解除で
+      前の画像が消える・膜の濃さが範囲内で保存される・暗い画面で膜が濃くなる 3 件）、markdownlint 0 issues、記録ファイル OK。
+      実機での見た目（写真と膜・各テーマ・暗い画面）は未確認で、BL-062 のスクリーンショットテストと M6 の組み合わせ確認で見る
+    関連ID:
+      - BL-061
+- date: 2026-10-25 10:12
+  summary: カレンダーの日付から買った物をあとから記録する（F-17）（M4）
+  details:
+    変更内容: >-
+      RecordRepository に addRecord（品名・買った日・お店・数量・メモ・写真から記録を作る）を追加した。メモは変えず、
+      初めての品名は品目に登録し、その日・お店のお買い物へ付け、品目の購入回数などを計算し直す（R-12）。品名が空なら記録しない。
+      カレンダーの日の詳細の下（買い物が無い日も）に「買った物を記録する」を置き、AddRecordSheet（買った日は選んだ日が既定で
+      シートの中でも直せる、品名が空のうちは「記録する」を押せない）を開く。記録したら記録した日・月へ移る。
+      CalendarViewModel.onEvent が detekt の複雑度の上限に掛かったため、記録のシートの操作を onRecordEvent へ分けた。
+      RecordRepository に時計を渡すようにした（記録した時刻と品目の作成時刻に使う）。DESIGN の進捗の古い記述（F-04・F-16 が未実装）を直した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/AddRecordSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordRepositoryTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目は detekt の CyclomaticComplexMethod（onEvent の複雑度 15）で失敗し、onRecordEvent へ分けて再実行して
+      BUILD SUCCESSFUL（約 3 分 40 秒。単体テスト 183 件。追加は任意の日付に記録して購入回数が更新されメモは変わらない・
+      初めての品名を品目に登録する・空の品名は記録しない・記録したらシートを閉じてその日へ移る 4 件）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-043
+- date: 2026-10-25 10:03
+  summary: 使われなくなった写真の掃除を 1 日 1 回動かす（R-14）（M4）
+  details:
+    変更内容: >-
+      メモ・お買い物・記録のどれかが参照している写真の相対パスを返す PhotoDao を追加し、参照されていない写真を消す PhotoCleaner と、
+      それを WorkManager で 1 日 1 回動かす PhotoCleanupWorker を追加した。予約は起動時に一意の定期作業として行い、既にあれば残す。
+      端末を使っていない間・電池残量が少なくない時に限って動かす（「やめた」の元に戻すを待っている写真を消さないため）。
+      編集シートで取り込んだばかりでまだ保存していない写真を消さないよう、書いてから 1 日未満の写真は残す
+      （PhotoStore.deleteUnreferenced に書いた時刻の条件を追加。既定値は従来どおり条件なし）
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApplication.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoCleaner.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoCleanupWorker.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/IkumemoDatabase.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/PhotoCleanerTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - BUILD SUCCESSFUL（約 3 分 30 秒。単体テスト 179 件。追加は参照されていない写真だけ消える・メモと記録で共有する写真を残す・
+      取り込んだばかりの写真を残す 3 件）、Lint 成功、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-041
 - date: 2026-10-25 09:46
   summary: 編集シートの各入力欄にマイクを追加（品名欄は分割しない）（M2）
   details:

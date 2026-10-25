@@ -2,10 +2,14 @@ package com.ikumemo.mobile.reminder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ReminderRow
+import com.ikumemo.mobile.guide.GuideId
+import com.ikumemo.mobile.guide.GuideScene
+import com.ikumemo.mobile.guide.ScreenGuides
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +39,8 @@ data class ReminderUiState(
     val loaded: Boolean = false,
     /** 通知の許可を求めた回数（2 回断られたら端末の設定を開く、R-29）。 */
     val permissionRequests: Int = 0,
+    /** いま出すその場のガイド（G-08）。 */
+    val guide: GuideId? = null,
 )
 
 sealed interface ReminderEvent {
@@ -64,6 +70,14 @@ sealed interface ReminderEvent {
 
     /** 通知の許可を求めた。 */
     data object PermissionRequested : ReminderEvent
+
+    data class GuideDismissed(
+        val guide: GuideId,
+    ) : ReminderEvent
+
+    data class GuideDisableAll(
+        val guide: GuideId,
+    ) : ReminderEvent
 }
 
 private data class ReminderLocal(
@@ -77,8 +91,10 @@ class ReminderViewModel(
     private val repository: ReminderRepository,
     private val prefs: ReminderPrefs,
     private val clock: Clock,
+    guidePrefs: GuidePrefs? = null,
 ) : ViewModel() {
     private val local = MutableStateFlow(ReminderLocal())
+    private val guides = ScreenGuides(guidePrefs, viewModelScope)
 
     init {
         viewModelScope.launch { local.update { it.copy(permissionRequests = prefs.permissionRequestCount()) } }
@@ -89,7 +105,8 @@ class ReminderViewModel(
             repository.observeRecentWithoutReminder(),
             repository.observePending(),
             local,
-        ) { recent, pending, state ->
+            guides.state,
+        ) { recent, pending, state, guideState ->
             ReminderUiState(
                 today = LocalDate.now(clock),
                 recent = recent,
@@ -98,6 +115,14 @@ class ReminderViewModel(
                 dueTarget = state.dueTarget,
                 loaded = true,
                 permissionRequests = state.permissionRequests,
+                // G-08: 初めて「買った」にした後に開いた（最近買った物があり、「期限を決める」を照らせる）。
+                // 期限の設定シートを出している間は出さない（R-52）
+                guide =
+                    guides.next(
+                        if (recent.isEmpty()) emptyList() else listOf(GuideId.G08_DUE_DATE),
+                        guideState,
+                        GuideScene(sheetOpen = state.dueTarget != null),
+                    ),
             )
         }.stateIn(
             viewModelScope,
@@ -107,7 +132,11 @@ class ReminderViewModel(
 
     fun onEvent(event: ReminderEvent) {
         when (event) {
-            is ReminderEvent.OpenDue -> local.update { it.copy(dueTarget = event.target) }
+            is ReminderEvent.OpenDue -> {
+                // R-51: 自分で「期限を決める」を押したら、G-08 は要らない
+                guides.markShown(GuideId.G08_DUE_DATE)
+                local.update { it.copy(dueTarget = event.target) }
+            }
             ReminderEvent.CloseDue -> local.update { it.copy(dueTarget = null) }
             is ReminderEvent.SetDue ->
                 viewModelScope.launch {
@@ -122,6 +151,8 @@ class ReminderViewModel(
                     prefs.countPermissionRequest()
                     local.update { it.copy(permissionRequests = prefs.permissionRequestCount()) }
                 }
+            is ReminderEvent.GuideDismissed -> guides.markShown(event.guide)
+            is ReminderEvent.GuideDisableAll -> guides.disableAll(event.guide)
         }
     }
 

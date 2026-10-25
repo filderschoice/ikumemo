@@ -3,7 +3,6 @@ package com.ikumemo.mobile.calendar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +34,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.designsystem.CalendarColors
+import com.ikumemo.mobile.designsystem.LocalDarkTheme
+import com.ikumemo.mobile.guide.GuideId
+import com.ikumemo.mobile.guide.LocalGuideTargets
+import com.ikumemo.mobile.guide.guideTarget
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -82,7 +85,7 @@ fun MonthGrid(
     shoppingDays: Map<LocalDate, List<Long?>>,
     onSelect: (LocalDate) -> Unit,
 ) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalDarkTheme.current
     val weekdays = stringResource(R.string.calendar_weekdays).split(",")
     Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
         Row(Modifier.fillMaxWidth()) {
@@ -98,11 +101,20 @@ fun MonthGrid(
         }
         // 日曜始まりにするため、1 日の曜日（日曜 = 0）の数だけ空ける
         val leading = month.atDay(1).dayOfWeek.value % DAYS_IN_WEEK
+        // G-07 で照らす「買い物のあった日」（この月で最初の日）
+        val guideDay = shoppingDays.keys.minOrNull()
+        val targets = LocalGuideTargets.current
         val cells = List(leading) { null } + (1..month.lengthOfMonth()).map(month::atDay)
         cells.chunked(DAYS_IN_WEEK).forEach { week ->
             Row(Modifier.fillMaxWidth()) {
                 week.forEachIndexed { index, date ->
-                    Box(Modifier.weight(1f)) {
+                    val target =
+                        if (date != null && date == guideDay) {
+                            Modifier.guideTarget(GuideId.G07_CALENDAR_DAY, targets)
+                        } else {
+                            Modifier
+                        }
+                    Box(Modifier.weight(1f).then(target)) {
                         if (date != null) {
                             DayCell(
                                 date = date,
@@ -140,7 +152,7 @@ private fun DayCell(
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
-    val dark = isSystemInDarkTheme()
+    val dark = LocalDarkTheme.current
     val textColor = weekdayColor(date.dayOfWeek.value % DAYS_IN_WEEK, dark)
     val description =
         if (stores.isEmpty()) {
@@ -183,6 +195,9 @@ object CalendarTestTags {
     const val SEARCH_INPUT = "calendar_search_input"
     const val RECORD_DELETE = "calendar_record_delete"
     const val RECORD_SAVE = "calendar_record_save"
+    const val ADD_RECORD = "calendar_add_record"
+    const val ADD_RECORD_NAME = "calendar_add_record_name"
+    const val ADD_RECORD_SAVE = "calendar_add_record_save"
 
     fun day(date: LocalDate) = "calendar_day_$date"
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.calendar.CalendarViewModel
+import com.ikumemo.mobile.guide.GuideViewModel
 import com.ikumemo.mobile.reminder.ReminderViewModel
 import com.ikumemo.mobile.settings.AppearanceViewModel
 import com.ikumemo.mobile.settings.OperationViewModel
@@ -28,18 +29,30 @@ object AppViewModelFactory {
                     container.storeRepository,
                     Suggestions(container.normalizer),
                     container.operationPrefs.settings,
+                    container.guidePrefs,
                 )
             }
             initializer {
                 val container = container()
-                CalendarViewModel(container.recordRepository, container.storeRepository, container.clock)
+                CalendarViewModel(
+                    container.recordRepository,
+                    container.storeRepository,
+                    container.clock,
+                    container.guidePrefs,
+                )
             }
             initializer {
                 val container = container()
-                ReminderViewModel(container.reminderRepository, container.reminderPrefs, container.clock)
+                ReminderViewModel(
+                    container.reminderRepository,
+                    container.reminderPrefs,
+                    container.clock,
+                    container.guidePrefs,
+                )
             }
-            initializer { AppearanceViewModel(container().appearancePrefs) }
+            initializer { AppearanceViewModel(container().appearancePrefs, container().backgroundStore) }
             initializer { OperationViewModel(container().operationPrefs) }
+            initializer { GuideViewModel(container().guidePrefs) }
             initializer { StoreManageViewModel(container().storeRepository) }
             initializer { ProductManageViewModel(container().shoppingRepository.products) }
             initializer {

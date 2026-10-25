@@ -35,6 +35,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.OperationSettings
@@ -45,6 +48,9 @@ private const val SWIPE_THRESHOLD_FRACTION = 0.4f
 
 /** そうさの設定（○ の表示・振動）。メモ画面が渡す。 */
 val LocalOperationSettings = staticCompositionLocalOf { OperationSettings() }
+
+/** 行の ○ に足す Modifier（G-04 で照らす場所にするため、メモの一番上の行にだけ渡す）。 */
+val LocalBoughtButtonModifier = staticCompositionLocalOf<Modifier> { Modifier }
 
 /**
  * メモの 1 行。右へスワイプで「買った」、左へスワイプで「やめた」（D-4・F-10・F-11）。左の ○ を押しても「買った」（F-13）。
@@ -80,12 +86,34 @@ fun SwipeableItemRow(
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
+    // スワイプできない・しにくい人のため、読み上げ（TalkBack）の操作の一覧に「買った」「やめた」を出す（PLAN §8、R-04）
+    val boughtLabel = stringResource(R.string.memo_bought)
+    val dismissedLabel = stringResource(R.string.memo_dismissed)
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = { SwipeBackground(dismissState.dismissDirection) },
-        modifier = Modifier.testTag(TestTags.item(item.id)),
+        modifier =
+            Modifier
+                .semantics {
+                    customActions =
+                        listOf(
+                            CustomAccessibilityAction(boughtLabel) {
+                                currentOnBought()
+                                true
+                            },
+                            CustomAccessibilityAction(dismissedLabel) {
+                                currentOnDismissed()
+                                true
+                            },
+                        )
+                }.testTag(TestTags.item(item.id)),
     ) {
-        ItemRowContent(item = item, highlighted = highlighted, onClick = onClick, onBoughtClick = onBought)
+        ItemRowContent(
+            item = item,
+            highlighted = highlighted,
+            onClick = onClick,
+            onBoughtClick = onBought,
+        )
     }
 }
 
@@ -142,7 +170,10 @@ private fun ItemRowContent(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (LocalOperationSettings.current.showBoughtButton) {
-            IconButton(onClick = onBoughtClick, modifier = Modifier.testTag(TestTags.boughtButton(item.id))) {
+            IconButton(
+                onClick = onBoughtClick,
+                modifier = LocalBoughtButtonModifier.current.testTag(TestTags.boughtButton(item.id)),
+            ) {
                 Icon(
                     Icons.Rounded.RadioButtonUnchecked,
                     contentDescription = stringResource(R.string.memo_mark_bought_description, item.displayName),

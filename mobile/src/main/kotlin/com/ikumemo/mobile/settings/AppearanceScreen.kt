@@ -1,5 +1,8 @@
 package com.ikumemo.mobile.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -22,10 +25,16 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -38,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.Appearance
+import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.designsystem.TextSizeSetting
@@ -54,7 +64,7 @@ fun AppearanceScreen(
     }
 }
 
-/** きせかえ（F-60 プレビュー付きのカードでテーマを選ぶ、F-63 暗い画面、F-65 文字の大きさ）。 */
+/** きせかえ（F-60 プレビュー付きのカードでテーマを選ぶ、F-61 背景の写真、F-63 暗い画面、F-65 文字の大きさ）。 */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppearanceContent(
@@ -81,6 +91,7 @@ fun AppearanceContent(
                 )
             }
         }
+        BackgroundSection(appearance = appearance, onEvent = onEvent)
         SectionTitle(R.string.appearance_dark_mode)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DarkMode.entries.forEach { mode ->
@@ -107,6 +118,46 @@ fun AppearanceContent(
 }
 
 private const val BASE_SAMPLE_SP = 14f
+
+/** 背景の写真（F-61）。写真を選ぶ・外す、膜の濃さのスライダー（離したときに保存する）。 */
+@Composable
+private fun BackgroundSection(
+    appearance: Appearance,
+    onEvent: (AppearanceEvent) -> Unit,
+) {
+    val pick =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            uri?.let { onEvent(AppearanceEvent.PickBackground(it)) }
+        }
+    SectionTitle(R.string.appearance_background)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        OutlinedButton(
+            onClick = { pick.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.BACKGROUND_PICK),
+        ) {
+            Text(stringResource(R.string.appearance_background_pick))
+        }
+        if (appearance.backgroundImage != null) {
+            TextButton(
+                onClick = { onEvent(AppearanceEvent.RemoveBackground) },
+                modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.BACKGROUND_REMOVE),
+            ) {
+                Text(stringResource(R.string.appearance_background_remove))
+            }
+        }
+    }
+    if (appearance.backgroundImage != null) {
+        var level by remember(appearance.scrimLevel) { mutableFloatStateOf(appearance.scrimLevel) }
+        Text(stringResource(R.string.appearance_scrim), style = MaterialTheme.typography.bodyMedium)
+        Slider(
+            value = level,
+            onValueChange = { level = it },
+            onValueChangeFinished = { onEvent(AppearanceEvent.SetScrimLevel(level)) },
+            valueRange = BackgroundScrim.MIN..BackgroundScrim.MAX,
+            modifier = Modifier.fillMaxWidth().testTag(AppearanceTestTags.SCRIM),
+        )
+    }
+}
 
 @Composable
 private fun SectionTitle(text: Int) {
@@ -197,6 +248,10 @@ private fun TextSizeSetting.label(): Int =
     }
 
 object AppearanceTestTags {
+    const val BACKGROUND_PICK = "appearance_background_pick"
+    const val BACKGROUND_REMOVE = "appearance_background_remove"
+    const val SCRIM = "appearance_scrim"
+
     fun theme(preset: ThemePreset) = "appearance_theme_${preset.storageKey}"
 
     fun darkMode(mode: DarkMode) = "appearance_dark_${mode.storageKey}"

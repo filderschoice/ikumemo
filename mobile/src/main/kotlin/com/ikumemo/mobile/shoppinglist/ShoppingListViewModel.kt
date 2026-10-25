@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ikumemo.core.suggest.ProductSummary
 import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.data.AddItemResult
+import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.ItemEdit
 import com.ikumemo.mobile.data.OperationSettings
 import com.ikumemo.mobile.data.ShoppingRepository
@@ -12,6 +13,7 @@ import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.UndoableAction
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
 import com.ikumemo.mobile.data.db.StoreEntity
+import com.ikumemo.mobile.guide.GuideId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -114,6 +116,16 @@ sealed interface ShoppingListEvent {
     data object HighlightShown : ShoppingListEvent
 
     data object MessageShown : ShoppingListEvent
+
+    /** その場のガイドを「わかった」で閉じた。 */
+    data class GuideDismissed(
+        val guide: GuideId,
+    ) : ShoppingListEvent
+
+    /** 吹き出しの「ガイドを出さない」（R-53）。 */
+    data class GuideDisableAll(
+        val guide: GuideId,
+    ) : ShoppingListEvent
 }
 
 /** 追加シートの候補（F-20 入力中の候補、F-21 いつもの）。 */
@@ -151,6 +163,10 @@ data class ShoppingListUiState(
     val stores: List<StoreEntity> = emptyList(),
     /** そうさの設定（○ の表示・振動）。 */
     val operation: OperationSettings = OperationSettings(),
+    /** いま出すその場のガイド（F-70、1 つだけ R-50）。 */
+    val guide: GuideId? = null,
+    /** メモの一番上に「れんしゅう：にんじん」を出すか（G-03・R-54）。DB には入れない。 */
+    val practice: Boolean = false,
 )
 
 private data class LocalState(
@@ -160,11 +176,15 @@ private data class LocalState(
     val undo: UndoOffer? = null,
 )
 
+/**
+ * メモ画面。[guidePrefs] を渡すとその場のガイド（G-02〜G-06）と「れんしゅう」項目を出す（渡さなければ出さない）。
+ */
 class ShoppingListViewModel(
     private val repository: ShoppingRepository,
     private val storeRepository: StoreRepository,
     private val suggestions: Suggestions = Suggestions(),
     operation: Flow<OperationSettings> = flowOf(OperationSettings()),
+    private val guidePrefs: GuidePrefs? = null,
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private val addQuery = MutableStateFlow("")
@@ -173,26 +193,32 @@ class ShoppingListViewModel(
     private val writeLock = Mutex()
     private var undoSerial = 0L
 
+    private val guides = MemoGuideController(guidePrefs, viewModelScope)
+
     val uiState: StateFlow<ShoppingListUiState> =
         combine(
-            repository.observeItems(),
-            local,
-            storeRepository.observeSelectedStore(),
-            storeRepository.observeActiveStores(),
-            operation,
-        ) { items, state, selectedStore, stores, operationSettings ->
-            ShoppingListUiState(
-                items = items,
-                loaded = true,
-                sheet = state.sheet,
-                highlightedItemId = state.highlightedItemId,
-                message = state.message,
-                undo = state.undo,
-                selectedStore = selectedStore,
-                stores = stores,
-                operation = operationSettings,
-            )
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ShoppingListUiState())
+            combine(
+                repository.observeItems(),
+                local,
+                storeRepository.observeSelectedStore(),
+                storeRepository.observeActiveStores(),
+                operation,
+            ) { items, state, selectedStore, stores, operationSettings ->
+                ShoppingListUiState(
+                    items = items,
+                    loaded = true,
+                    sheet = state.sheet,
+                    highlightedItemId = state.highlightedItemId,
+                    message = state.message,
+                    undo = state.undo,
+                    selectedStore = selectedStore,
+                    stores = stores,
+                    operation = operationSettings,
+                )
+            },
+            guides.state,
+        ) { ui, guideState -> guides.decide(ui, guideState) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ShoppingListUiState())
 
     /** メモにある物を除いた候補。 */
     val addSuggestions: StateFlow<AddSuggestions> =
@@ -206,6 +232,7 @@ class ShoppingListViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), AddSuggestions())
 
     fun onEvent(event: ShoppingListEvent) {
+        if (guides.handle(event)) return
         if (!handleScreenEvent(event)) handleDataEvent(event)
     }
 

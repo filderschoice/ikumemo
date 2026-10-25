@@ -5,6 +5,7 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material3.Button
@@ -28,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,10 +46,20 @@ import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ReminderRow
+import com.ikumemo.mobile.guide.GuideId
+import com.ikumemo.mobile.guide.GuideOverlay
+import com.ikumemo.mobile.guide.LocalGuideTargets
+import com.ikumemo.mobile.guide.guideTarget
+import com.ikumemo.mobile.guide.rememberGuideTargets
+import com.ikumemo.mobile.help.HelpPages
 import java.time.LocalDate
 
 @Composable
-fun ReminderScreen(viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory)) {
+fun ReminderScreen(
+    onOpenHelp: (String) -> Unit = {},
+    showGuide: Boolean = true,
+    viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val refresh = {
@@ -62,7 +75,13 @@ fun ReminderScreen(viewModel: ReminderViewModel = viewModel(factory = AppViewMod
         viewModel.onEvent(event)
         if (event is ReminderEvent.SetDue) permission.askAfterFirstDue()
     }
-    ReminderContent(state = state, onEvent = onEvent, onEnableNotifications = permission::enable)
+    ReminderContent(
+        state = state,
+        onEvent = onEvent,
+        onEnableNotifications = permission::enable,
+        onOpenHelp = onOpenHelp,
+        showGuide = showGuide,
+    )
     state.dueTarget?.let { DueSheet(target = it, today = state.today, onEvent = onEvent) }
     permission.Dialog()
 }
@@ -73,28 +92,67 @@ fun ReminderContent(
     state: ReminderUiState,
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
+    onOpenHelp: (String) -> Unit = {},
+    showGuide: Boolean = true,
 ) {
-    Column(Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text(stringResource(R.string.tab_reminder)) }, windowInsets = WindowInsets(0))
-        LazyColumn(Modifier.fillMaxSize()) {
-            if (!state.notificationsEnabled) {
-                item { NotificationsOffBanner(onEnableNotifications) }
+    val guideTargets = rememberGuideTargets()
+    CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
+                TopAppBar(title = { Text(stringResource(R.string.tab_reminder)) }, windowInsets = WindowInsets(0))
+                ReminderList(state, onEvent, onEnableNotifications, onOpenHelp)
             }
-            item { SectionTitle(R.string.reminder_recent) }
-            if (state.loaded && state.recent.isEmpty()) {
-                item { Hint(R.string.reminder_recent_empty) }
+            // 通知から開いた直後は出さない（表示済みにもしないので、次に開いたときに出る、R-52）
+            state.guide?.takeIf { showGuide }?.let { guide ->
+                GuideOverlay(
+                    guide = guide,
+                    onDismiss = { onEvent(ReminderEvent.GuideDismissed(guide)) },
+                    onDisableAll = { onEvent(ReminderEvent.GuideDisableAll(guide)) },
+                )
             }
-            items(state.recent, key = { "recent_${it.id}" }) { record ->
+        }
+    }
+}
+
+@Composable
+private fun ReminderList(
+    state: ReminderUiState,
+    onEvent: (ReminderEvent) -> Unit,
+    onEnableNotifications: () -> Unit,
+    onOpenHelp: (String) -> Unit,
+) {
+    val targets = LocalGuideTargets.current
+    LazyColumn(Modifier.fillMaxSize()) {
+        if (!state.notificationsEnabled) {
+            item { NotificationsOffBanner(onEnableNotifications) }
+        }
+        item { SectionTitle(R.string.reminder_recent) }
+        if (state.loaded && state.recent.isEmpty()) {
+            item { Hint(R.string.reminder_recent_empty) }
+        }
+        itemsIndexed(state.recent, key = { _, record -> "recent_${record.id}" }) { index, record ->
+            // G-08 は一番上の「期限を決める」を照らす
+            val target = if (index == 0) Modifier.guideTarget(GuideId.G08_DUE_DATE, targets) else Modifier
+            Box(target) {
                 RecentRow(record) { onEvent(ReminderEvent.OpenDue(DueTarget(record.id, record.displayName))) }
-                HorizontalDivider()
             }
-            item { SectionTitle(R.string.reminder_pending) }
-            if (state.loaded && state.pending.isEmpty()) {
-                item { Hint(R.string.reminder_pending_empty) }
-            }
-            items(state.pending, key = { "pending_${it.reminder.id}" }) { row ->
-                PendingRow(row, state.today, onEvent)
-                HorizontalDivider()
+            HorizontalDivider()
+        }
+        item { SectionTitle(R.string.reminder_pending) }
+        if (state.loaded && state.pending.isEmpty()) {
+            item { Hint(R.string.reminder_pending_empty) }
+        }
+        items(state.pending, key = { "pending_${it.reminder.id}" }) { row ->
+            PendingRow(row, state.today, onEvent)
+            HorizontalDivider()
+        }
+        // 困ったときの入口（H-03）
+        item {
+            TextButton(
+                onClick = { onOpenHelp(HelpPages.NOT_ARRIVING) },
+                modifier = Modifier.padding(8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.NOT_ARRIVING),
+            ) {
+                Text(stringResource(R.string.help_not_arriving))
             }
         }
     }
@@ -235,6 +293,7 @@ fun Context.openNotificationSettings() {
 
 object ReminderTestTags {
     const val NOTIFICATIONS_OFF = "reminder_notifications_off"
+    const val NOT_ARRIVING = "reminder_not_arriving"
 
     fun setDue(recordId: Long) = "reminder_set_due_$recordId"
 

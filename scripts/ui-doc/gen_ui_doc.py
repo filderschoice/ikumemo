@@ -2,7 +2,8 @@
 
 文言は mobile/src/main/res/values/strings.xml、色・角の丸みは designsystem/ThemePreset.kt から実行時に読み込む
 （転記の写し間違いを防ぎ、文言・色の変更は再実行だけで追従させる）。画面の配置は Compose のコードを読んで再現したもので、
-実機のスクリーンショットではない。
+実機のスクリーンショットではない。3.0 節だけは、スクリーンショットテスト（Roborazzi、mobile/screenshots/）が
+Robolectric で実際の Compose のコードを描いた画像を埋め込む。
 
 使い方（リポジトリのルートで）:
     python -I scripts/ui-doc/gen_ui_doc.py docs/design/UI_DESIGN.html
@@ -76,6 +77,28 @@ def git(*args):
 
 
 COMMIT = git("rev-parse", "--short", "HEAD")
+
+
+def load_help_index():
+    """使い方の目次（assets/help/index.md の「## 章」と「- [題名](file.md)」）。"""
+    chapters = []
+    for line in (MAIN / "assets/help/index.md").read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            chapters.append((line[3:].strip(), []))
+        m = re.match(r"^- \[(.+)\]\((.+)\.md\)$", line.strip())
+        if m and chapters:
+            chapters[-1][1].append(m.group(1))
+    return chapters
+
+
+HELP = load_help_index()
+
+
+def screenshot(screen):
+    """スクリーンショットテストの正解画像（テーマ「ポップ」・明るい・ふつう）を data URI で返す。"""
+    import base64
+    png = ROOT / f"mobile/screenshots/{screen}/pop_light_normal.png"
+    return "data:image/png;base64," + base64.b64encode(png.read_bytes()).decode()
 TODAY = datetime.date.today().isoformat()
 
 # ---------------------------------------------------------------- 見た目（CSS）
@@ -141,6 +164,8 @@ footer{max-width:1200px;margin:0 auto;padding:0 24px 40px;color:var(--sub);font-
 .snack{position:absolute;left:12px;right:12px;bottom:96px;background:#322f30;color:#f5eff0;border-radius:4px;padding:0 8px 0 16px;min-height:48px;display:flex;align-items:center;font-size:14px;box-shadow:0 3px 6px rgba(0,0,0,.3)}
 .snack span{flex:1}.snack b{color:var(--p-primaryContainer);font-weight:500;padding:0 8px}
 .scrim{position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;flex-direction:column;justify-content:flex-end;z-index:5}
+.spot{position:relative;z-index:6;box-shadow:0 0 0 2000px rgba(0,0,0,.55);border-radius:12px}
+.bubble{position:absolute;left:16px;right:16px;z-index:7;background:var(--p-surface);color:var(--p-onSurface);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:15px;display:flex;flex-direction:column;gap:8px}
 .scrim.c{justify-content:center;align-items:center}
 .sheet{background:var(--p-surface);border-radius:28px 28px 0 0;padding:8px 16px 24px;display:flex;flex-direction:column;gap:12px;max-height:88%;overflow:hidden}
 .sheet .grab{width:32px;height:4px;border-radius:2px;background:var(--p-onSurfaceVariant);opacity:.4;margin:14px auto 10px}
@@ -240,11 +265,12 @@ def bottom_nav(active):
     return f'<div class="nav">{cells}</div>'
 
 
-def item_row(name, qty=None, photo=False, circle=True, hl=False):
+def item_row(name, qty=None, photo=False, circle=True, hl=False, spot=False):
     c = '<div class="circ"><i></i></div>' if circle else '<div style="width:16px"></div>'
     p = f'<span style="color:var(--p-onSurfaceVariant);margin-right:8px">{icon("camera", 20)}</span>' if photo else ""
     q = f'<span class="qt">{html.escape(qty)}</span>' if qty else ""
-    return f'<div class="row {"hl" if hl else ""}">{c}<span class="nm">{html.escape(name)}</span>{p}{q}</div>'
+    cls = ("hl " if hl else "") + ("spot" if spot else "")
+    return f'<div class="row {cls}">{c}<span class="nm">{html.escape(name)}</span>{p}{q}</div>'
 
 
 def field(label, value="", mic=True, listening=False, multi=False):
@@ -278,22 +304,95 @@ def fig(mock, title, caption):
 
 # ---------------------------------------------------------------- 画面のモック
 
-def memo_screen(items=True, voice=True, overlay="", snack="", circle=True, hl=None):
+def memo_screen(items=True, voice=True, overlay="", snack="", circle=True, hl=None, practice=False, spot=None):
     settings = f'<span class="tbtn">{icon("gear", 20)}{s("settings_title")}</span>'
-    chip = f'<div style="padding:0 16px"><span class="chip">{icon("store", 18)}{s("store_chip_unselected")}</span></div>'
+    chip_cls = "chip spot" if spot == "chip" else "chip"
+    chip = f'<div style="padding:0 16px"><span class="{chip_cls}">{icon("store", 18)}{s("store_chip_unselected")}</span></div>'
     if items:
-        rows = "".join(item_row(n, q, p, circle, hl == n) for n, q, p in SAMPLE)
+        rows = item_row(s("guide_practice_item"), spot=spot == "practice") if practice else ""
+        rows += "".join(item_row(n, q, p, circle, hl == n) for n, q, p in SAMPLE)
     else:
-        rows = f'<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-size:16px">{s("home_empty")}</div>'
+        rows = (f'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;'
+                f'text-align:center;font-size:16px">{s("home_empty")}<span class="tbtn">{s("help_open")}</span></div>')
+    mic_cls = "fbtn big spot" if spot == "mic" else "fbtn big"
     if voice:
-        add = (f'<span class="fbtn big">{icon("mic")}{s("memo_add_by_voice")}</span>'
+        add = (f'<span class="{mic_cls}">{icon("mic")}{s("memo_add_by_voice")}</span>'
                f'<span class="tbtn">{icon("keyboard")}{s("memo_add_by_text")}</span>')
     else:
         add = (f'<div class="sub" style="text-align:center">{s("voice_unavailable")}</div>'
+               f'<span class="tbtn">{s("help_open")}</span>'
                f'<span class="fbtn" style="height:56px;min-width:200px">{icon("keyboard")}{s("memo_add_by_text")}</span>')
     body = (f'<div class="body">{chip}<div style="flex:1;display:flex;flex-direction:column">{rows}</div>'
             f'<div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px">{add}</div></div>')
     return phone(appbar(s("memo_title"), actions=settings) + body + bottom_nav(0) + snack + overlay)
+
+
+def guide_bubble(key, top=None):
+    """その場のガイドの吹き出し（GuideOverlay）。top が None なら読み上げ利用時の画面下のカード。"""
+    pos = f"top:{top}px" if top is not None else "bottom:96px"
+    return (f'<div class="bubble" style="{pos}"><div>{s(key)}</div><div style="display:flex;align-items:center">'
+            f'<span class="tbtn" style="font-size:12px">{s("guide_disable_all")}</span><span style="flex:1"></span>'
+            f'<span class="fbtn">{s("guide_ok")}</span></div></div>')
+
+
+def onboarding_screen(page):
+    """はじめての案内（OnboardingContent）。page は 0〜3。"""
+    pages = [("🎤", "onboarding_voice_title", "onboarding_voice_body"), ("👉", "onboarding_swipe_title", "onboarding_swipe_body"),
+             ("📅", "onboarding_look_back_title", "onboarding_look_back_body"), ("🏠", "onboarding_home_title", "onboarding_home_body")]
+    emoji, title, body = pages[page]
+    last = page == len(pages) - 1
+    demo = (f'<div style="display:flex;gap:8px;margin-top:8px"><span class="chip sel">{s("onboarding_demo_item1")}</span>'
+            f'<span class="chip sel">{s("onboarding_demo_item2")}</span></div>') if page == 0 else ""
+    pins = (f'<div style="display:flex;flex-direction:column;gap:8px;align-items:center;margin-top:16px">'
+            f'<span class="obtn">{s("onboarding_pin_voice")}</span><span class="obtn">{s("onboarding_pin_memo")}</span></div>') if last else ""
+    dots = "".join(f'<i style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px;'
+                   f'background:{"var(--p-primary)" if i == page else "var(--p-outline)"}"></i>' for i in range(len(pages)))
+    inner = (f'<div class="body" style="padding:16px"><div style="text-align:right"><span class="tbtn">{s("onboarding_skip")}</span></div>'
+             f'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px">'
+             f'<div style="font-size:72px;line-height:1">{emoji}</div>{demo}<div style="font-size:22px;margin-top:16px">{s(title)}</div>'
+             f'<div style="font-size:16px">{s(body)}</div>{pins}</div><div style="text-align:center">{dots}</div>'
+             f'<div style="text-align:right;margin-top:16px"><span class="fbtn">{s("onboarding_later" if last else "onboarding_next")}</span></div></div>')
+    return phone(inner)
+
+
+def help_index_screen():
+    rows = ""
+    for chapter, pages in HELP[:3]:
+        rows += f'<div class="sect" style="color:var(--p-primary)">{html.escape(chapter)}</div>' + "".join(srow(html.escape(t)) for t in pages)
+    body = f'<div class="body"><div style="padding:16px"><span class="obtn">{s("help_show_onboarding")}</span></div>{rows}</div>'
+    return phone(appbar(s("settings_help"), back=True) + body)
+
+
+def help_page_screen():
+    # 本文は assets/help/swipe.md と同じ文（ページの例）
+    text = (MAIN / "assets/help/swipe.md").read_text(encoding="utf-8")
+    lines = [ln for ln in re.sub(r"<!--.*?-->", "", text, flags=re.S).splitlines() if ln.strip()]
+    title = lines[0][2:]
+    items = "".join(f'<div style="font-size:15px">・{html.escape(ln[2:])}</div>' if ln.startswith("- ")
+                    else f'<div style="font-size:15px">{html.escape(ln)}</div>' for ln in lines[1:])
+    body = (f'<div class="body" style="padding:16px;gap:12px"><div style="font-size:22px">{html.escape(title)}</div>{items}'
+            f'<div style="display:flex;gap:8px;margin-top:8px"><span class="obtn">{s("help_show_guide")}</span>'
+            f'<span class="fbtn">{s("help_try")}</span></div></div>')
+    return phone(appbar(s("settings_help"), back=True) + body, cls="short")
+
+
+def home_screen_settings():
+    cards = "".join(
+        f'<div class="card"><div style="display:flex;gap:12px;align-items:center">{icon(ic, 40)}<div><div style="font-size:16px">{s(t)}</div>'
+        f'<div class="sub">{s(d)}</div></div></div><div style="text-align:right;margin-top:8px"><span class="fbtn">{s("home_screen_pin")}</span></div></div>'
+        for ic, t, d in [("mic", "home_screen_voice", "home_screen_voice_detail"), ("cart", "home_screen_memo", "home_screen_memo_detail")])
+    body = (f'<div class="body" style="padding:16px;gap:16px">{cards}<div style="font-size:16px">{s("home_screen_shortcuts_title")}</div>'
+            f'<div style="font-size:14px">{s("home_screen_shortcuts")}</div></div>')
+    return phone(appbar(s("settings_home_screen"), back=True) + body)
+
+
+def add_record_sheet():
+    inner = (f'<div style="font-size:22px">{s("calendar_add_record")}</div>{field(s("edit_name"), "アイス")}'
+             f'<span class="obtn" style="align-self:flex-start">{s("calendar_record_date", 2026, 10, 24)}</span>'
+             f'<div class="ttl-s">{s("calendar_record_store")}</div><div style="display:flex;gap:8px"><span class="chip">さくらスーパー</span></div>'
+             f'{field(s("edit_quantity"), "")}{field(s("edit_note"), "", multi=True)}'
+             f'<div style="display:flex;justify-content:flex-end"><span class="fbtn" style="height:48px">{s("calendar_add_record_save")}</span></div>')
+    return calendar_screen(overlay=sheet(inner))
 
 
 def swipe_screen():
@@ -354,7 +453,7 @@ def store_picker():
     return memo_screen(overlay=sheet(inner))
 
 
-def calendar_screen(search=False):
+def calendar_screen(search=False, overlay=""):
     act = f'<span class="tbtn">{icon("search", 20)}{s("calendar_search_close") if search else s("calendar_search")}</span>'
     if search:
         res = "".join(
@@ -379,9 +478,10 @@ def calendar_screen(search=False):
             f'<span style="font-size:18px">{s("calendar_month", 2026, 10)}</span><span style="transform:scaleX(-1);display:inline-flex">{icon("back")}</span></div>')
     day = (f'<div style="padding:12px 16px 4px;font-size:16px;font-weight:500">{s("calendar_day_title", 10, 24, "土")}</div>'
            + "".join(f'<div class="srow"><span class="t">{n}<span class="d">{q}</span></span>{icon("camera", 20) if p else ""}</div>'
-                     for n, q, p in [("牛乳", "2本", False), ("食パン", "さくらスーパー", True)]))
+                     for n, q, p in [("牛乳", "2本", False), ("食パン", "さくらスーパー", True)])
+           + f'<div style="padding:8px 16px"><span class="obtn">{s("calendar_add_record")}</span></div>')
     body = f'<div class="body">{head}<div class="cal">{cells}</div>{day}</div>'
-    return phone(appbar(s("tab_calendar"), actions=act) + body + bottom_nav(1))
+    return phone(appbar(s("tab_calendar"), actions=act) + body + bottom_nav(1) + overlay)
 
 
 def reminder_screen(due_sheet=False):
@@ -390,6 +490,7 @@ def reminder_screen(due_sheet=False):
     pend = [("ヨーグルト", s("reminder_overdue", 10, 23), "var(--p-error)"), ("食パン", s("reminder_due_today", 10, 25), "var(--p-primary)"),
             ("豆腐", s("reminder_due_tomorrow", 10, 26), "var(--p-onSurface)"), ("しょうゆ", s("reminder_due_on", 11, 20), "var(--p-onSurfaceVariant)")]
     rows = "".join(f'<div class="srow"><span class="t">{n}<span class="d" style="color:{c}">{d}</span></span></div>' for n, d, c in pend)
+    rows += f'<div style="padding:8px"><span class="tbtn">{s("help_not_arriving")}</span></div>'
     body = f'<div class="body">{recent}<div class="sect">{s("reminder_pending")}</div>{rows}</div>'
     overlay = ""
     if due_sheet:
@@ -399,8 +500,8 @@ def reminder_screen(due_sheet=False):
     return phone(appbar(s("tab_reminder")) + body + bottom_nav(2) + overlay)
 
 
-SETTINGS_ITEMS = ["settings_appearance", "settings_operation", "settings_reminder", "settings_stores", "settings_products",
-                  "settings_feedback", "settings_about"]
+SETTINGS_ITEMS = ["settings_help", "settings_appearance", "settings_operation", "settings_reminder", "settings_stores",
+                  "settings_products", "settings_home_screen", "settings_feedback", "settings_about"]
 
 
 def settings_screen():
@@ -422,11 +523,16 @@ def appearance_screen():
     chips_text = "".join(f'<span class="chip {"sel" if i == 0 else ""}">{s(k)}</span>' for i, k in
                          enumerate(["appearance_text_normal", "appearance_text_large", "appearance_text_extra_large"]))
     body = (f'<div class="body" style="padding:0 16px;gap:10px"><div class="ttl-s">{s("appearance_theme")}</div>'
-            f'<div style="display:flex;gap:8px">{cards}</div><div class="ttl-s">{s("appearance_dark_mode")}</div>'
+            f'<div style="display:flex;gap:8px">{cards}</div><div class="ttl-s">{s("appearance_background")}</div>'
+            f'<div style="display:flex;gap:8px"><span class="obtn">{s("appearance_background_pick")}</span>'
+            f'<span class="tbtn">{s("appearance_background_remove")}</span></div>'
+            f'<div class="sub">{s("appearance_scrim")}</div><div style="height:4px;border-radius:2px;background:var(--p-primary);'
+            f'width:60%;position:relative"><i style="position:absolute;right:-10px;top:-8px;width:20px;height:20px;border-radius:50%;'
+            f'background:var(--p-primary)"></i></div><div class="ttl-s">{s("appearance_dark_mode")}</div>'
             f'<div style="display:flex;gap:8px;flex-wrap:wrap">{chips_dark}</div><div class="ttl-s">{s("appearance_text_size")}</div>'
             f'<div style="display:flex;gap:8px;flex-wrap:wrap">{chips_text}</div>'
             f'<div class="card">{s("appearance_sample_item")}<br><span class="chip sel">{s("appearance_sample_chip")}</span></div></div>')
-    return phone(appbar(s("settings_appearance"), back=True) + body, cls="short")
+    return phone(appbar(s("settings_appearance"), back=True) + body)
 
 
 def operation_screen():
@@ -536,7 +642,8 @@ def table(head, rows):
 
 def ch_overview():
     return section("overview", "1. 概要と読み方", "UI の現状を数分で把握するための 1 枚。", f"""
-<div class="note"><b>画面の絵はすべてコードからの再現で、実機のスクリーンショットではありません。</b>文言は
+<div class="note"><b>画面の絵はコードからの再現で、実機のスクリーンショットではありません。</b>ただし 3.0 節の 3 枚は、
+スクリーンショットテスト（Roborazzi）が Robolectric の上で実際の Compose のコードを描いた画像です（実機ではないため、端末ごとの違いは含まない）。文言は
 <code>strings.xml</code>、色と角の丸みは <code>designsystem/ThemePreset.kt</code> から生成時に読み込んでいます。
 配置・余白は Compose のコードを読んで近づけたもので、実機と細部は異なります。アイコンは Material Icons の形の近似です
 （ウィジェットのマイク・キーボードとアプリのアイコンは <code>res/drawable</code> の pathData をそのまま使用）。
@@ -556,24 +663,32 @@ def ch_flow():
     f = lambda t, c="": f'<div class="fb {c}">{t}</div>'
     a = '<span class="ar">→</span>'
     flows = [
+        [f("初回起動", "s"), a, f("はじめての案内（3 枚＋ホーム画面に置く）"), f(s("tab_memo"))],
         [f("下タブ", "s"), f(s("tab_memo")), f(s("tab_calendar")), f(s("tab_reminder"))],
-        [f(s("tab_memo"), "s"), a, f("追加シート（" + s("memo_add_by_voice") + " / " + s("memo_add_by_text") + "）"), f("編集シート"), f("お店を選ぶシート")],
-        [f(s("tab_calendar"), "s"), a, f("日の詳細"), f("記録の編集シート"), f(s("calendar_search"))],
-        [f(s("tab_reminder"), "s"), a, f("期限を決めるシート"), f("通知の許可の案内")],
-        [f("⚙ " + s("settings_title"), "s"), a] + [f(s(k)) for k in SETTINGS_ITEMS] + [f("使い方（未実装）", "d"), f("ホーム画面に置く（未実装）", "d")],
+        [f(s("tab_memo"), "s"), a, f("追加シート（" + s("memo_add_by_voice") + " / " + s("memo_add_by_text") + "）"), f("編集シート"), f("お店を選ぶシート"),
+         f("使い方のページ（" + s("help_open") + "）")],
+        [f(s("tab_calendar"), "s"), a, f("日の詳細"), f("記録の編集シート"), f(s("calendar_add_record")), f(s("calendar_search"))],
+        [f(s("tab_reminder"), "s"), a, f("期限を決めるシート"), f("通知の許可の案内"), f("使い方のページ（" + s("help_not_arriving") + "）")],
+        [f("⚙ " + s("settings_title"), "s"), a] + [f(s(k)) for k in SETTINGS_ITEMS],
+        [f(s("settings_help"), "s"), a, f("目次"), f("ページ"), f(s("help_show_guide") + " / " + s("help_try") + "（各画面へ）"), f(s("help_show_onboarding"))],
         [f(s("settings_about"), "s"), a, f(s("about_licenses")), f("ブラウザ（プライバシーポリシー・GitHub・ストア）", "d")],
-        [f("ウィジェット・通知・ショートカット", "s"), a, f("音声入力シート（ホーム画面に重ねる）"), f("メモ（項目を光らせる）"), f(s("tab_reminder"))],
+        [f("ウィジェット・通知・ショートカット", "s"), a, f("音声入力シート（ホーム画面に重ねる）"), f("メモ（項目を光らせる・追加シート）"),
+         f(s("tab_calendar")), f(s("tab_reminder"))],
     ]
     body = "".join(f'<div class="flow">{"".join(x)}</div>' for x in flows)
-    return section("flow", "2. 画面構成と遷移", "下タブ 3 つ＋右上の ⚙ せってい（PLAN §3）。点線は未実装または外部。", body)
+    return section("flow", "2. 画面構成と遷移", "下タブ 3 つ＋右上の ⚙ せってい（PLAN §3）。点線は外部。", body)
 
 
 def ch_screens():
+    actual = grid(*[
+        f'<figure><img src="{screenshot(sc)}" width="360" height="640" alt="{title}の実際の描画" style="border-radius:12px;'
+        f'box-shadow:0 0 0 1px #ccc"><figcaption><b>{title}</b><br>mobile/screenshots/{sc}/pop_light_normal.png</figcaption></figure>'
+        for sc, title in [("memo", s("tab_memo")), ("calendar", s("tab_calendar")), ("reminder", s("tab_reminder"))]])
     memo = grid(
         fig(memo_screen(), "メモ（項目あり）", "上にお店のチップ、下に 🎤 話して追加（64dp）と文字で追加。左の ○ で「買った」。"),
         fig(swipe_screen(), "スワイプと元に戻す", "右へで「買った」、左へで「やめた」。しきい値は画面幅の 40%。下に「元に戻す」。"),
-        fig(memo_screen(items=False), "メモ（空）", "最初の案内の文言を中央に出す。"),
-        fig(memo_screen(voice=False, circle=False), "音声入力が無い端末・○ を消した設定", "マイクのボタンを出さず案内文を出す。○ はそうさの設定で消せる。"),
+        fig(memo_screen(items=False), "メモ（空）", "最初の案内の文言と「" + s("help_open") + "」（話して入れるページへ、H-03）。"),
+        fig(memo_screen(voice=False, circle=False), "音声入力が無い端末・○ を消した設定", "マイクのボタンを出さず案内文と「" + s("help_open") + "」を出す。○ はそうさの設定で消せる。"),
     )
     sheets = grid(
         fig(add_sheet(), "追加シート（文字）", "入力中の候補と「いつもの」チップ。チップは押すたびに 1 件入る。"),
@@ -587,14 +702,27 @@ def ch_screens():
         fig(voice_sheet("cards"), "音声入力（確認カード）", "分けた品目をカードで確かめて追加。メモにある物は印を付ける。"),
     )
     others = grid(
-        fig(calendar_screen(), "カレンダー", "月の表示（日曜は error、土曜は tertiary の色）、お店の色のドット、選んだ日の記録。"),
+        fig(calendar_screen(), "カレンダー", "月の表示（日曜は赤・土曜は青、CalendarColors）、お店の色のドット、選んだ日の記録と「" + s("calendar_add_record") + "」。"),
         fig(calendar_screen(search=True), "カレンダー（さがす）", "品名で記録を検索し、日付へ移れる。"),
+        fig(add_record_sheet(), "あとから記録（F-17）", "メモに入れていなかった物を、選んだ日に買った物として記録する。品名が空のうちは押せない。"),
         fig(reminder_screen(), "おしらせ", "最近買った物（期限を決める）と、期限が近い順の一覧。"),
         fig(reminder_screen(due_sheet=True), "期限を決めるシート", "チップで選び、日付の入力をなるべく要らなくする。"),
     )
+    guide = grid(
+        fig(onboarding_screen(0), "はじめての案内（1 枚目）", "初回起動時だけ全画面で出す。「とばす」は常に出す。権限は求めない。「" + s("onboarding_demo_spoken") + "」が 2 つに分かれる手本を動かす（絵は最後の形）。"),
+        fig(onboarding_screen(3), "はじめての案内（最後）", "ホーム画面に置く（W-03）。「置く」では閉じず、「あとで」で閉じる。"),
+        fig(memo_screen(items=False, spot="mic", overlay=guide_bubble("guide_g02", top=330)), "その場のガイド G-02",
+            "空のメモで 🎤 を照らす。暗くするのは見た目だけで、照らした部品はそのまま押せる。"),
+        fig(memo_screen(practice=True, spot="practice", overlay=guide_bubble("guide_g03", top=200)), "G-03 と「れんしゅう」",
+            "一番上に DB に入れない「" + s("guide_practice_item") + "」を出し、動かすと練習を終える（記録・候補・元に戻すに残さない）。"),
+        fig(memo_screen(overlay=guide_bubble("guide_g06")), "読み上げ利用時のガイド（R-56）",
+            "TalkBack を使っているときは照らさず、画面下のカードで同じ内容を出して「" + s("guide_ok") + "」へ移る。"),
+    )
     return section("screens", "3. 各画面", "状態の違いはコードの分岐から代表的な組み合わせを選んだ。",
-                   "<h3>3.1 メモ</h3>" + memo + "<h3>3.2 メモのシート</h3>" + sheets + "<h3>3.3 話して追加</h3>" + voice
-                   + "<h3>3.4 カレンダー・おしらせ</h3>" + others)
+                   "<h3>3.0 実際の描画（スクリーンショットテスト）</h3>"
+                   "<p class='lead'>テーマ「ポップ」・明るい・ふつう。4 テーマ × 明暗 × 文字の大きさ 3 段階の 72 枚は mobile/screenshots/ にある。</p>"
+                   + actual + "<h3>3.1 メモ</h3>" + memo + "<h3>3.2 メモのシート</h3>" + sheets + "<h3>3.3 話して追加</h3>" + voice
+                   + "<h3>3.4 カレンダー・おしらせ</h3>" + others + "<h3>3.5 はじめての案内とその場のガイド</h3>" + guide)
 
 
 def ch_settings():
@@ -611,7 +739,12 @@ def ch_settings():
         fig(feedback_screen(), s("settings_feedback"), "よくある質問（押すと答え）→ GitHub。版と機種名をコピーできる。"),
         fig(about_screen(), s("settings_about"), "版・名前の由来・ライセンス一覧・外部のページ。"),
     )
-    return section("settings", "4. せってい", "右上の ⚙ から開く画面。", g1 + g2)
+    g3 = grid(
+        fig(help_index_screen(), s("settings_help") + "（目次）", "せっていの一番上。章とページは assets/help/index.md（先頭 3 章を表示）。"),
+        fig(help_page_screen(), s("settings_help") + "（ページ）", "本文は assets/help/ の Markdown。下に「" + s("help_show_guide") + "」「" + s("help_try") + "」。"),
+        fig(home_screen_settings(), s("settings_home_screen"), "2 種の見本と「" + s("home_screen_pin") + "」。メモ一覧は 4×4 で置かれる。"),
+    )
+    return section("settings", "4. せってい", "右上の ⚙ から開く画面。", g1 + g2 + g3)
 
 
 def ch_dialogs():
@@ -627,6 +760,11 @@ def ch_dialogs():
         ["ウィジェットから追加", s("widget_voice_added", 3), "トースト"],
         ["外部のページ", s("about_no_browser"), "ブラウザが無いとき"],
     ]
+    guide_rows = [[g, s("guide_" + g.lower().replace("-", "")), w] for g, w in [
+        ("G-02", "空のメモを初めて開いた（🎤）"), ("G-03", "初めてメモに項目が入った（れんしゅう項目）"),
+        ("G-04", "練習を終えた・とばした（一番上の ○。○ を出す設定のときだけ）"), ("G-05", "初めて「買った」にした（元に戻す）"),
+        ("G-06", "G-05 の後でお店を選んでいない（お店のチップ）"), ("G-07", "初めてカレンダーを開いた（その月の最初の買い物の日）"),
+        ("G-08", "初めて「買った」の後におしらせを開いた（一番上の「期限を決める」）")]]
     rows_n = [
         ["前日", s("notification_due_tomorrow", "豆腐"), s("notification_due_many_tomorrow", "豆腐", 2)],
         ["当日", s("notification_due_today", "食パン"), s("notification_due_many_today", "食パン", 2)],
@@ -636,7 +774,9 @@ def ch_dialogs():
     return section("dialogs", "5. ダイアログ・知らせ・通知", "文言はすべて strings.xml から。", table(["場面", "文言", "出す条件"], rows)
                    + "<h3>通知（チャンネル「" + s("notification_channel_due") + "」）</h3>"
                    + grid(fig(notification(), "1 品目の通知", "押すとおしらせの一覧。ボタンは 1 品目の時だけ。"))
-                   + table(["種類", "1 品目", "まとめた時（同じ日の 1 通）"], rows_n))
+                   + table(["種類", "1 品目", "まとめた時（同じ日の 1 通）"], rows_n)
+                   + "<h3>その場のガイド（1 画面に 1 つ・各 1 回。シート表示中は出さない）</h3>"
+                   + table(["ID", "吹き出しの文", "きっかけ（照らす場所）"], guide_rows))
 
 
 def ch_widgets():
@@ -646,7 +786,10 @@ def ch_widgets():
             f'{voice_widget(theme="COOL", mode="dark")}{memo_widget(theme="COOL", mode="dark")}</div>')
     rows = [
         ["話して追加（1×1〜2×2）", s("widget_voice_name"), "押すと音声入力シートを重ねて開く。横 2 マス以上で文字を横に並べる。音声入力が無い端末は「" + s("widget_write_label") + "」"],
-        ["メモ一覧（4×2〜4×4）", s("widget_memo_name"), "表示専用。行はその項目、期限が近い件数はおしらせ、ほかはメモを開く。幅 250dp 未満で品名 2 件・数量を下へ"],
+        ["メモ一覧（既定 4×4、3×2〜5×6）", s("widget_memo_name"), "表示専用。行はその項目、期限が近い件数はおしらせ、ほかはメモを開く。幅 250dp 未満で品名 2 件・数量を下へ。"
+         "アプリから置く（W-03）と 4×4 で置かれ、長押しで 4×2 などへ小さくできる"],
+        ["ショートカット（アイコンの長押し）", "、".join(s(k) for k in ["shortcut_voice", "shortcut_text", "shortcut_calendar", "shortcut_reminder"]),
+         "起動時に動的ショートカットとして登録（debug 版でも動くように）。ホーム画面アプリが対応していれば単独で置ける"],
     ]
     return section("widgets", "6. ホーム画面ウィジェット", "Glance。色はアプリのテーマと暗い画面の設定に合わせる（背景はホーム画面のイメージ）。",
                    home + table(["ウィジェット", "選ぶ画面での名前", "動き"], rows)
@@ -679,6 +822,8 @@ def ch_tokens():
                         "端末の文字サイズ × 1.0 / 1.15 / 1.3（上限 2.0 倍）", "<code>TextSizeSetting.kt</code>"],
                        ["押せる部分の高さ", "48dp 以上（行 56dp、🎤 話して追加 64dp）", "各画面の <code>heightIn</code>"],
                        ["スワイプのしきい値", "画面幅の 40%", "<code>SwipeableItemRow.kt</code>"],
+                       ["背景の写真の膜", "テーマの背景色、濃さ 0.3〜0.9（既定 0.6）。暗い画面では 0.15 濃く（上限 0.95）", "<code>BackgroundScrim.kt</code>"],
+                       ["ガイドの周りの暗さ", "黒 55%", "<code>GuideOverlay.kt</code>"],
                        ["フォント", "端末標準（同梱しない）", "PLAN §2.7"],
                    ]))
 
@@ -697,10 +842,14 @@ def ch_variants():
 
 def ch_findings():
     items = [
-        ("実機で未確認", "すべての画面は Robolectric の画面テストとコントラストのテストでのみ確認。実機での配置・文字の大きさ「とても大きい」での崩れ・ホーム画面アプリごとのウィジェットの大きさは<span class='tag unk'>未確認</span>。"),
-        ("未実装の UI", "はじめてのガイドと使い方（BL-080・081）、ホーム画面に置く・ショートカット（BL-072）、背景画像（BL-061）、あとから記録（BL-043）。"
-                       "<span class='tag todo'>残りの BL の完了後に本書を更新する</span>"),
-        ("アクセシビリティ", "アイコンだけのボタンには説明を付け、色だけで伝えず文字を添えている（スワイプの背景、せっていの ⚙ に文字）。読み上げの順序・TalkBack での操作は<span class='tag unk'>未確認</span>（BL-085）。"),
+        ("実機で未確認", "画面は Robolectric の画面テスト・コントラストのテスト・スクリーンショットテスト（72 枚）で確認。実機での配置、"
+                       "ガイドの吹き出しの位置、背景の写真の見え方、ホーム画面アプリごとのウィジェットの大きさは<span class='tag unk'>未確認</span>（人手検証として BACKLOG に残っている）。"),
+        ("未実装の UI", "PLAN の MVP の UI はすべて実装済み（「LINE などで送る」F-08 など S 以下の機能は対象外）。"),
+        ("動き", "はじめての案内 1 枚目は「牛乳とたまご」が 2 つに分かれる手本を 3 回、G-03 はれんしゅう項目を右へ少し動かす手本を 2 回見せて止まる。"
+               "端末の「アニメーションを減らす」では動かさない（R-56）。本書の絵は止まった最後の形。"),
+        ("アクセシビリティ", "アイコンだけのボタンには説明を付け、色だけで伝えず文字を添えている（スワイプの背景、せっていの ⚙ に文字）。"
+                          "メモの行は読み上げの操作の一覧に「" + s("memo_bought") + "」「" + s("memo_dismissed") + "」を出す。TalkBack での実際の読み上げ順は<span class='tag unk'>未確認</span>。"),
+        ("暗い画面のカレンダー", "端末は明るい設定・アプリだけ暗い画面のとき、曜日の色とお店の点が明るい画面用の色になる不具合があり、スクリーンショットテストで見つけて直した（LocalDarkTheme）。"),
         ("ウィジェットの見出し", "メモ一覧（幅 250dp）の見出しは「" + s("widget_memo_title") + "」「" + s("widget_memo_count", 5) + "」「"
                          + s("widget_memo_due_soon", 2) + "」を 1 行に並べるため、本書の再現では収まらず末尾が切れる。"
                          "Glance では各文字が 1 行で、はみ出し方はホーム画面アプリの大きさと端末の文字サイズで変わる<span class='tag unk'>未確認</span>。"),

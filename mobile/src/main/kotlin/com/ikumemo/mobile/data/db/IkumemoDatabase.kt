@@ -36,6 +36,8 @@ abstract class IkumemoDatabase : RoomDatabase() {
 
     abstract fun reminderDao(): ReminderDao
 
+    abstract fun photoDao(): PhotoDao
+
     companion object {
         const val FILE_NAME = "ikumemo.db"
 

@@ -226,3 +226,14 @@ interface ReminderDao {
     @Query("SELECT * FROM reminder WHERE status = 'PENDING' ORDER BY dueDate, id")
     fun observePending(): Flow<List<ReminderEntity>>
 }
+
+/** 写真の参照（R-14 の掃除で使う）。メモ・お買い物・記録のどれかが使っている写真の相対パス。 */
+@Dao
+interface PhotoDao {
+    @Query(
+        "SELECT photoUri FROM shopping_item WHERE photoUri IS NOT NULL " +
+            "UNION SELECT photoUri FROM shopping_trip WHERE photoUri IS NOT NULL " +
+            "UNION SELECT photoUri FROM purchase_record WHERE photoUri IS NOT NULL",
+    )
+    suspend fun referencedPhotos(): List<String>
+}

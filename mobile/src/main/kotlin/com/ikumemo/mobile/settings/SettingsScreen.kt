@@ -60,11 +60,14 @@ enum class SettingsItem(
     val title: Int,
     val route: Any,
 ) {
+    // 使い方は上の方に置く（「このアプリについて」の中に埋めない、H-01）
+    HELP(R.string.settings_help, HelpRoute),
     APPEARANCE(R.string.settings_appearance, AppearanceRoute),
     OPERATION(R.string.settings_operation, OperationRoute),
     REMINDER(R.string.settings_reminder, ReminderSettingsRoute),
     STORES(R.string.settings_stores, StoreManageRoute),
     PRODUCTS(R.string.settings_products, ProductManageRoute),
+    HOME_SCREEN(R.string.settings_home_screen, HomeScreenRoute),
     FEEDBACK(R.string.settings_feedback, FeedbackRoute),
     ABOUT(R.string.settings_about, AboutRoute),
 }

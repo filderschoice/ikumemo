@@ -9,6 +9,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
@@ -32,7 +33,7 @@ fun IkumemoTheme(
             density = density.density,
             fontScale = TextSizeSetting.effectiveFontScale(density.fontScale, textSize),
         )
-    CompositionLocalProvider(LocalDensity provides scaledDensity) {
+    CompositionLocalProvider(LocalDensity provides scaledDensity, LocalDarkTheme provides darkTheme) {
         MaterialTheme(
             colorScheme = palette.toColorScheme(darkTheme),
             shapes = preset.corners.toShapes(),
@@ -40,6 +41,12 @@ fun IkumemoTheme(
         )
     }
 }
+
+/**
+ * いま暗い画面で描いているか（きせかえの「暗い画面」を反映した値）。テーマの外の色（カレンダーの曜日の色など）を選ぶときは、
+ * 端末の設定（`isSystemInDarkTheme`）ではなくこれを見る。
+ */
+val LocalDarkTheme = staticCompositionLocalOf { false }
 
 internal fun IkumemoPalette.toColorScheme(darkTheme: Boolean): ColorScheme {
     val base = if (darkTheme) darkColorScheme() else lightColorScheme()

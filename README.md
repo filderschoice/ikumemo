@@ -105,6 +105,14 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 - [CONTRIBUTING.local.md](CONTRIBUTING.local.md): 報告の受け付け方針（Issue は受付、外部の Pull Request は非受付）と
   本リポジトリ固有の開発プロセス（共通規約は [CONTRIBUTING.md](CONTRIBUTING.md)）
 - [SECURITY.md](SECURITY.md): 脆弱性の報告方法
+- [docs/USER_GUIDE.md](docs/USER_GUIDE.md): 使い方（アプリ内の使い方 `mobile/src/main/assets/help/` から
+  `scripts/make-user-guide.py` で作る）
+- [docs/SUPPORT.md](docs/SUPPORT.md): よくある質問・ご意見の送り方（利用者向け）
+- [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md): バージョンごとの変更点（利用者向け）
+- [docs/CLOSED_TEST.md](docs/CLOSED_TEST.md): クローズドテスト参加の案内
+- [docs/FEEDBACK.md](docs/FEEDBACK.md): ご意見の受け付けと運用の手順（オーナー向け）
+- [docs/store/PRIVACY_POLICY.md](docs/store/PRIVACY_POLICY.md) / [docs/store/STORE_LISTING.md](docs/store/STORE_LISTING.md):
+  プライバシーポリシー（公開版）とストア掲載文の正本
 - [CHANGELOG.md](CHANGELOG.md): リポジトリの運用ルール・ドキュメントの変更履歴
 - [CLAUDE.md](CLAUDE.md) / [.github/copilot-instructions.md](.github/copilot-instructions.md): AI エージェントの実行ルール
 

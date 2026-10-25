@@ -19,13 +19,15 @@ import kotlin.math.roundToInt
  * 写真の保存（F-07、PLAN §4.3）。他アプリから受け取った写真はアプリ専用領域（`filesDir/photos/`）へコピーし、
  * 元の URI は保持しない（PLAN §5）。保存時に長辺 [MAX_LONG_SIDE]px へ縮小し、Exif（撮影位置など）を持たない JPEG にする。
  *
- * DB には `photos/<ファイル名>` の相対パスを保存する。
+ * DB には `photos/<ファイル名>` の相対パスを保存する。背景画像（F-61）は [dirName] に [BACKGROUND_DIR] を渡して
+ * `filesDir/background/` へ同じ形で保存する（写真と分けて、自動バックアップの対象に残すため。F-71）。
  */
 class PhotoStore(
     context: Context,
+    private val dirName: String = PHOTOS_DIR,
 ) {
     private val appContext = context.applicationContext
-    private val photosDir get() = File(appContext.filesDir, PHOTOS_DIR).apply { mkdirs() }
+    private val photosDir get() = File(appContext.filesDir, dirName).apply { mkdirs() }
 
     /** 写真を取り込み、保存した相対パスを返す。読めない画像なら null。 */
     suspend fun import(source: Uri): String? =
@@ -44,6 +46,11 @@ class PhotoStore(
 
     fun fileOf(relativePath: String): File = File(appContext.filesDir, relativePath)
 
+    /** 保存した写真を 1 枚消す。このストアのフォルダの外は消さない。 */
+    fun delete(relativePath: String) {
+        if (relativePath.startsWith("$dirName/")) fileOf(relativePath).delete()
+    }
+
     /** カメラアプリに撮ってもらう一時ファイル（`TakePicture` に渡す content URI）。取り込んだら消す。 */
     fun newCameraUri(): Uri {
         val dir = File(appContext.cacheDir, CAMERA_DIR).apply { mkdirs() }
@@ -55,12 +62,18 @@ class PhotoStore(
         File(appContext.cacheDir, CAMERA_DIR).listFiles()?.forEach { it.delete() }
     }
 
-    /** 参照されていない写真を消す（R-14）。消した数を返す。 */
-    fun deleteUnreferenced(referenced: Set<String>): Int =
+    /**
+     * 参照されていない写真を消す（R-14）。消した数を返す。[modifiedBeforeMillis] より後に書いた写真は、
+     * 編集シートで取り込んだばかりでまだ保存されていない可能性があるため残す。
+     */
+    fun deleteUnreferenced(
+        referenced: Set<String>,
+        modifiedBeforeMillis: Long = Long.MAX_VALUE,
+    ): Int =
         photosDir
             .listFiles()
             .orEmpty()
-            .filter { "$PHOTOS_DIR/${it.name}" !in referenced }
+            .filter { "$dirName/${it.name}" !in referenced && it.lastModified() < modifiedBeforeMillis }
             .count { it.delete() }
 
     private fun save(bitmap: Bitmap): String {
@@ -71,7 +84,7 @@ class PhotoStore(
         temp.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
         bitmap.recycle()
         check(temp.renameTo(target)) { "写真を保存できませんでした" }
-        return "$PHOTOS_DIR/$name"
+        return "$dirName/$name"
     }
 
     private fun readBounds(stream: InputStream): Pair<Int, Int>? {
@@ -87,6 +100,7 @@ class PhotoStore(
 
     companion object {
         const val PHOTOS_DIR = "photos"
+        const val BACKGROUND_DIR = "background"
         const val MAX_LONG_SIDE = 1600
         private const val CAMERA_DIR = "camera"
         private const val JPEG_QUALITY = 85
