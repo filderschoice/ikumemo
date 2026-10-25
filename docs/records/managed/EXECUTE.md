@@ -5,6 +5,32 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 16:39
+  summary: 通知などから開いた直後はおしらせ・カレンダーでもガイドを出さない（R-52）、外から開いたあとのタブの切り替えの不具合を修正
+  details:
+    変更内容: >-
+      IkumemoApp で通知・ウィジェット・ショートカットから開いた画面を覚え、その画面にいる間はおしらせ・カレンダーの吹き出しを出さないようにした
+      （CalendarScreen・ReminderScreen の showGuide。表示済みにはしないので、ほかの画面へ移ってから自分で開くと出る）。ほかの画面へ移ったら忘れる。
+      UI テストを書く中で、外から開くときに画面をメモの上に積んでいたため、そのあとメモのタブを押すとタブの戻る履歴の復元で開いた画面へ戻ってしまう
+      不具合を見つけ、外から開くときも下タブと同じ切り替え方（navigateToTab）にした。DESIGN と UI デザイン設計書の所見を直した
+    変更ファイル:
+      - docs/design/UI_DESIGN.html
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/OpenedFromOutsideGuideTest.kt
+      - scripts/ui-doc/gen_ui_doc.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 途中で、外から開いたおしらせからメモのタブへ移れない現象をナビゲーションの状態の出力で調べ、上記の不具合と特定した
+      （最初に疑った NavHost の画面一覧の作り直しは原因ではなかったため、その変更は戻した）。BUILD SUCCESSFUL（約 3 分 15 秒、単体テスト 237 件。
+      追加は通知から開いたおしらせで G-08 を出さず、メモへ移ってから自分で開くと出る 1 件）、markdownlint 0 issues、記録ファイル OK、docs/USER_GUIDE.md OK
+    関連ID:
+      - BL-099
 - date: 2026-10-25 16:16
   summary: はじめての案内 1 枚目と G-03 の手本のアニメーション（R-56 のアニメーションを減らす設定に対応）（M8）
   details:

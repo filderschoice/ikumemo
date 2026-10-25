@@ -56,11 +56,14 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewModelFactory.Factory)) {
+fun CalendarScreen(
+    showGuide: Boolean = true,
+    viewModel: CalendarViewModel = viewModel(factory = AppViewModelFactory.Factory),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val photoStore = remember(context) { PhotoStore(context) }
-    CalendarContent(state = state, photoStore = photoStore, onEvent = viewModel::onEvent)
+    CalendarContent(state = state, photoStore = photoStore, onEvent = viewModel::onEvent, showGuide = showGuide)
     state.editing?.let { record ->
         RecordEditSheet(record = record, stores = state.stores, photoStore = photoStore, onEvent = viewModel::onEvent)
     }
@@ -79,6 +82,7 @@ fun CalendarContent(
     state: CalendarUiState,
     photoStore: PhotoStore,
     onEvent: (CalendarEvent) -> Unit,
+    showGuide: Boolean = true,
 ) {
     var enlargedPhoto by rememberSaveable { mutableStateOf<String?>(null) }
     val guideTargets = rememberGuideTargets()
@@ -92,7 +96,8 @@ fun CalendarContent(
                     MonthPane(state, photoStore, onEvent, onPhotoClick = { enlargedPhoto = it })
                 }
             }
-            state.guide?.let { guide ->
+            // 通知などから開いた直後は出さない（表示済みにもしないので、次に開いたときに出る、R-52）
+            state.guide?.takeIf { showGuide }?.let { guide ->
                 GuideOverlay(
                     guide = guide,
                     onDismiss = { onEvent(CalendarEvent.GuideDismissed(guide)) },

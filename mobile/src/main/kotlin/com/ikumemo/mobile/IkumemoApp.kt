@@ -101,6 +101,8 @@ fun IkumemoApp(
     onTabOpened: () -> Unit = {},
 ) {
     var memoRequest by remember { mutableStateOf<ScreenRequest?>(null) }
+    // 通知・ウィジェット・ショートカットから開いた画面。その画面にいる間はその場のガイドを出さない（R-52）
+    var outsideRoute by remember { mutableStateOf<KClass<*>?>(null) }
     // 通知・ウィジェット・ショートカットから起動したときは、はじめての案内を挟まずにその画面を開く
     val launchedFromOutside = remember { requestedScreen != null }
     val guide: GuideViewModel = viewModel(factory = AppViewModelFactory.Factory)
@@ -121,7 +123,9 @@ fun IkumemoApp(
             }
         // 起動直後は NavHost が画面の一覧（graph）を設定し終える前に来ることがあるため、設定されるまで待つ
         navController.currentBackStackEntryFlow.first()
-        navController.navigate(route) { launchSingleTop = true }
+        outsideRoute = route::class
+        // 下タブと同じ切り替え方にする（メモの上に積むと、タブの戻る履歴の保存・復元でメモのタブからこの画面へ戻ってしまう）
+        navController.navigateToTab(route)
         onTabOpened()
     }
     // 編集シートの各欄のマイク（F-04）。アプリ全体で 1 つの聞き取りを共有する
@@ -132,7 +136,7 @@ fun IkumemoApp(
         showOnboarding -> Onboarding(onFinish = guide::finishOnboarding)
         else ->
             CompositionLocalProvider(LocalFieldDictation provides dictation) {
-                AppScaffold(navController, memoRequest) { memoRequest = it }
+                AppScaffold(navController, memoRequest, outsideRoute, { outsideRoute = null }) { memoRequest = it }
             }
     }
 }
@@ -149,8 +153,16 @@ private fun Onboarding(onFinish: () -> Unit) {
 private fun AppScaffold(
     navController: NavHostController,
     memoRequest: ScreenRequest?,
+    outsideRoute: KClass<*>?,
+    onLeftOutsideRoute: () -> Unit,
     onMemoRequestChange: (ScreenRequest?) -> Unit,
 ) {
+    // 外から開いた画面を離れたら忘れる（次に自分で開いたときはガイドを出す）
+    val destination = navController.currentBackStackEntryAsState().value?.destination
+    LaunchedEffect(destination, outsideRoute) {
+        val route = outsideRoute ?: return@LaunchedEffect
+        if (destination != null && !destination.hasRoute(route)) onLeftOutsideRoute()
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         // 背景画像を設定していれば、背景色を塗らずに写真と膜を透かす（F-61）
@@ -174,10 +186,24 @@ private fun AppScaffold(
                         ),
                 )
             }
-            composable<CalendarRoute> { CalendarScreen() }
-            composable<ReminderRoute> { ReminderScreen(onOpenHelp = { navController.navigate(HelpPageRoute(it)) }) }
+            composable<CalendarRoute> { CalendarScreen(showGuide = outsideRoute != CalendarRoute::class) }
+            composable<ReminderRoute> {
+                ReminderScreen(
+                    onOpenHelp = { navController.navigate(HelpPageRoute(it)) },
+                    showGuide = outsideRoute != ReminderRoute::class,
+                )
+            }
             settingsGraph(navController) { screen -> openFromHelp(navController, screen, onMemoRequestChange) }
         }
+    }
+}
+
+/** 下タブの画面へ切り替える。開始画面まで戻してから開き、タブごとの状態は保存・復元する。 */
+private fun NavHostController.navigateToTab(route: Any) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 
@@ -208,13 +234,7 @@ private fun BottomTabs(navController: NavHostController) {
         TopLevelTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = destination?.hasRoute(tab.routeClass) == true,
-                onClick = {
-                    navController.navigate(tab.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
+                onClick = { navController.navigateToTab(tab.route) },
                 icon = { Icon(tab.icon, contentDescription = null) },
                 label = { Text(stringResource(tab.label)) },
                 modifier = Modifier.testTag(tab.testTag),

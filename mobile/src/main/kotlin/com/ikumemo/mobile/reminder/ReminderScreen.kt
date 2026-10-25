@@ -57,6 +57,7 @@ import java.time.LocalDate
 @Composable
 fun ReminderScreen(
     onOpenHelp: (String) -> Unit = {},
+    showGuide: Boolean = true,
     viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -79,6 +80,7 @@ fun ReminderScreen(
         onEvent = onEvent,
         onEnableNotifications = permission::enable,
         onOpenHelp = onOpenHelp,
+        showGuide = showGuide,
     )
     state.dueTarget?.let { DueSheet(target = it, today = state.today, onEvent = onEvent) }
     permission.Dialog()
@@ -91,6 +93,7 @@ fun ReminderContent(
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
     onOpenHelp: (String) -> Unit = {},
+    showGuide: Boolean = true,
 ) {
     val guideTargets = rememberGuideTargets()
     CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
@@ -99,7 +102,8 @@ fun ReminderContent(
                 TopAppBar(title = { Text(stringResource(R.string.tab_reminder)) }, windowInsets = WindowInsets(0))
                 ReminderList(state, onEvent, onEnableNotifications, onOpenHelp)
             }
-            state.guide?.let { guide ->
+            // 通知から開いた直後は出さない（表示済みにもしないので、次に開いたときに出る、R-52）
+            state.guide?.takeIf { showGuide }?.let { guide ->
                 GuideOverlay(
                     guide = guide,
                     onDismiss = { onEvent(ReminderEvent.GuideDismissed(guide)) },
