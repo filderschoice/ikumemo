@@ -5,6 +5,43 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 21:08
+  summary: 背景の写真の上の文字が見えないときのために、ペンの色（おまかせ・くろ・あお・あか・しろ）を選べるようにする
+  details:
+    変更内容: >-
+      きせかえの「背景の写真」に「文字の色（ペンの色）」を足した。選ぶと写真の上に直接置く文字（onBackground と LocalContentColor）をその色にし、
+      色に合わせて膜の色も変える（くろ・あお・あかは明るい膜、しろは暗い膜。文字との比は 4.5:1 以上）。暗い写真でテーマの黒い文字が沈む問題は、
+      しろを選べば解消する。背景の写真が無いときと おまかせ のときは今までどおり。保存キーは appearance_ink で、データの書き出し・読み込みの設定にも
+      入れた（古いファイルは おまかせ に戻る）。メモの行・バー・下タブなどテーマの面の上の文字は変えない。
+      detekt の指摘（メンバー名が型名と同じ）は名前を変えて解消した（設定は変えない）。使い方・DESIGN・WIREFRAME に反映した
+    変更ファイル:
+      - docs/USER_GUIDE.md
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/assets/help/background.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/BackgroundScrim.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/InkColor.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/InkColorTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 追加は InkColorTest 3 件（各ペンの色と膜の比が 4.5:1 以上、おまかせは色を変えない、未知の保存値は おまかせ）と
+      AppearanceViewModelTest 1 件（ペンの色の保存）。FlowRow の実験的 API の注釈を足した。スクリーンショットテストの対象画面（メモ・カレンダー・
+      おしらせ）は変わらないため流していない。実機での全画面の見え方は人手検証（BL-109）
+    関連ID:
+      - BL-108
+      - BL-109
 - date: 2026-10-25 20:57
   summary: メモ一覧ウィジェットをメモ帳風にする（見出しの下の線・行ごとの罫線・左の余白の縦線）
   details:

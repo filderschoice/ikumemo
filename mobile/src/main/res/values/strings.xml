@@ -239,6 +239,12 @@
     <string name="appearance_background">背景の写真</string>
     <string name="appearance_background_pick">写真を選ぶ</string>
     <string name="appearance_background_remove">外す</string>
+    <string name="appearance_ink">文字の色（ペンの色）</string>
+    <string name="appearance_ink_auto">おまかせ</string>
+    <string name="appearance_ink_black">くろ</string>
+    <string name="appearance_ink_blue">あお</string>
+    <string name="appearance_ink_red">あか</string>
+    <string name="appearance_ink_white">しろ</string>
     <string name="appearance_scrim">写真の上の膜の濃さ（濃いほど文字が読みやすい）</string>
     <string name="appearance_dark_mode">暗い画面</string>
     <string name="appearance_dark_system">端末に合わせる</string>

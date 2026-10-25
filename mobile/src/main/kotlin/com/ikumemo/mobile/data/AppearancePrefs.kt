@@ -7,12 +7,13 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-/** 見た目の設定（F-60 テーマ、F-63 ダークモード、F-65 文字の大きさ、F-61 背景画像と膜の濃さ）。 */
+/** 見た目の設定（F-60 テーマ、F-63 ダークモード、F-65 文字の大きさ、F-61 背景画像と膜の濃さ・ペンの色）。 */
 data class Appearance(
     val theme: ThemePreset = ThemePreset.DEFAULT,
     val darkMode: DarkMode = DarkMode.SYSTEM,
@@ -21,6 +22,8 @@ data class Appearance(
     val backgroundImage: String? = null,
     /** 膜の濃さ（[BackgroundScrim.MIN]〜[BackgroundScrim.MAX]）。 */
     val scrimLevel: Float = BackgroundScrim.DEFAULT,
+    /** 背景画像の上に直接置く文字の色（ペンの色）。背景画像が無いときは効かない。 */
+    val ink: InkColor = InkColor.AUTO,
 )
 
 /** 見た目の設定の保存（[AppSettings] と同じ DataStore）。各値は `storageKey` で保存し、未知の値は既定値へ戻す。 */
@@ -35,6 +38,7 @@ class AppearancePrefs(
                 textSize = TextSizeSetting.fromStorageKey(prefs[TEXT_SIZE]),
                 backgroundImage = prefs[BACKGROUND_IMAGE],
                 scrimLevel = BackgroundScrim.clamp(prefs[SCRIM_LEVEL] ?: BackgroundScrim.DEFAULT),
+                ink = InkColor.fromStorageKey(prefs[INK]),
             )
         }
 
@@ -59,11 +63,16 @@ class AppearancePrefs(
         dataStore.edit { it[SCRIM_LEVEL] = BackgroundScrim.clamp(level) }
     }
 
+    suspend fun setInk(ink: InkColor) {
+        dataStore.edit { it[INK] = ink.storageKey }
+    }
+
     private companion object {
         val THEME = stringPreferencesKey("appearance_theme")
         val DARK_MODE = stringPreferencesKey("appearance_dark_mode")
         val TEXT_SIZE = stringPreferencesKey("appearance_text_size")
         val BACKGROUND_IMAGE = stringPreferencesKey("appearance_background_image")
         val SCRIM_LEVEL = floatPreferencesKey("appearance_scrim_level")
+        val INK = stringPreferencesKey("appearance_ink")
     }
 }

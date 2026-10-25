@@ -15,6 +15,7 @@ import com.ikumemo.mobile.data.AppearancePrefs
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
 import com.ikumemo.mobile.testing.MainDispatcherRule
@@ -158,6 +159,18 @@ class AppearanceViewModelTest {
                 cancelAndIgnoreRemainingEvents()
             }
             assertEquals(BackgroundScrim.MAX, AppearancePrefs(dataStore).appearance.first().scrimLevel)
+        }
+
+    @Test
+    fun inkColorIsSavedAndDefaultsToAuto() =
+        runTest {
+            assertEquals(InkColor.AUTO, prefs.appearance.first().ink)
+            viewModel.appearance.test(timeout = TURBINE_TIMEOUT) {
+                viewModel.onEvent(AppearanceEvent.SelectInk(InkColor.WHITE))
+                assertEquals(InkColor.WHITE, awaitUntil { it.ink == InkColor.WHITE }.ink)
+                cancelAndIgnoreRemainingEvents()
+            }
+            assertEquals(InkColor.WHITE, AppearancePrefs(dataStore).appearance.first().ink)
         }
 
     @Test

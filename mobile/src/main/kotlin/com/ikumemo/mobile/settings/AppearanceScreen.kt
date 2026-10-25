@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -50,6 +51,7 @@ import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.IkumemoTheme
+import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
 
@@ -120,6 +122,7 @@ fun AppearanceContent(
 private const val BASE_SAMPLE_SP = 14f
 
 /** 背景の写真（F-61）。写真を選ぶ・外す、膜の濃さのスライダー（離したときに保存する）。 */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BackgroundSection(
     appearance: Appearance,
@@ -156,6 +159,17 @@ private fun BackgroundSection(
             valueRange = BackgroundScrim.MIN..BackgroundScrim.MAX,
             modifier = Modifier.fillMaxWidth().testTag(AppearanceTestTags.SCRIM),
         )
+        Text(stringResource(R.string.appearance_ink), style = MaterialTheme.typography.bodyMedium)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            InkColor.entries.forEach { ink ->
+                FilterChip(
+                    selected = ink == appearance.ink,
+                    onClick = { onEvent(AppearanceEvent.SelectInk(ink)) },
+                    label = { Text(stringResource(ink.label()), color = ink.textColor ?: Color.Unspecified) },
+                    modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.ink(ink)),
+                )
+            }
+        }
     }
 }
 
@@ -240,6 +254,15 @@ private fun DarkMode.label(): Int =
         DarkMode.DARK -> R.string.appearance_dark_dark
     }
 
+private fun InkColor.label(): Int =
+    when (this) {
+        InkColor.AUTO -> R.string.appearance_ink_auto
+        InkColor.BLACK -> R.string.appearance_ink_black
+        InkColor.BLUE -> R.string.appearance_ink_blue
+        InkColor.RED -> R.string.appearance_ink_red
+        InkColor.WHITE -> R.string.appearance_ink_white
+    }
+
 private fun TextSizeSetting.label(): Int =
     when (this) {
         TextSizeSetting.NORMAL -> R.string.appearance_text_normal
@@ -255,6 +278,8 @@ object AppearanceTestTags {
     fun theme(preset: ThemePreset) = "appearance_theme_${preset.storageKey}"
 
     fun darkMode(mode: DarkMode) = "appearance_dark_${mode.storageKey}"
+
+    fun ink(ink: InkColor) = "appearance_ink_${ink.storageKey}"
 
     fun textSize(size: TextSizeSetting) = "appearance_text_${size.storageKey}"
 }
