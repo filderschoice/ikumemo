@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.AppearancePrefs
+import com.ikumemo.mobile.data.DataEraser
 import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.OperationPrefs
 import com.ikumemo.mobile.data.PhotoCleaner
@@ -77,6 +78,15 @@ class AppContainer(
     val backgroundStore by lazy { PhotoStore(appContext, PhotoStore.BACKGROUND_DIR) }
 
     val photoCleaner by lazy { PhotoCleaner(database, PhotoStore(appContext), clock) }
+
+    /** データをすべて消す（F-76）。消したあとはお知らせの予約と通知を片付け、ウィジェットを空の表示に更新する（R-43）。 */
+    val dataEraser by lazy {
+        DataEraser(database, dataStore, listOf(PhotoStore(appContext), backgroundStore)) {
+            reminderNotifier.cancel()
+            reminderScheduler.reschedule()
+            widgetUpdater.refresh()
+        }
+    }
 
     /** 音声認識の窓口を作る。ViewModel ごとに 1 つ作り、ViewModel の破棄で片付ける。 */
     val speechEngineFactory: () -> SpeechEngine = { speechEngine(appContext) }

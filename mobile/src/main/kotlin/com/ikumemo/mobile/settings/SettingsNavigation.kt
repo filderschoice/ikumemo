@@ -43,6 +43,9 @@ object HomeScreenRoute
 object FeedbackRoute
 
 @Serializable
+object DataRoute
+
+@Serializable
 object AboutRoute
 
 @Serializable
@@ -79,6 +82,7 @@ fun NavGraphBuilder.settingsGraph(
     composable<ProductManageRoute> { ProductManageScreen(onBack = back) }
     composable<HomeScreenRoute> { HomeScreenScreen(onBack = back) }
     composable<FeedbackRoute> { FeedbackScreen(onBack = back) }
+    composable<DataRoute> { DataScreen(onBack = back) }
     composable<AboutRoute> { AboutScreen(onBack = back, onOpenLicenses = { navController.navigate(LicensesRoute) }) }
     composable<LicensesRoute> { LicensesScreen(onBack = back) }
 }

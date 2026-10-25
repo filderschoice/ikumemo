@@ -69,6 +69,7 @@ enum class SettingsItem(
     PRODUCTS(R.string.settings_products, ProductManageRoute),
     HOME_SCREEN(R.string.settings_home_screen, HomeScreenRoute),
     FEEDBACK(R.string.settings_feedback, FeedbackRoute),
+    DATA(R.string.settings_data, DataRoute),
     ABOUT(R.string.settings_about, AboutRoute),
 }
 

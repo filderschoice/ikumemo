@@ -501,7 +501,7 @@ def reminder_screen(due_sheet=False):
 
 
 SETTINGS_ITEMS = ["settings_help", "settings_appearance", "settings_operation", "settings_reminder", "settings_stores",
-                  "settings_products", "settings_home_screen", "settings_feedback", "settings_about"]
+                  "settings_products", "settings_home_screen", "settings_feedback", "settings_data", "settings_about"]
 
 
 def settings_screen():
@@ -539,6 +539,15 @@ def operation_screen():
     rows = (srow(s("operation_show_bought_button"), s("operation_show_bought_button_detail"), tog=True)
             + srow(s("operation_vibration"), s("operation_vibration_detail"), tog=True))
     return phone(appbar(s("settings_operation"), back=True) + f'<div class="body">{rows}</div>', cls="short")
+
+
+def data_screen(dialog_on=False):
+    body = f'<div class="body">{srow(s("data_erase_title"), s("data_erase_detail"))}</div>'
+    overlay = ""
+    if dialog_on:
+        overlay = sheet(f'<div style="font-size:22px">{s("data_erase_confirm_title")}</div><div style="margin:8px 0">{s("data_erase_confirm_detail")}</div>'
+                        f'<div style="display:flex;justify-content:flex-end"><span class="tbtn">{s("reminder_settings_cancel")}</span><span class="tbtn">{s("data_erase_confirm")}</span></div>')
+    return phone(appbar(s("settings_data"), back=True) + body + overlay, cls="short")
 
 
 def reminder_settings_screen():
@@ -737,6 +746,8 @@ def ch_settings():
         fig(store_manage_screen(dialog_on=True), "使わないお店にする確認", "記録のお店名は残ると説明する。"),
         fig(product_manage_screen(), s("settings_products"), "買った回数の多い順。オフにすると候補に出ない。"),
         fig(feedback_screen(), s("settings_feedback"), "よくある質問（押すと答え）→ GitHub。版と機種名をコピーできる。"),
+        fig(data_screen(), s("settings_data"), "データをすべて消す。"),
+        fig(data_screen(dialog_on=True), "データをすべて消す確認", "取り消せない操作のため確認を 1 回だけ出す（§1.3-4 の例外）。"),
         fig(about_screen(), s("settings_about"), "版・名前の由来・ライセンス一覧・外部のページ。"),
     )
     g3 = grid(

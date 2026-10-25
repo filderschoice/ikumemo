@@ -5,6 +5,40 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 18:30
+  summary: データをすべて消す（F-76・R-43）。設定に「データ」を足し、確認のあとで記録・写真・設定を消して初めて使う状態に戻す
+  details:
+    変更内容: >-
+      設定に「データ」を足し、「データをすべて消す」を置いた。確認を 1 回だけ出し（取り消せない操作の例外）、DataEraser が
+      DB（clearAllTables）・設定（DataStore）・写真と背景画像のファイルを消す。消したあとは通知と予約を片付け、ウィジェットを空の表示に更新する。
+      消し終えたら画面に知らせを出す。初めての案内の保存値も消えるため、案内がまた出る。プライバシーポリシー・DESIGN・
+      WIREFRAME・UI デザイン設計書に反映した
+    変更ファイル:
+      - docs/design/UI_DESIGN.html
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/store/PRIVACY_POLICY.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/DataEraser.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/DataEraserTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - scripts/ui-doc/gen_ui_doc.py
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - detekt の MatchingDeclarationName でテストタグの object をファイル末尾へ移して解消。追加は DataEraserTest 2 件（DB・設定・写真・背景画像が消える、
+      何も無くても動く）と DataContentTest 3 件（確認を出してから消す、やめれば何も起きない、消し終えた知らせ）。BUILD SUCCESSFUL
+    関連ID:
+      - BL-103
 - date: 2026-10-25 17:10
   summary: 平仮名だけの表示文字列のうち意図のないものを漢字へ置き換え（お知らせ・設定・着せ替え・操作・買い物メモなど）
   details:

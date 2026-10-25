@@ -153,6 +153,13 @@
     <string name="onboarding_home_body">アプリを開かずに、話して追加したりメモを見たりできます</string>
     <string name="onboarding_pin_voice">「話して追加」を置く</string>
     <string name="onboarding_pin_memo">「メモ一覧」を置く</string>
+    <string name="settings_data">データ</string>
+    <string name="data_erase_title">データをすべて消す</string>
+    <string name="data_erase_detail">メモ・買った記録・写真・設定をすべて消して、初めて使うときの状態に戻します。消したデータは元に戻せません</string>
+    <string name="data_erase_confirm_title">データをすべて消しますか？</string>
+    <string name="data_erase_confirm_detail">メモ・買った記録・写真・設定がすべて消えます。この操作は取り消せません</string>
+    <string name="data_erase_confirm">すべて消す</string>
+    <string name="data_erased">データを消しました</string>
     <string name="settings_feedback">ご意見・ご要望</string>
     <string name="home_screen_voice">話して追加（1×1）</string>
     <string name="home_screen_voice_detail">押すとすぐ話してメモに追加できます</string>

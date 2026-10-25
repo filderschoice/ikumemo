@@ -58,6 +58,11 @@ class PhotoStore(
         return FileProvider.getUriForFile(appContext, "${appContext.packageName}.fileprovider", file)
     }
 
+    /** このフォルダの写真をすべて消す（データをすべて消す、F-76）。 */
+    fun deleteAll() {
+        photosDir.listFiles()?.forEach { it.delete() }
+    }
+
     fun deleteCameraFiles() {
         File(appContext.cacheDir, CAMERA_DIR).listFiles()?.forEach { it.delete() }
     }
