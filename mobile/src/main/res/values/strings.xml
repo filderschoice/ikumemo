@@ -74,6 +74,8 @@
     <string name="calendar_record_store">買ったお店</string>
     <string name="calendar_record_delete">この記録を消す</string>
     <string name="calendar_record_save">直す</string>
+    <string name="calendar_add_record">買った物を記録する</string>
+    <string name="calendar_add_record_save">記録する</string>
     <string name="reminder_recent">最近買った物</string>
     <string name="reminder_recent_empty">この 7 日間に買った物は、ここで期限を決められます</string>
     <string name="reminder_pending">期限が近い順</string>

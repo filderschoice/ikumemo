@@ -18,8 +18,8 @@
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のおしらせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
 - 進捗: マイルストーン M0（準備）・M1 の完了条件（手入力で追加 → スワイプで記録 → 元に戻す）・M2 の完了条件
-  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4 のうち写真とカレンダー・M5（おしらせ）・M6 のうちテーマ・暗い画面・文字の大きさを実装済み。各入力欄のマイク（F-04）は未実装。
-  記録の修正・削除（F-16）は処理のみ実装済みで、画面はカレンダー（M4）で作る
+  （「牛乳2本とたまご」で 2 件追加）・M3（候補とお店）・M4（カレンダーと写真。あとから記録・写真の掃除を含む）・M5（おしらせ）・M6 のうちテーマ・暗い画面・文字の大きさを実装済み。
+  ほかの実装済みの要件は下の表のとおり
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
 ## 実装済み機能要件
@@ -36,7 +36,7 @@
 | PLAN §4.3 | Room の 6 テーブル（お店・品目・メモ・お買い物・記録・おしらせ）と DAO、スキーマ JSON の Git 管理 | `data/db/`、`mobile/schemas/` |
 | R-02・PLAN §4.4 | 品名の正規化（NFKC・小文字化・空白除去 → 漢字を読みへ → カタカナをひらがなへ）と自作の読み辞書 | `core/text/ProductNameNormalizer.kt`、`ReadingDictionary.kt`、`DefaultReadings.kt` |
 | F-03 | 文字で追加（追加シート。追加後もシートを開いたままにして続けて入れられる） | `shoppinglist/ItemSheets.kt` の `AddItemSheet` |
-| F-04（一部） | 項目の編集シート（品名・数量・メモ・買うお店・写真。閉じると保存）。各欄のマイクは未実装 | `shoppinglist/EditItemSheet.kt` |
+| F-04 | 項目の編集シート（品名・数量・メモ・買うお店・写真。閉じると保存）。各欄のマイクは下の F-04・R-32 の行 | `shoppinglist/EditItemSheet.kt` |
 | F-07・R-15 | 写真は「撮る」（標準カメラ＋FileProvider）と「選ぶ」（Photo Picker）。`filesDir/photos/` へ長辺 1600px・Exif 無しの JPEG で保存し、「買った」では同じファイルを記録から参照。メモの行に写真ありの印 | `data/PhotoStore.kt`、`EditItemSheet.kt` |
 | R-14 | 使われなくなった写真の掃除。メモ・お買い物・記録のどれからも参照されていない写真を WorkManager で 1 日 1 回消す（端末を使っていない間・電池残量が少なくない時に限り、「元に戻す」を待つ写真を消さない）。書いてから 1 日未満の写真は保存前の可能性があるため残す | `data/PhotoCleaner.kt`、`data/PhotoCleanupWorker.kt`、`PhotoDao` |
 | R-01・R-02 | 同じ物がメモにあれば追加せず、既存の項目を一瞬光らせて「○○はもうメモにあります」 | `data/ShoppingRepository.kt`、`ShoppingListViewModel` |
@@ -46,6 +46,7 @@
 | R-03・R-10・R-11・R-15 | 「やめた」は記録せず品目を残す。「買った」は端末の今日の日付で記録、同じ日の 2 回目も別記録、写真は同じファイルを参照 | `data/ShoppingRepository.kt` |
 | R-12 | 購入回数・最後に買った日・平均間隔を残っている記録から計算し直す。記録を消すと紐づくおしらせも消す | `core/suggest/PurchaseStats.kt`、`data/ProductStatsUpdater.kt` |
 | F-16 | 記録の修正（購入日・お店・数量・メモ・写真。日付かお店が変わればお買い物を付け替え）と削除。日の詳細の記録を押すと編集シート | `data/RecordRepository.kt`、`calendar/RecordEditSheet.kt` |
+| F-17 | あとから記録。日の詳細の下（買い物が無い日も）の「買った物を記録する」から、品名・買った日（選んだ日が既定）・お店・数量・メモ・写真を入れて記録する。メモは変えず、初めての品名は品目に登録し、購入回数などを計算し直す（R-12）。品名が空のうちは「記録する」を押せない。記録したら記録した日へ移る | `RecordRepository.addRecord`、`calendar/AddRecordSheet.kt` |
 | F-40・PLAN §2.7 | 月カレンダー（日曜始まり、日曜は赤・土曜は青の文字色＋曜日名、買い物の日にお店の色のドット最大 3 つ、今日は枠線） | `calendar/MonthGrid.kt`、`designsystem/CalendarColors.kt` |
 | F-41 | 日の詳細（品名・数量・お店・メモ・写真のサムネイル、写真は押すと拡大）。買い物が無い日は「この日のお買い物はありません」 | `calendar/CalendarScreen.kt` |
 | F-42（文字のみ） | 品名検索（正規化名か表示名に含む記録を新しい順に最大 200 件）、結果から該当日へ移る。検索欄の音声入力は未実装 | `RecordRepository.search`、`CalendarViewModel` |

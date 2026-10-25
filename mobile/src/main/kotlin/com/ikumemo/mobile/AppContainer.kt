@@ -42,7 +42,7 @@ class AppContainer(
 
     val shoppingRepository by lazy { ShoppingRepository(database, normalizer, clock) }
 
-    val recordRepository by lazy { RecordRepository(database, normalizer) }
+    val recordRepository by lazy { RecordRepository(database, normalizer, clock) }
 
     private val dataStore by lazy { dataStoreFactory(appContext) }
 

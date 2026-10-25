@@ -5,6 +5,7 @@ import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AddItemResult
+import com.ikumemo.mobile.data.NewRecord
 import com.ikumemo.mobile.data.RecordEdit
 import com.ikumemo.mobile.data.RecordRepository
 import com.ikumemo.mobile.data.ShoppingRepository
@@ -48,7 +49,7 @@ class CalendarViewModelTest {
         val normalizer = ProductNameNormalizer()
         shopping = ShoppingRepository(db, normalizer, clock)
         stores = StoreRepository(db, testSettings(), normalizer, clock)
-        viewModel = CalendarViewModel(RecordRepository(db, normalizer), stores, clock)
+        viewModel = CalendarViewModel(RecordRepository(db, normalizer, clock), stores, clock)
     }
 
     @After
@@ -123,6 +124,25 @@ class CalendarViewModelTest {
                 assertEquals(YearMonth.of(2026, 8), jumped.month)
                 assertEquals(LocalDate.of(2026, 8, 3), jumped.selectedDate)
                 assertEquals("卵", jumped.selectedRecords.single().record.displayName)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun addingRecordClosesSheetAndShowsThatDay() =
+        runTest {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                viewModel.onEvent(CalendarEvent.OpenAddRecord)
+                awaitUntil { it.adding }
+
+                viewModel.onEvent(
+                    CalendarEvent.AddRecord(NewRecord("アイス", LocalDate.of(2026, 9, 30), null, null, null, null)),
+                )
+
+                val added = awaitUntil { !it.adding && it.selectedRecords.isNotEmpty() }
+                assertEquals(YearMonth.of(2026, 9), added.month)
+                assertEquals(LocalDate.of(2026, 9, 30), added.selectedDate)
+                assertEquals(listOf("アイス"), added.selectedRecords.map { it.record.displayName })
                 cancelAndIgnoreRemainingEvents()
             }
         }

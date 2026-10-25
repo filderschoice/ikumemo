@@ -5,6 +5,38 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:12
+  summary: カレンダーの日付から買った物をあとから記録する（F-17）（M4）
+  details:
+    変更内容: >-
+      RecordRepository に addRecord（品名・買った日・お店・数量・メモ・写真から記録を作る）を追加した。メモは変えず、
+      初めての品名は品目に登録し、その日・お店のお買い物へ付け、品目の購入回数などを計算し直す（R-12）。品名が空なら記録しない。
+      カレンダーの日の詳細の下（買い物が無い日も）に「買った物を記録する」を置き、AddRecordSheet（買った日は選んだ日が既定で
+      シートの中でも直せる、品名が空のうちは「記録する」を押せない）を開く。記録したら記録した日・月へ移る。
+      CalendarViewModel.onEvent が detekt の複雑度の上限に掛かったため、記録のシートの操作を onRecordEvent へ分けた。
+      RecordRepository に時計を渡すようにした（記録した時刻と品目の作成時刻に使う）。DESIGN の進捗の古い記述（F-04・F-16 が未実装）を直した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/AddRecordSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordRepositoryTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 1 回目は detekt の CyclomaticComplexMethod（onEvent の複雑度 15）で失敗し、onRecordEvent へ分けて再実行して
+      BUILD SUCCESSFUL（約 3 分 40 秒。単体テスト 183 件。追加は任意の日付に記録して購入回数が更新されメモは変わらない・
+      初めての品名を品目に登録する・空の品名は記録しない・記録したらシートを閉じてその日へ移る 4 件）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-043
 - date: 2026-10-25 10:03
   summary: 使われなくなった写真の掃除を 1 日 1 回動かす（R-14）（M4）
   details:

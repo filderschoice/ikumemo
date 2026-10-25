@@ -21,6 +21,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -57,6 +58,14 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewMod
     CalendarContent(state = state, photoStore = photoStore, onEvent = viewModel::onEvent)
     state.editing?.let { record ->
         RecordEditSheet(record = record, stores = state.stores, photoStore = photoStore, onEvent = viewModel::onEvent)
+    }
+    if (state.adding) {
+        AddRecordSheet(
+            date = state.selectedDate,
+            stores = state.stores,
+            photoStore = photoStore,
+            onEvent = viewModel::onEvent,
+        )
     }
 }
 
@@ -150,6 +159,19 @@ private fun MonthPane(
                 onPhotoClick = { onPhotoClick(row.record.photoUri) },
                 modifier = Modifier.testTag(CalendarTestTags.record(row.record.id)),
             )
+        }
+        item {
+            // あとから記録（F-17）。買い物が無い日も、ある日も記録の下に出す
+            OutlinedButton(
+                onClick = { onEvent(CalendarEvent.OpenAddRecord) },
+                modifier =
+                    Modifier
+                        .padding(16.dp)
+                        .heightIn(min = 48.dp)
+                        .testTag(CalendarTestTags.ADD_RECORD),
+            ) {
+                Text(stringResource(R.string.calendar_add_record))
+            }
         }
     }
 }

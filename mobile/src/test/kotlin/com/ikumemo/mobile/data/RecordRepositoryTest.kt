@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,7 +32,7 @@ class RecordRepositoryTest {
         db = inMemoryDatabase()
         clock = fixedClock("2026-10-01T01:00:00Z")
         shopping = ShoppingRepository(db, ProductNameNormalizer(), clock)
-        records = RecordRepository(db)
+        records = RecordRepository(db, ProductNameNormalizer(), clock)
     }
 
     @After
@@ -107,5 +109,51 @@ class RecordRepositoryTest {
             val trip = requireNotNull(db.shoppingTripDao().find(LocalDate.of(2026, 10, 1), store))
             assertEquals(trip.id, records.getRecord(record)?.tripId)
             assertNull(db.shoppingTripDao().find(LocalDate.of(2026, 10, 1), null))
+        }
+
+    @Test
+    fun addingRecordOnAnyDateUpdatesPurchaseCountWithoutTouchingMemo() =
+        runTest {
+            // F-17（BL-043 の完了条件）。メモに入れていない物を過去の日付で記録する
+            buyMilkOn(0)
+            val store = db.storeDao().insert(StoreEntity(name = "○○スーパー", createdAt = clock.instant()))
+            val memoItem = (shopping.addItem("パン") as AddItemResult.Added).itemId
+
+            val recordId =
+                records.addRecord(
+                    NewRecord(" ぎゅうにゅう ", LocalDate.of(2026, 9, 21), store, " 2本 ", "", photoUri = null),
+                )
+
+            val record = requireNotNull(records.getRecord(requireNotNull(recordId)))
+            assertEquals(milk().id, record.productId)
+            assertEquals("ぎゅうにゅう", record.displayName)
+            assertEquals("2本", record.quantity)
+            assertNull(record.note)
+            assertEquals(store, record.storeId)
+            assertEquals(record.tripId, db.shoppingTripDao().find(LocalDate.of(2026, 9, 21), store)?.id)
+            assertEquals(2, milk().purchaseCount)
+            assertEquals(LocalDate.of(2026, 10, 1), milk().lastPurchasedAt)
+            assertEquals(10.0, milk().avgIntervalDays ?: Double.NaN, 0.0001)
+            // メモは変わらない
+            assertNotNull(db.shoppingItemDao().getById(memoItem))
+            assertNull(db.shoppingItemDao().findByProductId(milk().id))
+        }
+
+    @Test
+    fun addingRecordOfNewNameRegistersProduct() =
+        runTest {
+            val recordId = records.addRecord(NewRecord("アイス", LocalDate.of(2026, 10, 3), null, null, null, null))
+
+            val product = requireNotNull(db.productDao().findByNormalizedName("あいす"))
+            assertEquals(product.id, records.getRecord(requireNotNull(recordId))?.productId)
+            assertEquals(1, product.purchaseCount)
+            assertEquals(LocalDate.of(2026, 10, 3), product.lastPurchasedAt)
+        }
+
+    @Test
+    fun blankNameIsNotRecorded() =
+        runTest {
+            assertNull(records.addRecord(NewRecord("  ", LocalDate.of(2026, 10, 3), null, null, null, null)))
+            assertTrue(db.productDao().getAllNames().isEmpty())
         }
 }
