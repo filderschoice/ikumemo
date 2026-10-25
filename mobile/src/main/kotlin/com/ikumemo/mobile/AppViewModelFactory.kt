@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ikumemo.core.suggest.Suggestions
 import com.ikumemo.mobile.calendar.CalendarViewModel
+import com.ikumemo.mobile.guide.GuideViewModel
 import com.ikumemo.mobile.reminder.ReminderViewModel
 import com.ikumemo.mobile.settings.AppearanceViewModel
 import com.ikumemo.mobile.settings.OperationViewModel
@@ -40,6 +41,7 @@ object AppViewModelFactory {
             }
             initializer { AppearanceViewModel(container().appearancePrefs, container().backgroundStore) }
             initializer { OperationViewModel(container().operationPrefs) }
+            initializer { GuideViewModel(container().guidePrefs) }
             initializer { StoreManageViewModel(container().storeRepository) }
             initializer { ProductManageViewModel(container().shoppingRepository.products) }
             initializer {

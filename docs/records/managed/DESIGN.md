@@ -80,6 +80,8 @@
 | W-02・R-40・R-43・D-18 | メモ一覧ウィジェット（表示専用）。高さ 2 マスは見出し（メモの件数・期限が近い件数）と先頭の品名を横に数件＋「ほか N件」（幅が狭いと 2 件、広いと 3 件）、3 マス以上は選んだお店と品名の縦一覧（数量付き、幅が狭いと数量を下に）。空なら「メモは空です」。行はその項目まで送って光らせ、「期限が近い」はおしらせ画面、ほかはメモ画面を開く。既定の大きさは 4×4（長押しで 3×2〜5×6、4×2 へも小さくできる。オーナー判断 2026-10-25） | `widget/MemoListWidget.kt`、`widget/MemoWidgetState.kt`、`res/xml/widget_memo_info.xml` |
 | W-03 | せってい「ホーム画面に置く」。ウィジェット 2 種の見本（話して追加 1×1・メモ一覧 4×4）と「置く」（`requestPinAppWidget`）。置く大きさは指定できないため各ウィジェットの既定の大きさで置かれ、4×2 は置いた後に長押しで小さくできると説明だけ添える。ホーム画面アプリが対応していなければボタンの代わりに置き方を説明し、最後にアイコン長押しのショートカットを案内する。はじめての案内の最後の「置く」は BL-080 で作る | `settings/HomeScreenScreen.kt`、`widget/WidgetPinner.kt` |
 | F-74 | アイコン長押しのショートカット「話して追加」「文字で追加」「カレンダー」「おしらせ」。各画面を `MainActivity.intent` で開く（「話して追加」はメモ画面で音声入力を始める）。debug 版は applicationId が違い静的な shortcuts.xml にはパッケージ名を固定で書くしかないため、起動時に動的なショートカットとして登録し直す | `AppShortcuts.kt`、`res/drawable/ic_shortcut_*.xml` |
+| F-70・G-01 | はじめての案内。初回起動時（保存値を読み終えてから）だけ全画面で出す。「話すだけでメモ」「買ったらスワイプ」「あとから見返せる」の 3 枚と、最後に「ホーム画面に置く」（W-03 の「置く」2 つと「あとで」。非対応なら置き方の説明）。「とばす」は常に出し、とばす・あとで のどちらでも見終えたことにする。権限は求めない。通知・ウィジェット・ショートカットから起動したときは挟まずにその画面を開く（次の通常の起動で出す）。1 枚目の短いアニメーションは未実装で、絵文字の静止画（BL-098） | `guide/OnboardingScreen.kt`、`guide/GuideViewModel.kt`、`IkumemoApp.kt` |
+| R-50・R-52・R-53・R-55 | その場のガイドを出すかの判定 `GuidePolicy.next`（きっかけを満たすガイドのうち未表示の最初の 1 つだけ。音声入力中・シート表示中・外から開いた直後・「ガイドを出さない」・はじめての案内の前は出さない）。各画面のガイド G-02〜G-08 は BL-096・BL-097 で作る | `guide/Guide.kt`、`data/GuidePrefs.kt` |
 | R-41 | アプリが動いている間はメモ・おしらせ・お店・見た目の変化で描き直す。日付の変わり目と選んだお店の解除は省電力のアラーム（`set`）で描き直す。定期的な自動更新はしない | `widget/WidgetUpdater.kt` |
 | F-71 | 自動バックアップ。クラウドからは写真（`filesDir/photos/`）だけを外し、DB・設定・背景画像は残す。端末間転送（Android 12 以降）は全部を移す。Android 11 以前は区分を分けられないため写真を外すだけ | `res/xml/data_extraction_rules.xml`、`res/xml/backup_rules.xml` |
 | PLAN §4.1 | 手動 DI（`IkumemoApplication` が `AppContainer` を 1 つ持つ） | `AppContainer.kt`、`IkumemoApplication.kt` |
@@ -124,6 +126,8 @@
   許可を求めた回数）は `ReminderPrefs`。品目ごとに持たない値だけを入れる
 - 選んでいるお店は `selected_store_id`・`selected_store_at`・`last_bought_at`（epoch ミリ秒）で持ち、解除の判定は読むたびに行う。
   「買った」に付けるときに解除の条件を満たしていれば保存値も消す
+- ガイドは `GuidePrefs`（`guide_onboarding_done`・`guide_disabled`・`guide_shown` はガイドの `storageKey`「g02」〜の集合）。
+  知らないキーは読み飛ばし、新しいガイドは `GuideId` に足すだけで既存の利用者にも 1 回だけ出る（R-55）
 - テストは `testSettings()`（テストごとに別の一時ファイル）で作る
 
 ### 表記ゆれ方針（core/text）

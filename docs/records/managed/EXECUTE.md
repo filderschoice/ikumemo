@@ -5,6 +5,40 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 10:59
+  summary: はじめての案内（G-01）とその場のガイドの土台（R-50・R-52・R-53・R-55）（M8）
+  details:
+    変更内容: >-
+      はじめての案内 OnboardingContent（「話すだけでメモ」「買ったらスワイプ」「あとから見返せる」の 3 枚と、最後に「ホーム画面に置く」
+      の「置く」2 つ・「あとで」。「とばす」は常に出す。非対応のホーム画面アプリでは置き方を説明）を追加し、IkumemoApp で初回起動時だけ
+      全画面で出すようにした（保存値を読み終えるまでは何も出さない。通知・ウィジェット・ショートカットからの起動では挟まない）。
+      ガイドの保存 GuidePrefs（見終えたか・ガイドを出さない・表示済みのガイドの集合）と GuideViewModel、出すガイドの判定 GuidePolicy
+      （未表示の最初の 1 つだけ、音声入力中・シート表示中・外から開いた直後・ガイドを出さない・案内の前は出さない）と GuideId（G-02〜G-08）を
+      追加した。外から開く画面への移動は、NavHost が画面の一覧を設定し終えるまで待ってから行うようにした（ショートカットから起動した
+      テストで setGraph 前に移動して落ちたため）。下タブにテスト用の目印を付けた。1 枚目のアニメーションは BL-098 に分けた
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/GuidePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/Guide.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/GuideViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/guide/OnboardingScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/GuidePrefsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/guide/GuidePolicyTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/guide/OnboardingTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 途中、ショートカットから起動したテストの setGraph 前の移動、Robolectric を使わない DataStore テストの Windows でのファイル置き換え失敗、
+      detekt の ReturnCount（GuidePolicy.next）を直して再実行し BUILD SUCCESSFUL（約 3 分。単体テスト 206 件。追加は判定 4 件・保存 4 件・
+      案内の画面 3 件・初回だけ出る/見終えたら出ない/外からの起動では挟まない 3 件）、markdownlint 0 issues、記録ファイル OK
+    関連ID:
+      - BL-080
 - date: 2026-10-25 10:47
   summary: アプリからウィジェットを置く（W-03）とアイコン長押しのショートカット（F-74）（M7）
   details:
