@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 22:24
+  summary: ウィジェットの更新中に回る表示を出す。1×1 の「話して追加」で足したメモが 4×4 に反映されない不具合を直す
+  details:
+    変更内容: >-
+      原因は Glance のセッションの再利用だった。メモ一覧ウィジェットは provideGlance でメモと色を 1 回だけ読んでいたため、表示中のセッションが
+      生きている間は updateAll や更新ボタンを押しても内容が古いままだった（反映の時機がまちまちだった理由でもある）。provideContent の中で
+      MemoWidgetState.observe・WidgetColors.observe（新設）を collectAsState して、最新の値で描き直すようにした。1×1 の色も同様。
+      更新ボタンは押すと矢印を回る表示（CircularProgressIndicator）に替え、WidgetRefreshState（新設）で状態を持ち、描き直しが一瞬で終わっても
+      0.8 秒は回す
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/VoiceWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetRefreshState.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - MemoListWidgetTest に更新中の表示の 1 件を追加。Glance のセッションの挙動は単体テストで再現できないため、
+      実機での反映の確認は人手検証（BL-111）
+    関連ID:
+      - BL-110
+      - BL-111
 - date: 2026-10-25 21:08
   summary: 背景の写真の上の文字が見えないときのために、ペンの色（おまかせ・くろ・あお・あか・しろ）を選べるようにする
   details:

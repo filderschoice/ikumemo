@@ -1,7 +1,10 @@
 package com.ikumemo.mobile.widget
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -14,6 +17,7 @@ import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
@@ -46,6 +50,7 @@ import androidx.glance.unit.ColorProvider
 import com.ikumemo.mobile.IkumemoApplication
 import com.ikumemo.mobile.MainActivity
 import com.ikumemo.mobile.R
+import kotlinx.coroutines.delay
 
 /**
  * メモ一覧ウィジェット（W-02、4×2〜4×4、表示専用）。高さ 2 マスでは先頭の品名を横に数件、3 マス以上では
@@ -59,9 +64,16 @@ class MemoListWidget : GlanceAppWidget() {
         id: GlanceId,
     ) {
         val container = (context.applicationContext as IkumemoApplication).container
-        val colors = WidgetColors.load(context)
-        val state = MemoWidgetState.load(container)
-        provideContent { MemoListContent(state, colors) }
+        // 描き直しの要求で provideGlance は呼び直されないことがある（表示中のセッションが再利用される）。
+        // 内容は最初に 1 回読むだけでなく、表示している間じゅう流れてくる最新の値を使う
+        val firstColors = WidgetColors.load(context)
+        val firstState = MemoWidgetState.load(container)
+        provideContent {
+            val colors by WidgetColors.observe(context).collectAsState(firstColors)
+            val state by MemoWidgetState.observe(container).collectAsState(firstState)
+            val refreshing by WidgetRefreshState.refreshing.collectAsState()
+            MemoListContent(state, colors, refreshing)
+        }
     }
 
     companion object {
@@ -82,6 +94,7 @@ class MemoListWidget : GlanceAppWidget() {
 fun MemoListContent(
     state: MemoWidgetState,
     colors: WidgetColors,
+    refreshing: Boolean = false,
 ) {
     val context = LocalContext.current
     val size = LocalSize.current
@@ -96,7 +109,7 @@ fun MemoListContent(
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.OPEN_MEMO))),
     ) {
-        MemoHeader(state, colors)
+        MemoHeader(state, colors, refreshing)
         // 見出しの下の太めの線（メモ帳の上端）
         Rule(colors.primary, HEADER_RULE)
         when {
@@ -112,6 +125,7 @@ fun MemoListContent(
 private fun MemoHeader(
     state: MemoWidgetState,
     colors: WidgetColors,
+    refreshing: Boolean,
 ) {
     val context = LocalContext.current
     Row(
@@ -146,13 +160,16 @@ private fun MemoHeader(
             }
         }
         Spacer(GlanceModifier.defaultWeight())
-        RefreshButton(colors)
+        RefreshButton(colors, refreshing)
     }
 }
 
 /** 更新ボタン。メモを足した直後に反映されないときのため、押すとその場で描き直す。 */
 @Composable
-private fun RefreshButton(colors: WidgetColors) {
+private fun RefreshButton(
+    colors: WidgetColors,
+    refreshing: Boolean,
+) {
     val description = LocalContext.current.getString(R.string.widget_memo_refresh)
     Box(
         modifier =
@@ -162,12 +179,17 @@ private fun RefreshButton(colors: WidgetColors) {
                 .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        Image(
-            ImageProvider(R.drawable.ic_widget_refresh),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(colors.primary),
-            modifier = GlanceModifier.size(REFRESH_ICON),
-        )
+        if (refreshing) {
+            // 描き直している間は、矢印の代わりに回る表示を出す
+            CircularProgressIndicator(modifier = GlanceModifier.size(REFRESH_ICON), color = colors.primary)
+        } else {
+            Image(
+                ImageProvider(R.drawable.ic_widget_refresh),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(colors.primary),
+                modifier = GlanceModifier.size(REFRESH_ICON),
+            )
+        }
     }
 }
 
@@ -178,7 +200,17 @@ class RefreshMemoAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        (context.applicationContext as IkumemoApplication).container.widgetUpdater.refresh()
+        // 押した直後に回る表示を出し、描き直しが終わっても一瞬は見えるよう最低限の時間は回す
+        WidgetRefreshState.set(true)
+        try {
+            MemoListWidget().update(context, glanceId)
+            val started = SystemClock.elapsedRealtime()
+            (context.applicationContext as IkumemoApplication).container.widgetUpdater.refresh()
+            val rest = MIN_SPIN_MILLIS - (SystemClock.elapsedRealtime() - started)
+            if (rest > 0) delay(rest)
+        } finally {
+            WidgetRefreshState.set(false)
+        }
     }
 }
 
@@ -294,6 +326,9 @@ private fun MemoWidgetItem.label(): String = quantity?.let { "$name $it" } ?: na
 private val TAP_HEIGHT = 48.dp
 
 private val REFRESH_ICON = 24.dp
+
+/** 更新ボタンの回る表示を出す最低限の時間（ミリ秒）。描き直しが一瞬で終わっても回ったと分かるように。 */
+private const val MIN_SPIN_MILLIS = 800L
 
 /** メモ帳の線の太さ（見出しの下・行の下・左の余白）。 */
 private val HEADER_RULE = 2.dp

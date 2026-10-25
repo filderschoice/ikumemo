@@ -5,9 +5,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.glance.color.ColorProvider
 import androidx.glance.unit.ColorProvider
 import com.ikumemo.mobile.IkumemoApplication
+import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.IkumemoPalette
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 /**
  * ウィジェットの色。アプリで選んだテーマ（4 種）とダークモードの設定に合わせる（PLAN §2.11）。背景画像は使わない。
@@ -37,9 +40,15 @@ class WidgetColors(
     companion object {
         private const val RULE_ALPHA = 0.35f
 
-        suspend fun load(context: Context): WidgetColors {
+        suspend fun load(context: Context): WidgetColors = observe(context).first()
+
+        /** 見た目の設定が変わるたびに流す。ウィジェットの表示中に着せ替えを反映するために使う。 */
+        fun observe(context: Context): Flow<WidgetColors> {
             val container = (context.applicationContext as IkumemoApplication).container
-            val appearance = container.appearancePrefs.appearance.first()
+            return container.appearancePrefs.appearance.map(::from)
+        }
+
+        private fun from(appearance: Appearance): WidgetColors {
             val light = appearance.theme.palette(darkTheme = false)
             val dark = appearance.theme.palette(darkTheme = true)
             return when (appearance.darkMode) {

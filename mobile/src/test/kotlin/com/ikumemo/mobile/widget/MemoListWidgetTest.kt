@@ -107,4 +107,14 @@ class MemoListWidgetTest {
             onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
         }
     }
+
+    @Test
+    fun refreshingKeepsTheButtonAreaAndTheList() =
+        runGlanceAppWidgetUnitTest {
+            setContext(context)
+            setAppWidgetSize(MemoListWidget.LARGE)
+            provideComposable { MemoListContent(fiveItems, colors, refreshing = true) }
+            onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+            onNode(hasTextEqualTo("・洗剤")).assertExists()
+        }
 }
