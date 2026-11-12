@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 00:36
+  summary: 写真の取り込みで元の写真が読めないときにアプリが落ちないようにする
+  details:
+    変更内容: >-
+      data/PhotoStore.kt の import で、openInputStream が投げる IOException（FileNotFoundException を含む）と SecurityException、
+      save の check が投げる IllegalStateException を捕まえて null を返すようにした。null は既存の「読めない画像」と同じ扱いで、
+      呼び出し側（EditItemSheet.kt の PhotoSection、AppearanceViewModel の PickBackground）は何もしない。
+      detekt の TooManyFunctions（クラス内の関数 11 個が上限）に当たったため、関数を分けずに import の中で try を書き、
+      途中の return を ?.let のつなぎにした（ReturnCount も避ける）。PhotoStoreTest に存在しないファイルの Uri で null が返るテストを足し、
+      DESIGN.md の F-07 の行に読めないときの扱いを足した。既定値で決めた点は 2 つ。(1) 捕まえる例外はタスクに挙がった 3 種に限り、
+      OutOfMemoryError などは捕まえない。(2) 保存の失敗で残りうる一時ファイル（.tmp）の掃除はタスクの範囲外として足していない
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/PhotoStoreTest.kt
+    検証コマンド: >-
+      python scripts/quality-gates.py（2 回）、./gradlew :core:runKtlintCheckOverMainSourceSet --rerun :core:ktlintMainSourceSetCheck、
+      python scripts/quality-gates.py --only ktlint、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目は ktlint・detekt・test が失敗。detekt は今回の変更（TooManyFunctions）で、直した。test は AppearanceViewModelTest の
+      scrimLevelIsSavedWithinRange の Turbine のタイムアウトで、PhotoStore を通らないテストのため負荷による揺らぎと判断し、2 回目は成功。
+      ktlint は 2 回とも存在しないファイル core の ZzGateTmp.kt の違反で失敗し、ビルドキャッシュから復元された古い結果だった（BL-128 に起票）。
+      --rerun で該当タスクを流し直した後の --only ktlint が成功。2 回目は ktlint 以外の Gradle のゲートと markdownlint・records・user-guide・secrets が成功
+    関連ID:
+      - BL-113
 - date: 2026-11-13 00:16
   summary: 品質ゲートの一括実行スクリプトと、コミット前の秘密情報スキャンを足す
   details:

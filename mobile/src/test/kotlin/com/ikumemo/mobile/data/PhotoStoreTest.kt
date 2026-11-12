@@ -90,6 +90,14 @@ class PhotoStoreTest {
         }
 
     @Test
+    fun missingFileReturnsNullWithoutCrash() =
+        runTest {
+            val missing = File(context.cacheDir, "missing.jpg").apply { delete() }
+
+            assertNull(store.import(Uri.fromFile(missing)))
+        }
+
+    @Test
     fun unreferencedPhotosAreDeleted() =
         runTest {
             val kept = requireNotNull(store.import(jpegWithLocation(100, 100)))

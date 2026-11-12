@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- id: BL-128
+  区分: 品質ゲート
+  タスク内容: >-
+    Gradle のビルドキャッシュ（gradle.properties の org.gradle.caching=true）に、ktlint の誤った結果が残る事故への対策を決めて入れる。
+    BL-119 の確認で core に一時的に置いて消した書式違反のファイル（ZzGateTmp.kt）の違反が、ファイルを消した後も
+    :core:runKtlintCheckOverMainSourceSet の FROM-CACHE で復元され、ktlint のゲートが失敗し続けた（BL-113 の実施中に発見）。
+    案は (1) scripts/quality-gates.py の失敗の表示で、違反の出たファイルが存在しないときに「キャッシュの古い結果の疑い」と出し、
+    ./gradlew <該当タスク> --rerun の対処を示す、(2) 自律ループの手順に「一時的なファイルで ktlint を試したら、消した後に該当タスクを --rerun で流す」を足す。
+    どちらにするかは実装時に決め、根拠を記録する
+  優先度: P3
+  状態: 未着手
+  担当: AIエージェント
+  完了条件: >-
+    選んだ対策が入り、存在しないファイルの違反がキャッシュから出たときに、原因と対処が利用者に分かる。python scripts/quality-gates.py が成功する
+  依存: []
+  根拠: >-
+    2026-11-13 の BL-113 で、quality-gates.py の ktlint が 2 回続けて存在しないファイル ZzGateTmp.kt の違反で失敗した。
+    core/build/intermediates/ktLint を消しても再現し、gradle.log で runKtlintCheckOverMainSourceSet が FROM-CACHE だったため、
+    入力が元に戻った時点のキャッシュの項目に違反入りの結果が保存されたと推測（ktlint の Gradle プラグインの増分処理が原因かは未確認）。
+    ./gradlew :core:runKtlintCheckOverMainSourceSet --rerun で解消した
 - id: BL-127
   区分: 品質ゲート
   タスク内容: >-
@@ -133,7 +153,6 @@
   担当: ユーザー
   完了条件: 上の 4 点を実機で確かめ、読まれ方が不自然な箇所があれば画面名と読まれた文言を記録している
   依存:
-    - BL-113
     - BL-115
   根拠: 読めない写真の発生のさせ方と TalkBack の読み上げは実機でしか確かめられないため
 - id: BL-117
@@ -206,23 +225,6 @@
     DataViewModel.kt の export・import は IOException だけを捕まえている（87・99 行目）。開き方は AppViewModelFactory.kt 63〜64 行目の resolver.openOutputStream・openInputStream で、
     Android の ContentResolver はファイルの選択元のアプリや権限の取り消しによって SecurityException を投げうる。viewModelScope の中で捕まえない例外はアプリを落とす。
     DataViewModel を参照するテストは mobile/src/test と testDebug のどちらにも無い（grep で確認）
-- id: BL-113
-  区分: 不具合
-  タスク内容: >-
-    写真の取り込み（data/PhotoStore.kt の import）で、元の写真が読めないときにアプリが落ちないようにする。
-    import の中の resolver.openInputStream が投げる FileNotFoundException（IOException）・SecurityException と、save の check が投げる IllegalStateException を捕まえ、null を返す
-    （null は既存の「読めない画像」と同じ扱いで、呼び出し側の EditItemSheet.kt の PhotoSection と AppearanceViewModel の PickBackground は何もしない）。
-    mobile/src/test/kotlin/com/ikumemo/mobile/data/PhotoStoreTest.kt に、存在しないファイルの Uri を渡すと null が返るテストを足す
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: PhotoStoreTest に足したテストが通り、CLAUDE.md の Gradle 系の 5 ゲートがすべて成功する
-  依存: []
-  根拠: >-
-    PhotoStore.kt の import（33〜45 行目）は openInputStream を 3 回呼ぶが例外を捕まえていない（runCatching は Exif の読み取りだけ）。
-    呼び出し側の EditItemSheet.kt 165 行目は rememberCoroutineScope の launch、AppearanceViewModel.kt 67 行目は viewModelScope の中で呼んでおり、捕まえない例外はアプリを落とす。
-    既存の PhotoStoreTest の unreadableFileIsIgnored は「中身が画像でないファイル」だけを確かめ、ファイルが無い場合は確かめていない。
-    実機でこの経路が起きる頻度は未確認（選んだ後に元の写真が消える・権限が切れる等で起きうると推測）
 - id: BL-111
   区分: 人手検証
   タスク内容: >-

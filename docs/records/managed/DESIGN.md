@@ -38,7 +38,7 @@
 | R-02・PLAN §4.4 | 品名の正規化（NFKC・小文字化・空白除去 → 漢字を読みへ → カタカナをひらがなへ）と自作の読み辞書 | `core/text/ProductNameNormalizer.kt`、`ReadingDictionary.kt`、`DefaultReadings.kt` |
 | F-03 | 文字で追加（追加シート。追加後もシートを開いたままにして続けて入れられる） | `shoppinglist/ItemSheets.kt` の `AddItemSheet` |
 | F-04 | 項目の編集シート（品名・数量・メモ・買うお店・写真。閉じると保存）。各欄のマイクは下の F-04・R-32 の行 | `shoppinglist/EditItemSheet.kt` |
-| F-07・R-15 | 写真は「撮る」（標準カメラ＋FileProvider）と「選ぶ」（Photo Picker）。`filesDir/photos/` へ長辺 1600px・Exif 無しの JPEG で保存し、「買った」では同じファイルを記録から参照。メモの行に写真ありの印 | `data/PhotoStore.kt`、`EditItemSheet.kt` |
+| F-07・R-15 | 写真は「撮る」（標準カメラ＋FileProvider）と「選ぶ」（Photo Picker）。`filesDir/photos/` へ長辺 1600px・Exif 無しの JPEG で保存し（元の写真が読めない・消えた・権限が切れた・保存に失敗したときは落とさず取り込まない）、「買った」では同じファイルを記録から参照。メモの行に写真ありの印 | `data/PhotoStore.kt`、`EditItemSheet.kt` |
 | R-14 | 使われなくなった写真の掃除。メモ・お買い物・記録のどれからも参照されていない写真を WorkManager で 1 日 1 回消す（端末を使っていない間・電池残量が少なくない時に限り、「元に戻す」を待つ写真を消さない）。書いてから 1 日未満の写真は保存前の可能性があるため残す | `data/PhotoCleaner.kt`、`data/PhotoCleanupWorker.kt`、`PhotoDao` |
 | R-01・R-02 | 同じ物がメモにあれば追加せず、既存の項目を一瞬光らせて「○○はもうメモにあります」 | `data/ShoppingRepository.kt`、`ShoppingListViewModel` |
 | F-10・F-11・D-4・R-05 | 右へスワイプで「買った」、左へで「やめた」。幅の 40% で確定し、超えた瞬間に軽い振動。背景は色＋アイコン＋文字 | `shoppinglist/SwipeableItemRow.kt` |
