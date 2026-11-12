@@ -124,25 +124,6 @@
     オーナーへの質問は「上の許可と拒否を .claude/settings.json へ入れてよいか、git push と --no-verify をフックでも止めるか」。
     権限の変更は .github/copilot-instructions.md「確認が必要な場合」の高リスク操作（権限変更）に当たるため要確認とした。
     現在の .claude/settings.json は記録ファイル 3 つの Edit と docs/records 配下の Read だけを許可し、hooks は無い。禁止操作（guardrails 12.2）は文書の規定だけで、仕組みでは止めていない
-- id: BL-120
-  区分: 品質ゲート
-  タスク内容: >-
-    scripts/validate-records.py の検査を FORMAT.md の定めに合わせて足す。
-    (1) BACKLOG.md の id の重複、(2) 区分 が FORMAT.md の表の 6 値（不具合・UX改善・機能追加・性能・品質ゲート・人手検証）のどれか、
-    (3) 担当 が空でない、(4) EXECUTE.md の必須キー（date・summary・details の 変更内容・変更ファイル（配列）・検証コマンド・検証結果）と date の形式 YYYY-MM-DD HH:mm、
-    (5) BACKLOG.md の id が EXECUTE.md の 関連ID で完了済みとして使われた番号と重ならない（採番の衝突の検出）。
-    既存の記録で新しい検査に落ちるものがあれば、マーカー内の該当項目を FORMAT.md に沿って直す（直せないものは根拠付きで報告する）。
-    モジュールの先頭の docstring の「検査する内容」の一覧も更新する
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    python scripts/validate-records.py が今の記録で成功し、わざと壊した一時コピー（重複 id・区分の誤り・date の形式違い）で失敗することを確かめている
-    （一時コピーはスクラッチの場所に作り、コミットしない）。markdownlint が Summary 0 issues
-  依存: []
-  根拠: >-
-    scripts/validate-records.py は YAML の読み込み・LF・BACKLOG の必須キーと優先度・状態・依存だけを検査し（94〜110 行目の main）、EXECUTE.md の必須キーは見ていない。
-    FORMAT.md は区分の許容値（6 値）と EXECUTE の必須キーを定めている。採番の衝突確認は毎回手作業（今回も BL-112 が EXECUTE.md にだけ残っていた）
 - id: BL-118
   区分: 人手検証
   タスク内容: >-

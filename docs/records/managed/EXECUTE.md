@@ -5,6 +5,28 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 00:58
+  summary: 記録ファイルの検証に、BACKLOG の id の重複・区分・担当、EXECUTE の必須キーと date の形式、採番の衝突の検査を足す
+  details:
+    変更内容: >-
+      scripts/validate-records.py に FORMAT.md の定めに沿った検査を足した。BACKLOG.md は id の重複、区分 が表の 6 値のどれか、担当 が空でないこと。
+      EXECUTE.md は必須キー（date・summary・details の 変更内容・変更ファイル・検証コマンド・検証結果）、date の形式 YYYY-MM-DD HH:mm、
+      変更ファイル と 関連ID が配列であること。あわせて BACKLOG.md の id が EXECUTE.md の 関連ID と重ならないこと（採番の衝突）を見る。
+      状態が 進行中 の項目は途中までの実施を記録したものとして衝突の検査から除いた（既定値として選択）。
+      既存の記録では、人手検証として起票した id を 関連ID に入れていた 3 件（BL-106・BL-109・BL-111）が衝突に掛かった。
+      関連ID は対応したタスクの id と定めているため、これらの記録の 関連ID から起票した id を外した（ログは削除していない。検証結果の本文には残っている）。
+      モジュール先頭の docstring の検査の一覧も更新した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+      - scripts/validate-records.py
+    検証コマンド: >-
+      python scripts/validate-records.py、わざと壊した一時コピー（重複 id・区分の誤り・担当の空・date の形式違い・details のキー欠け・採番の衝突）での同スクリプト、
+      python scripts/quality-gates.py --skip-gradle、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 今の記録で終了コード 0、壊した 6 種の一時コピーはいずれも該当の NG を出して終了コード 1。一時コピーはスクラッチの場所に作り削除した
+    関連ID:
+      - BL-120
 - date: 2026-11-13 00:55
   summary: 品質ゲートに軽い検証のモードを足し、自律ループの各イテレーションは軽い検証、最後と止める前にフル検証を流す運用にする
   details:
@@ -204,7 +226,6 @@
       実機での反映の確認は人手検証（BL-111）
     関連ID:
       - BL-110
-      - BL-111
 - date: 2026-10-25 21:08
   summary: 背景の写真の上の文字が見えないときのために、ペンの色（おまかせ・くろ・あお・あか・しろ）を選べるようにする
   details:
@@ -241,7 +262,6 @@
       おしらせ）は変わらないため流していない。実機での全画面の見え方は人手検証（BL-109）
     関連ID:
       - BL-108
-      - BL-109
 - date: 2026-10-25 20:57
   summary: メモ一覧ウィジェットをメモ帳風にする（見出しの下の線・行ごとの罫線・左の余白の縦線）
   details:
@@ -287,7 +307,6 @@
       人手検証（BL-106）
     関連ID:
       - BL-105
-      - BL-106
 - date: 2026-10-25 20:10
   summary: データの書き出し・読み込み（F-72）。ZIP（写真つき）・JSON・CSV（記録だけ）で書き出し、ZIP と JSON を読み込んで置き換える
   details:

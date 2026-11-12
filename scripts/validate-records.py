@@ -8,9 +8,14 @@
 あわせて、FORMAT.md が定める体裁のうち機械的に確認できるものを検査する。
 
 - 改行コードがLFであること（PowerShellでの一括置換によるCRLF化を検出する）
-- BACKLOG.md の必須キーが揃っていること、`優先度` と `状態` が許容値であること
+- BACKLOG.md の必須キーが揃っていること、`優先度`・`状態`・`区分` が許容値であること、`担当` が空でないこと
+- BACKLOG.md の `id` が重複していないこと
 - BACKLOG.md の `依存` が配列で、BACKLOG.md に存在する `id` だけを指していること
   （完了項目を削除したときに、他タスクの `依存` に削除済みの `id` が残る事故を検出する）
+- EXECUTE.md の必須キー（`date`・`summary`・`details` の `変更内容`・`変更ファイル`・`検証コマンド`・`検証結果`）が
+  揃っていること、`date` が `YYYY-MM-DD HH:mm`、`変更ファイル` と `関連ID` が配列であること
+- BACKLOG.md の `id` が EXECUTE.md の `関連ID` で使われていないこと（採番の衝突の検出）。
+  ただし `状態: 進行中` の項目は、途中までの実施を記録したものとして除く
 
 使い方:
 
@@ -34,6 +39,10 @@ FENCE_PATTERN = re.compile(r"^```yaml\s*$|^```\s*$", re.M)
 BACKLOG_REQUIRED_KEYS = ["id", "区分", "タスク内容", "優先度", "状態", "担当", "完了条件", "依存"]
 BACKLOG_PRIORITIES = ["P1", "P2", "P3"]
 BACKLOG_STATES = ["未着手", "進行中", "ブロック", "要確認", "完了"]
+BACKLOG_CATEGORIES = ["不具合", "UX改善", "機能追加", "性能", "品質ゲート", "人手検証"]
+EXECUTE_REQUIRED_KEYS = ["date", "summary", "details"]
+EXECUTE_REQUIRED_DETAIL_KEYS = ["変更内容", "変更ファイル", "検証コマンド", "検証結果"]
+EXECUTE_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$")
 
 
 def load_records(path: str, errors: list[str]) -> list | None:
@@ -70,6 +79,67 @@ def check_backlog_keys(records: list, errors: list[str]) -> None:
         state = record.get("状態")
         if state is not None and state not in BACKLOG_STATES:
             errors.append(f"BACKLOG.md {task_id}: 状態 `{state}` は許容値ではない")
+        category = record.get("区分")
+        if category is not None and category not in BACKLOG_CATEGORIES:
+            errors.append(f"BACKLOG.md {task_id}: 区分 `{category}` は許容値ではない（FORMAT.md の表の 6 値から選ぶ）")
+        if "担当" in record and not str(record.get("担当") or "").strip():
+            errors.append(f"BACKLOG.md {task_id}: 担当 が空")
+
+
+def check_backlog_duplicate_ids(records: list, errors: list[str]) -> None:
+    """BACKLOG.md の `id` が重複していないことを確認する。"""
+    seen: set = set()
+    for record in records:
+        task_id = record.get("id")
+        if task_id is None:
+            continue
+        if task_id in seen:
+            errors.append(f"BACKLOG.md {task_id}: id が重複している")
+        seen.add(task_id)
+
+
+def check_execute_keys(records: list, errors: list[str]) -> None:
+    """EXECUTE.md の必須キーと `date` の形式、配列で書くキーの型を確認する。"""
+    for index, record in enumerate(records, start=1):
+        label = f"EXECUTE.md {index} 件目（date {record.get('date', 'なし')}）"
+        for key in EXECUTE_REQUIRED_KEYS:
+            if key not in record:
+                errors.append(f"{label}: 必須キー `{key}` が無い")
+        date = record.get("date")
+        if date is not None and not EXECUTE_DATE_PATTERN.match(str(date)):
+            errors.append(f"{label}: date `{date}` は YYYY-MM-DD HH:mm の形式ではない")
+        details = record.get("details")
+        if not isinstance(details, dict):
+            if "details" in record:
+                errors.append(f"{label}: details はキーと値の組で書く")
+            continue
+        for key in EXECUTE_REQUIRED_DETAIL_KEYS:
+            if key not in details:
+                errors.append(f"{label}: 必須キー `details.{key}` が無い")
+        for key in ["変更ファイル", "関連ID"]:
+            if key in details and not isinstance(details[key], list):
+                errors.append(f"{label}: details.{key} は配列で書く")
+
+
+def collect_related_ids(records: list) -> set:
+    """EXECUTE.md の `関連ID` に書かれた `id` を集める。"""
+    related: set = set()
+    for record in records:
+        details = record.get("details")
+        if isinstance(details, dict) and isinstance(details.get("関連ID"), list):
+            related.update(details["関連ID"])
+    return related
+
+
+def check_id_collisions(backlog: list, related_ids: set, errors: list[str]) -> None:
+    """BACKLOG.md の `id` が EXECUTE.md で実施済みとして使われていないことを確認する（採番の衝突）。"""
+    for record in backlog:
+        task_id = record.get("id")
+        if task_id in related_ids and record.get("状態") != "進行中":
+            errors.append(
+                f"BACKLOG.md {task_id}: EXECUTE.md の 関連ID で使われた番号と重なる"
+                "（新しい id は BACKLOG と EXECUTE の両方で未使用の番号にする）"
+            )
 
 
 def check_backlog_dependencies(records: list, errors: list[str]) -> None:
@@ -93,14 +163,23 @@ def check_backlog_dependencies(records: list, errors: list[str]) -> None:
 
 def main() -> int:
     errors: list[str] = []
+    loaded: dict[str, list] = {}
     for path in RECORD_FILES:
         records = load_records(path, errors)
         if records is None:
             continue
         print(f"{path}: OK ({len(records)} records)")
+        loaded[path] = records
         if path.endswith("BACKLOG.md"):
             check_backlog_keys(records, errors)
+            check_backlog_duplicate_ids(records, errors)
             check_backlog_dependencies(records, errors)
+        else:
+            check_execute_keys(records, errors)
+    backlog = loaded.get(RECORD_FILES[0])
+    execute = loaded.get(RECORD_FILES[1])
+    if backlog is not None and execute is not None:
+        check_id_collisions(backlog, collect_related_ids(execute), errors)
     if errors:
         print("")
         for error in errors:
