@@ -68,25 +68,6 @@
   根拠: >-
     Gradle の 5 ゲートの出力は長く、実装担当の文脈を圧迫する。CLAUDE.md「本リポジトリの品質ゲート定義」は Gradle をバックグラウンドで流すと強制停止されると定めており、
     流し方の注意を毎回プロンプトで渡している。.claude/agents/ は存在しない
-- id: BL-124
-  区分: 品質ゲート
-  タスク内容: >-
-    BACKLOG の 1 タスクを実装して 1 コミットにする実装担当のサブエージェント定義 .claude/agents/backlog-task-implementer.md を新設する。
-    入力は「BACKLOG の id 1 つ」。本文の手順は (1) git branch --show-current で作業ブランチを確かめる、(2) BACKLOG.md の該当項目と DESIGN.md の関係する節だけを読む、
-    (3) 状態を進行中にする、(4) 実装とテスト、(5) python scripts/quality-gates.py（BL-119）で全ゲート、(6) 記録の更新（EXECUTE.md・DESIGN.md・BACKLOG.md の削除と依存の付け替え。FORMAT.md に従う）、
-    (7) git diff と秘密情報スキャン、(8) git add と git commit（本文に id、push しない、--no-verify を使わない）、(9) 返す内容（コミットのハッシュ・ゲートの結果・新たに起票した id・人手検証の項目）。
-    要確認に当たる判断が出たら実装を止めて BACKLOG に要確認で起票し、その旨を返すことも書く。統制の正本は rules/guardrails-unified.v1.md 12 節と autonomous-loop スキルで、本文へは複製せず参照する。
-    frontmatter に model opus を指定し、tools は制限しない（実装に編集とコマンドが要るため）
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    .claude/agents/backlog-task-implementer.md があり、autonomous-loop の委任の節（BL-121）から参照されている。
-    markdownlint が Summary 0 issues、python scripts/validate-records.py が成功。定義の妥当性は次の実装イテレーションで実際に使って確かめ、気づいた点を CHANGELOG.md に残す
-  依存: []
-  根拠: >-
-    今回のループはオーケストレータが BACKLOG の 1 タスクを Opus のサブエージェントへ渡す運用だが、渡す指示が毎回の手書きで、.claude/agents/ に定義が無い。
-    1 タスク 1 コミットの手順は .claude/skills/autonomous-loop/SKILL.md「イテレーション手順」にあるが、委任されたエージェントが返すべき内容は定めていない
 - id: BL-123
   区分: 品質ゲート
   タスク内容: >-

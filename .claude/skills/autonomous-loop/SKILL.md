@@ -50,6 +50,8 @@ description: 自律ループ実行モード（Loop Engineering）の実行手順
   オーケストレータは `git log` と `git status` で結果を確かめる
 - **直列で進める**: 全タスクが記録ファイル（BACKLOG・EXECUTE・DESIGN・CHANGELOG）を更新するため、並行させると衝突する。
   Gradle もメモリの制約で同時に1つしか流せない（スクリプト側では止めていないため、運用として守る）
+- **実装担当の定義**: `.claude/agents/backlog-task-implementer.md`（subagent_type `backlog-task-implementer`）を使えば、
+  下の項目は定義側が読むため、指示は対象の `id` だけでよい
 - **委任の指示に必ず入れる項目**:
   - 対象の `id` は1件だけで、仕様は `BACKLOG.md` の該当タスクであること
   - 禁止操作（guardrails 12.2）
