@@ -2,12 +2,15 @@ package com.ikumemo.mobile.reminder
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -19,8 +22,11 @@ import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ReminderEntity
 import com.ikumemo.mobile.data.db.ReminderRow
 import com.ikumemo.mobile.designsystem.IkumemoTheme
+import com.ikumemo.mobile.designsystem.LocalHasBackgroundImage
+import com.ikumemo.mobile.designsystem.ReadablePanelTestTags
 import com.ikumemo.mobile.help.HelpPages
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -45,19 +51,27 @@ class ReminderContentTest {
     private val openedHelp = mutableStateListOf<String>()
     private var enableRequests = 0
 
-    private fun show(state: ReminderUiState = ReminderSamples.state()) {
+    private fun show(
+        state: ReminderUiState = ReminderSamples.state(),
+        hasBackgroundImage: Boolean = false,
+    ) {
         composeRule.setContent {
             IkumemoTheme {
-                ReminderContent(
-                    state = state,
-                    onEvent = { events += it },
-                    onEnableNotifications = { enableRequests++ },
-                    onOpenHelp = { openedHelp += it },
-                    showGuide = false,
-                )
+                CompositionLocalProvider(LocalHasBackgroundImage provides hasBackgroundImage) {
+                    ReminderContent(
+                        state = state,
+                        onEvent = { events += it },
+                        onEnableNotifications = { enableRequests++ },
+                        onOpenHelp = { openedHelp += it },
+                        showGuide = false,
+                    )
+                }
             }
         }
     }
+
+    private fun panelCount(): Int =
+        composeRule.onAllNodesWithTag(ReadablePanelTestTags.PANEL, useUnmergedTree = true).fetchSemanticsNodes().size
 
     private fun text(
         @StringRes id: Int,
@@ -196,6 +210,43 @@ class ReminderContentTest {
 
         composeRule.onNodeWithText(text(R.string.reminder_recent_empty)).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText(text(R.string.reminder_pending_empty)).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun backgroundImageLaysPanelsUnderTheRows() {
+        show(
+            ReminderSamples.state(
+                recent = listOf(ReminderSamples.recent(id = 2, name = "牛乳")),
+                pending = listOf(ReminderSamples.pending(id = 4, name = "豆腐")),
+            ),
+            hasBackgroundImage = true,
+        )
+
+        // 期限が近い順の行・最近買った物の行・「おしらせが届かないとき」は面の上に描き、見出しは写真の上に残す（BL-130）
+        assertOnPanel(ReminderTestTags.pending(4))
+        assertOnPanel(ReminderTestTags.setDue(2))
+        assertOnPanel(ReminderTestTags.NOT_ARRIVING)
+        val title = composeRule.onNodeWithText(text(R.string.reminder_pending)).performScrollTo().fetchSemanticsNode()
+        assertFalse(onPanel(title.boundsInRoot))
+    }
+
+    /** [tag] の要素まで送り、その全体がどれかの面の内側にあることを確かめる。 */
+    private fun assertOnPanel(tag: String) {
+        val bounds = composeRule.onNodeWithTag(tag).performScrollTo().fetchSemanticsNode().boundsInRoot
+        assertTrue("$tag が面の上に無い", onPanel(bounds))
+    }
+
+    private fun onPanel(bounds: Rect): Boolean =
+        composeRule
+            .onAllNodesWithTag(ReadablePanelTestTags.PANEL, useUnmergedTree = true)
+            .fetchSemanticsNodes()
+            .any { it.boundsInRoot.intersect(bounds) == bounds }
+
+    @Test
+    fun noPanelsWithoutBackgroundImage() {
+        show(ReminderSamples.state(pending = listOf(ReminderSamples.pending(id = 4, name = "豆腐"))))
+
+        assertEquals(0, panelCount())
     }
 }
 

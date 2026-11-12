@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -48,6 +49,9 @@ import coil.compose.AsyncImage
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.PhotoStore
+import com.ikumemo.mobile.designsystem.PanelEdge
+import com.ikumemo.mobile.designsystem.ReadablePanel
+import com.ikumemo.mobile.designsystem.panelEdge
 import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.rememberGuideTargets
@@ -149,50 +153,59 @@ private fun MonthPane(
     onEvent: (CalendarEvent) -> Unit,
     onPhotoClick: (String?) -> Unit,
 ) {
+    // 背景の写真があるときは、月の表と日の詳細（見出し〜「買った物を記録する」）にそれぞれ面を敷く（BL-130）
     LazyColumn(Modifier.fillMaxSize()) {
         item {
-            MonthHeader(
-                month = state.month,
-                onPrevious = { onEvent(CalendarEvent.PreviousMonth) },
-                onNext = { onEvent(CalendarEvent.NextMonth) },
-            )
-            MonthGrid(
-                month = state.month,
-                selectedDate = state.selectedDate,
-                today = state.today,
-                shoppingDays = state.shoppingDays,
-                onSelect = { onEvent(CalendarEvent.SelectDate(it)) },
-            )
+            ReadablePanel {
+                MonthHeader(
+                    month = state.month,
+                    onPrevious = { onEvent(CalendarEvent.PreviousMonth) },
+                    onNext = { onEvent(CalendarEvent.NextMonth) },
+                )
+                MonthGrid(
+                    month = state.month,
+                    selectedDate = state.selectedDate,
+                    today = state.today,
+                    shoppingDays = state.shoppingDays,
+                    onSelect = { onEvent(CalendarEvent.SelectDate(it)) },
+                )
+            }
             HorizontalDivider(Modifier.padding(top = 8.dp))
-            Text(
-                dayTitle(state.selectedDate),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp),
-            )
-            if (state.selectedRecords.isEmpty()) {
-                Text(stringResource(R.string.calendar_no_shopping), modifier = Modifier.padding(horizontal = 16.dp))
+            ReadablePanel(PanelEdge.TOP) {
+                Text(
+                    dayTitle(state.selectedDate),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp),
+                )
+                if (state.selectedRecords.isEmpty()) {
+                    Text(stringResource(R.string.calendar_no_shopping), modifier = Modifier.padding(horizontal = 16.dp))
+                }
             }
         }
         items(state.selectedRecords, key = { it.record.id }) { row ->
-            RecordRowView(
-                row = row,
-                photoStore = photoStore,
-                onClick = { onEvent(CalendarEvent.EditRecord(row.record.id)) },
-                onPhotoClick = { onPhotoClick(row.record.photoUri) },
-                modifier = Modifier.testTag(CalendarTestTags.record(row.record.id)),
-            )
+            ReadablePanel(PanelEdge.MIDDLE) {
+                RecordRowView(
+                    row = row,
+                    photoStore = photoStore,
+                    onClick = { onEvent(CalendarEvent.EditRecord(row.record.id)) },
+                    onPhotoClick = { onPhotoClick(row.record.photoUri) },
+                    modifier = Modifier.testTag(CalendarTestTags.record(row.record.id)),
+                )
+            }
         }
         item {
-            // あとから記録（F-17）。買い物が無い日も、ある日も記録の下に出す
-            OutlinedButton(
-                onClick = { onEvent(CalendarEvent.OpenAddRecord) },
-                modifier =
-                    Modifier
-                        .padding(16.dp)
-                        .heightIn(min = 48.dp)
-                        .testTag(CalendarTestTags.ADD_RECORD),
-            ) {
-                Text(stringResource(R.string.calendar_add_record))
+            ReadablePanel(PanelEdge.BOTTOM) {
+                // あとから記録（F-17）。買い物が無い日も、ある日も記録の下に出す
+                OutlinedButton(
+                    onClick = { onEvent(CalendarEvent.OpenAddRecord) },
+                    modifier =
+                        Modifier
+                            .padding(16.dp)
+                            .heightIn(min = 48.dp)
+                            .testTag(CalendarTestTags.ADD_RECORD),
+                ) {
+                    Text(stringResource(R.string.calendar_add_record))
+                }
             }
         }
     }
@@ -204,44 +217,60 @@ private fun SearchPane(
     onEvent: (CalendarEvent) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
-        OutlinedTextField(
-            value = state.query,
-            onValueChange = { onEvent(CalendarEvent.QueryChanged(it)) },
-            label = { Text(stringResource(R.string.calendar_search_hint)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(16.dp).testTag(CalendarTestTags.SEARCH_INPUT),
-        )
-        if (state.query.isNotBlank() && state.searchResults.isEmpty()) {
-            Text(stringResource(R.string.calendar_search_empty), modifier = Modifier.padding(horizontal = 16.dp))
-        }
-        LazyColumn {
-            items(state.searchResults, key = { it.record.id }) { row ->
-                val date = row.record.purchasedDate
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .clickable { onEvent(CalendarEvent.JumpTo(date)) }
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .testTag(CalendarTestTags.result(row.record.id)),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(row.record.displayName, style = MaterialTheme.typography.bodyLarge)
-                        row.storeName?.let {
-                            Text(
-                                it,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    Text(stringResource(R.string.calendar_result_date, date.year, date.monthValue, date.dayOfMonth))
-                }
-                HorizontalDivider()
+        // 背景の写真があるときは、検索の欄と結果の一覧にそれぞれ面を敷く（BL-130）
+        ReadablePanel {
+            OutlinedTextField(
+                value = state.query,
+                onValueChange = { onEvent(CalendarEvent.QueryChanged(it)) },
+                label = { Text(stringResource(R.string.calendar_search_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(16.dp).testTag(CalendarTestTags.SEARCH_INPUT),
+            )
+            if (state.query.isNotBlank() && state.searchResults.isEmpty()) {
+                Text(
+                    stringResource(R.string.calendar_search_empty),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
+        LazyColumn {
+            itemsIndexed(state.searchResults, key = { _, row -> row.record.id }) { index, row ->
+                ReadablePanel(panelEdge(index, state.searchResults.size)) {
+                    SearchResultRow(row, onClick = { onEvent(CalendarEvent.JumpTo(row.record.purchasedDate)) })
+                    HorizontalDivider()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultRow(
+    row: RecordRow,
+    onClick: () -> Unit,
+) {
+    val date = row.record.purchasedDate
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .testTag(CalendarTestTags.result(row.record.id)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(row.record.displayName, style = MaterialTheme.typography.bodyLarge)
+            row.storeName?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Text(stringResource(R.string.calendar_result_date, date.year, date.monthValue, date.dayOfMonth))
     }
 }
 

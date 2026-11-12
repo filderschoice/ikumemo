@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material3.Button
@@ -49,6 +49,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.db.ReminderRow
+import com.ikumemo.mobile.designsystem.ReadablePanel
+import com.ikumemo.mobile.designsystem.panelEdge
 import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.rememberGuideTargets
@@ -131,31 +133,36 @@ private fun ReminderList(
     val targets = LocalGuideTargets.current
     // 「ほか N 件を見る」で開いた状態。画面を回しても保つが、保存はしない（BL-142）
     var recentExpanded by rememberSaveable { mutableStateOf(false) }
-    // 並びは期限切れの有無によらず 期限が近い順 → 最近買った物（BL-142）
+    // 並びは期限切れの有無によらず 期限が近い順 → 最近買った物（BL-142）。
+    // 背景の写真があるときは、セクションの見出しを写真の上に残し、各セクションの行に面を敷く（BL-130）
     LazyColumn(Modifier.fillMaxSize()) {
         if (!state.notificationsEnabled) {
             item { NotificationsOffBanner(onEnableNotifications) }
         }
         item { SectionTitle(R.string.reminder_pending) }
         if (state.loaded && state.pending.isEmpty()) {
-            item { Hint(R.string.reminder_pending_empty) }
+            item { ReadablePanel { Hint(R.string.reminder_pending_empty) } }
         }
-        items(state.pending, key = { "pending_${it.reminder.id}" }) { row ->
-            PendingRow(row, state.today, onEvent)
-            HorizontalDivider()
+        itemsIndexed(state.pending, key = { _, row -> "pending_${row.reminder.id}" }) { index, row ->
+            ReadablePanel(panelEdge(index, state.pending.size)) {
+                PendingRow(row, state.today, onEvent)
+                HorizontalDivider()
+            }
         }
         item { SectionTitle(R.string.reminder_recent) }
         if (state.loaded && state.recent.isEmpty()) {
-            item { Hint(R.string.reminder_recent_empty) }
+            item { ReadablePanel { Hint(R.string.reminder_recent_empty) } }
         }
         recentRows(state.recent, recentExpanded, { recentExpanded = true }, onEvent, targets)
         // 困ったときの入口（H-03）
         item {
-            TextButton(
-                onClick = { onOpenHelp(HelpPages.NOT_ARRIVING) },
-                modifier = Modifier.padding(8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.NOT_ARRIVING),
-            ) {
-                Text(stringResource(R.string.help_not_arriving))
+            ReadablePanel {
+                TextButton(
+                    onClick = { onOpenHelp(HelpPages.NOT_ARRIVING) },
+                    modifier = Modifier.padding(8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.NOT_ARRIVING),
+                ) {
+                    Text(stringResource(R.string.help_not_arriving))
+                }
             }
         }
     }

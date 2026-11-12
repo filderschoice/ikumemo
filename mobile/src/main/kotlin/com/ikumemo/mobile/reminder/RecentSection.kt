@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
+import com.ikumemo.mobile.designsystem.ReadablePanel
+import com.ikumemo.mobile.designsystem.panelEdge
 import com.ikumemo.mobile.guide.GuideId
 import com.ikumemo.mobile.guide.GuideTargets
 import com.ikumemo.mobile.guide.guideTarget
@@ -51,28 +53,34 @@ internal fun LazyListScope.recentRows(
     targets: GuideTargets?,
 ) {
     val shown = if (expanded) recent else recent.take(RECENT_SHOWN_FIRST)
+    val rest = recent.size - shown.size
+    // 背景の写真があるときは、行と「ほか N 件を見る」を続いた 1 枚の面に載せる（BL-130）
+    val panelRows = shown.size + if (rest > 0) 1 else 0
     itemsIndexed(shown, key = { _, record -> "recent_${record.id}" }) { index, record ->
         val target = if (index == 0) Modifier.guideTarget(GuideId.G08_DUE_DATE, targets) else Modifier
-        RecentRow(
-            record = record,
-            setDueModifier = target,
-            onSetDue = { onEvent(ReminderEvent.OpenDue(DueTarget(record.id, record.displayName))) },
-            onNoDue = { onEvent(ReminderEvent.NoDue(record.id, record.displayName)) },
-        )
-        HorizontalDivider()
+        ReadablePanel(panelEdge(index, panelRows)) {
+            RecentRow(
+                record = record,
+                setDueModifier = target,
+                onSetDue = { onEvent(ReminderEvent.OpenDue(DueTarget(record.id, record.displayName))) },
+                onNoDue = { onEvent(ReminderEvent.NoDue(record.id, record.displayName)) },
+            )
+            HorizontalDivider()
+        }
     }
-    val rest = recent.size - shown.size
     if (rest > 0) {
         item(key = "recent_more") {
-            TextButton(
-                onClick = onExpand,
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .heightIn(min = 48.dp)
-                        .testTag(ReminderTestTags.RECENT_MORE),
-            ) {
-                Text(stringResource(R.string.reminder_recent_more, rest))
+            ReadablePanel(panelEdge(panelRows - 1, panelRows)) {
+                TextButton(
+                    onClick = onExpand,
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 8.dp)
+                            .heightIn(min = 48.dp)
+                            .testTag(ReminderTestTags.RECENT_MORE),
+                ) {
+                    Text(stringResource(R.string.reminder_recent_more, rest))
+                }
             }
         }
     }

@@ -5,6 +5,41 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 05:03
+  summary: 背景の写真があるとき、記録と期限の画面の一覧にテーマの面を敷いて文字を読めるようにする
+  details:
+    変更内容: >-
+      BL-130 を実装した。designsystem/ReadablePanel.kt を新設し、LocalHasBackgroundImage が true のときだけテーマの surface を不透明に敷いた Surface
+      （左右 8dp、角 12dp、testTag は readable_panel）で中身を描く ReadablePanel を作った。LazyColumn の行ごとに敷いても 1 枚の面に見えるよう、
+      PanelEdge（SINGLE・TOP・MIDDLE・BOTTOM）で上下の角と外側の余白を分け、panelEdge(index, count) で行の位置から選ぶ。
+      面の中は Surface により文字色が onSurface に戻るため、ペンの色に関わらず CalendarColors・onSurfaceVariant・error・primary がテーマの面の上と同じに見える。
+      写真が無いときは Column で並べるだけにして今の見た目を変えない（スクリーンショットの calendar・reminder は差分なし）。
+      記録の画面は月の表（MonthHeader・MonthGrid）を 1 枚、日の見出し〜記録の行〜「買った物を記録する」を続いた 1 枚、検索の欄と結果の行に敷いた
+      （検索結果の行は SearchResultRow に分けた）。期限の画面は期限が近い順の行、最近買った物の行と「ほか N 件を見る」、空のときの案内、
+      「おしらせが届かないとき」に敷き、セクションの見出しはペンの色のまま写真の上に残した。ペンの色の仕組み（InkColor・AppThemeHost）は変えていない。
+      使い方 background.md に面を敷くことを足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-61 の行を更新した。
+      BL-143・BL-137・BL-109 の依存から BL-130 を外した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ReadablePanel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/RecentSection.kt
+      - mobile/src/main/assets/help/background.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*ReminderContentTest" --tests "*ThemeContrastTest" --tests "*InkColorTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.calendar*"、
+      同じく --tests "*MainScreensScreenshotTest.reminder*"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功し、
+      スクリーンショットの calendar と reminder は差分なしで成功した（フル検証はループの最後に流す）
+    関連ID:
+      - BL-130
 - date: 2026-11-13 01:45
   summary: 期限の画面で期限が近い順を上に出し、最近買った物は 3 件だけ出して「期限なし」で一覧から外せるようにする
   details:

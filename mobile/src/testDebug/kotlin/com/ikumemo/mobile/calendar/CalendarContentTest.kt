@@ -2,19 +2,27 @@ package com.ikumemo.mobile.calendar
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.designsystem.IkumemoTheme
+import com.ikumemo.mobile.designsystem.LocalHasBackgroundImage
+import com.ikumemo.mobile.designsystem.ReadablePanelTestTags
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,14 +45,27 @@ class CalendarContentTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val events = mutableStateListOf<CalendarEvent>()
 
-    private fun show(state: CalendarUiState = CalendarSamples.state()) {
+    private fun show(
+        state: CalendarUiState = CalendarSamples.state(),
+        hasBackgroundImage: Boolean = false,
+    ) {
         val photoStore = PhotoStore(context)
         composeRule.setContent {
             IkumemoTheme {
-                CalendarContent(state = state, photoStore = photoStore, onEvent = { events += it }, showGuide = false)
+                CompositionLocalProvider(LocalHasBackgroundImage provides hasBackgroundImage) {
+                    CalendarContent(
+                        state = state,
+                        photoStore = photoStore,
+                        onEvent = { events += it },
+                        showGuide = false,
+                    )
+                }
             }
         }
     }
+
+    private fun panelCount(): Int =
+        composeRule.onAllNodesWithTag(ReadablePanelTestTags.PANEL, useUnmergedTree = true).fetchSemanticsNodes().size
 
     private fun text(
         @StringRes id: Int,
@@ -95,6 +116,51 @@ class CalendarContentTest {
         show(CalendarSamples.state(searchOpen = true, query = "見つからない品"))
 
         composeRule.onNodeWithText(text(R.string.calendar_search_empty)).assertIsDisplayed()
+    }
+
+    @Test
+    fun backgroundImageLaysPanelsUnderTheMonthAndTheDay() {
+        val row = CalendarSamples.row(id = 7, name = "牛乳")
+        show(CalendarSamples.state(selectedRecords = listOf(row)), hasBackgroundImage = true)
+
+        // 月の表の日付・記録の行・「買った物を記録する」が面の上に描かれる（BL-130）
+        assertOnPanel(CalendarTestTags.day(CalendarSamples.TODAY))
+        assertOnPanel(CalendarTestTags.record(7))
+        assertOnPanel(CalendarTestTags.ADD_RECORD)
+    }
+
+    @Test
+    fun backgroundImageLaysPanelsUnderTheSearch() {
+        val rows = listOf(CalendarSamples.row(id = 3, name = "卵"), CalendarSamples.row(id = 4, name = "卵焼き"))
+        show(CalendarSamples.state(searchOpen = true, query = "卵", searchResults = rows), hasBackgroundImage = true)
+
+        // 検索の欄と結果の 2 行（BL-130）
+        assertEquals(3, panelCount())
+        assertOnPanel(CalendarTestTags.SEARCH_INPUT, scroll = false)
+        assertOnPanel(CalendarTestTags.result(4), scroll = false)
+    }
+
+    /** [tag] の要素まで一覧を送り（[scroll]）、その全体がどれかの面の内側にあることを確かめる。 */
+    private fun assertOnPanel(
+        tag: String,
+        scroll: Boolean = true,
+    ) {
+        // 一覧は LazyColumn のため、画面外の行は作られない。送ってから探す
+        if (scroll) composeRule.onNode(hasScrollAction()).performScrollToNode(hasTestTag(tag))
+        val bounds = composeRule.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
+        val panels =
+            composeRule
+                .onAllNodesWithTag(ReadablePanelTestTags.PANEL, useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .map { it.boundsInRoot }
+        assertTrue("$tag が面の上に無い", panels.any { it.intersect(bounds) == bounds })
+    }
+
+    @Test
+    fun noPanelsWithoutBackgroundImage() {
+        show(CalendarSamples.state(selectedRecords = listOf(CalendarSamples.row(id = 7, name = "牛乳"))))
+
+        assertEquals(0, panelCount())
     }
 }
 

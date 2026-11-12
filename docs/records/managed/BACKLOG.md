@@ -194,8 +194,7 @@
     python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の「PLAN §3（一部）」（設定の入口と項目の並び）、「F-13・R-05・PLAN §3 操作」、「R-20・R-21・PLAN §3 お知らせ」、F-77、「PLAN §3・§5・§7」（このアプリについて）の行を合わせ、
     docs/design/WIREFRAME.md の設定と上部のバーを直す
-  依存:
-    - BL-130
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー B3（効果 大）。オーナーが 2026-11-13 に、質問の案（設定ボタンを 3 つのタブすべてに置き、操作とお知らせを 1 画面にまとめて項目を減らす）のとおりで承認した。
     既定で決めた点。レビューと質問は「10 項目から 7 項目」としていたが、案に書かれた統合（操作＋お知らせ、ご意見・ご要望を このアプリについて の中へ）だけでは 8 項目になる。
@@ -295,7 +294,6 @@
     使い方 mobile/src/main/assets/help/calendar.md に「今日」ボタンを足し、search.md の「右上の「探す」」が新しい見た目と合うか確かめて、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-40（点の大きさ・今日へ戻る）と F-42 の行（探すの入口）を合わせる
   依存:
-    - BL-130
     - BL-143
   根拠: >-
     2026-11-13 の UX レビュー A8（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
@@ -454,38 +452,6 @@
     docs/records/managed/DESIGN.md の F-03 と F-17 の行に、開くと品名の欄にフォーカスしてキーボードを出すことを足す
   依存: []
   根拠: 2026-11-13 の UX レビュー A2（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。追加のたびに 1 タップ減る
-- id: BL-130
-  区分: UX改善
-  タスク内容: >-
-    背景の写真を設定しているとき、カレンダーとお知らせ（BL-141 の後は「記録」「期限」）の文字が写真に溶けないよう、写真の上に直接描いている一覧にテーマの面を敷く（UX レビュー A1、推奨の案 1）。
-    パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/。
-    いまの状態。kotlin/designsystem/AppThemeHost.kt の 49〜56 行目はペンの色（InkColor）で onBackground と LocalContentColor だけを差し替える。
-    一方、kotlin/calendar/MonthGrid.kt の weekdayColor（136〜145 行目）は平日が colorScheme.onSurface、日曜・土曜が CalendarColors（テーマの明暗だけで決まる）で、DayCell の日付（183〜187 行目）もその色。
-    kotlin/calendar/CalendarScreen.kt の RecordRowView（248〜287 行目）と検索結果の補足は onSurfaceVariant、
-    kotlin/reminder/ReminderScreen.kt の PendingRow と kotlin/reminder/RecentSection.kt の RecentRow（BL-142 で移した）は「○月○日に買った」と期限の文字が onSurfaceVariant と error、「使い切った」「捨てた」は TextButton の primary。
-    これらの行は不透明な面を持たず写真と膜（designsystem/BackgroundScrim.kt）の上に直接描かれるため、明るいテーマ＋ペン「しろ」（暗い膜）や暗いテーマ＋「くろ・あお・あか」（明るい膜）で読めなくなる。
-    メモの行だけは surface を敷いている（kotlin/shoppinglist/SwipeableItemRow.kt）。
-    どう変えるか。LocalHasBackgroundImage が true のとき、カレンダーの月の表（MonthHeader と MonthGrid）、日の詳細（見出し・記録の行・「買った物を記録する」）、検索の欄と結果、
-    お知らせの各セクションの行を、テーマの surface を不透明に敷いた Surface かカードで囲む（写真は余白と見出しの周りにだけ見える形）。
-    背景の写真が無いときは敷かず、今の見た目を変えない。ペンの色の仕組み（InkColor）は変えない
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    背景の写真があるとき、カレンダーとお知らせの日付・曜日・補足・期限・ボタンの文字が surface の上に描かれ、写真が無いときの見た目は変わらない。
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/ の calendar/CalendarContentTest と reminder/ReminderContentTest（BL-116 で作る）に、
-    LocalHasBackgroundImage を true にして描くと面（新しい testTag）が出ること、false では出ないことのテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*ReminderContentTest" --tests "*ThemeContrastTest" --tests "*InkColorTest" が成功する。
-    スクリーンショットテスト（背景の写真なしで撮っている）の calendar と reminder を CLAUDE.md の手順で画面ごとに比べ、差分が無いことを確かめる
-    （差分が出たら意図したものか確かめて -Proborazzi.test.record=true で記録し直し、画像をコミットに含める）。
-    使い方 mobile/src/main/assets/help/background.md に、カレンダーとお知らせの一覧は写真の上に面を敷いて読みやすくすることを足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の F-61 の行（「メモの行・バー・下タブなどテーマの面の上の文字は変えない」の箇所）に、カレンダーとお知らせの一覧にも面を敷くことを足す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー A1（効果 大）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
-    レビューの 2 案のうち、ペンの色ごとに onSurface・CalendarColors・primary・error を選び直す案 2 は色の組み合わせが増え、
-    コントラストの自動テスト（ThemeContrastTest はテーマの面の上しか測らない）で守りにくいため、レビューが推奨する案 1（面を敷く）を既定とした。
-    お知らせ画面の並びを変える BL-142 の後に行う（同じ ReminderList を触るため）
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-
@@ -641,8 +607,7 @@
   完了条件: >-
     各ペンの色で、全画面の文字が読める。読めない箇所があれば画面名と色を記録している。
     BL-130 の後、上の 2 つの組み合わせでカレンダーとお知らせの文字が腕を伸ばした距離で全部読める
-  依存:
-    - BL-130
+  依存: []
   根拠: >-
     写真の明るさと各画面の文字の置かれ方の組み合わせは実機でしか確かめられないため。単体テストでは文字と膜の色の比（4.5:1 以上）だけを見ている。
     2026-11-13 の UX レビュー C1 は同じ確認のため、新しく作らずここへ足した
