@@ -5,6 +5,52 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 05:39
+  summary: カレンダーの記録を消した後に「元に戻す」を出し、記録と付いていたお知らせを同じ id で戻せるようにする
+  details:
+    変更内容: >-
+      BL-135 を実装した。data/RecordRepository.kt の deleteRecord が、消す前の記録・お知らせ・お買い物を DeletedRecord として返すようにし、
+      restoreRecord で記録とお知らせを同じ id で戻して品目の集計を計算し直すようにした（お買い物は残っていればそれを、無ければ同じ日・お店のもの、それも無ければ元の id で戻す）。
+      お知らせが消えた・戻ったときに次の通知を予約し直すため、RecordRepository に onRemindersChanged を足し、AppContainer で ReminderScheduler.reschedule を渡した。
+      ShoppingTripDao に getById を足した（クエリだけでスキーマは変わらない）。
+      calendar/CalendarViewModel.kt は消すと RecordUndoOffer（通し番号と消した内容）を出し、CalendarEvent.UndoDelete で戻して戻した記録の日を表示し、UndoExpired で申し出を消す。
+      calendar/RecordUndo.kt の RecordUndoEffect がメモの UndoEffect と同じ作りで「消しました：品名 ／ 元に戻す」を 5 秒（読み上げ利用時は延長）出し、
+      CalendarContent の下に SnackbarHost（testTag calendar_snackbar）を置いた。
+      calendar/RecordEditSheet.kt の DeleteAndClose は「閉じる」を右に置き、「この記録を消す」を区切り線の下のシートの一番下へ離した。
+      写真のファイルは消さず参照が戻るだけで、R-14 の掃除は端末を使っていない間だけ動き 1 日未満の写真を残すため、追加の対策はしていない。
+      使い方 edit-record.md と undo.md を直して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-16・R-12・R-14 の行を更新した。
+      あわせて人手検証の BL-118 に、記録の編集シートを 3 通りで閉じたときの保存（BL-144）と、消した後の元に戻す（BL-135）の確認を足した。
+      スクリーンショットテストの calendar は差分が無く、記録し直していない（元に戻すの表示は既定の状態では出ない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordUndo.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/edit-record.md
+      - mobile/src/main/assets/help/undo.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordRepositoryTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/RecordEditSheetTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*RecordRepositoryTest" --tests "*CalendarViewModelTest" --tests "*CalendarContentTest" --tests "*RecordEditSheetTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.calendar*"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定の 4 テストクラス・markdownlint・records・user-guide・secrets がすべて成功し、calendar のスクリーンショットも一致した
+      （1 回目は restoreTrip の return が 3 つで detekt の ReturnCount、時間切れのテストが削除前の一覧の状態を拾ったこと、
+      シートの外にはみ出す行を切り取られた座標で比べたことでテストが失敗したため、式を ?: で繋ぎ、待つ条件と比べる座標を直した。フル検証はループの最後に流す）
+    関連ID:
+      - BL-135
 - date: 2026-11-13 05:26
   summary: カレンダーの記録の編集シートを、メモの編集と同じく閉じたら保存するようにする
   details:

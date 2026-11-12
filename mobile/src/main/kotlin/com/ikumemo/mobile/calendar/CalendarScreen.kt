@@ -25,6 +25,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -99,6 +101,8 @@ fun CalendarContent(
 ) {
     var enlargedPhoto by rememberSaveable { mutableStateOf<String?>(null) }
     val guideTargets = rememberGuideTargets()
+    val snackbarHostState = remember { SnackbarHostState() }
+    RecordUndoEffect(state.undo, snackbarHostState, onEvent)
     CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
@@ -109,6 +113,11 @@ fun CalendarContent(
                     MonthPane(state, photoStore, onEvent, onPhotoClick = { enlargedPhoto = it })
                 }
             }
+            // 記録を消した後の「元に戻す」（F-16）
+            SnackbarHost(
+                snackbarHostState,
+                Modifier.align(Alignment.BottomCenter).testTag(CalendarTestTags.SNACKBAR),
+            )
             // 通知などから開いた直後は出さない（表示済みにもしないので、次に開いたときに出る、R-52）
             state.guide?.takeIf { showGuide }?.let { guide ->
                 GuideOverlay(

@@ -99,6 +99,41 @@ class RecordRepositoryTest {
         }
 
     @Test
+    fun undoingDeleteRestoresRecordAndReminderWithSameIdsAndStats() =
+        runTest {
+            // BL-135。消して元に戻すと、記録とおしらせが同じ id で戻り、集計も消す前と同じになる
+            var rescheduled = 0
+            records = RecordRepository(db, ProductNameNormalizer(), clock) { rescheduled += 1 }
+            val (_, second) = buyMilkOn(0, 6)
+            val before = milk()
+            val recordBefore = requireNotNull(records.getRecord(second))
+            val reminderId =
+                db.reminderDao().insert(
+                    ReminderEntity(
+                        purchaseRecordId = second,
+                        productId = before.id,
+                        dueDate = LocalDate.of(2026, 10, 14),
+                        snoozedUntil = LocalDate.of(2026, 10, 15),
+                    ),
+                )
+            val reminderBefore = db.reminderDao().getById(reminderId)
+
+            val deleted = requireNotNull(records.deleteRecord(second))
+            assertNull(db.shoppingTripDao().find(LocalDate.of(2026, 10, 7), null))
+            assertEquals(1, rescheduled)
+
+            assertTrue(records.restoreRecord(deleted))
+
+            assertEquals(recordBefore, records.getRecord(second))
+            assertEquals(reminderBefore, db.reminderDao().findByRecord(second))
+            assertEquals(recordBefore.tripId, db.shoppingTripDao().find(LocalDate.of(2026, 10, 7), null)?.id)
+            assertEquals(before, milk())
+            assertEquals(2, rescheduled)
+            // 2 回目は戻すものが無いので何もしない
+            assertEquals(false, records.restoreRecord(deleted))
+        }
+
+    @Test
     fun changingStoreMovesRecordToThatStoresTrip() =
         runTest {
             val (record) = buyMilkOn(0)

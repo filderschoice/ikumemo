@@ -73,6 +73,7 @@
     <string name="calendar_record_date">買った日 %1$d年%2$d月%3$d日</string>
     <string name="calendar_record_store">買ったお店</string>
     <string name="calendar_record_delete">この記録を消す</string>
+    <string name="calendar_record_deleted_message">消しました：%1$s</string>
     <string name="calendar_add_record">買った物を記録する</string>
     <string name="calendar_add_record_save">記録する</string>
     <string name="reminder_recent">最近買った物</string>

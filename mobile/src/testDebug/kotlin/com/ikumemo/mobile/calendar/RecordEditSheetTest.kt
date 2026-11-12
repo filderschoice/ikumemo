@@ -17,6 +17,7 @@ import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.RecordEdit
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -94,5 +95,17 @@ class RecordEditSheetTest {
         composeRule.waitForIdle()
 
         assertEquals(listOf(CalendarEvent.DeleteRecord(record.id)), events.toList())
+    }
+
+    @Test
+    fun deleteSitsBelowCloseOnItsOwnRow() {
+        show()
+
+        // 押し間違えないよう、「この記録を消す」は「閉じる」と同じ行に並べず、その下へ離して置く（BL-135）
+        // シートの下の方は画面の外にはみ出すことがあるため、切り取られない位置と大きさで比べる
+        val close = composeRule.onNodeWithTag(CalendarTestTags.RECORD_CLOSE).fetchSemanticsNode()
+        val delete = composeRule.onNodeWithTag(CalendarTestTags.RECORD_DELETE).fetchSemanticsNode()
+        val closeBottom = close.positionInRoot.y + close.size.height
+        assertTrue("消す（${delete.positionInRoot.y}）が閉じる（$closeBottom）の下に無い", delete.positionInRoot.y >= closeBottom)
     }
 }

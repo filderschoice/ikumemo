@@ -110,6 +110,9 @@ interface ShoppingTripDao {
         storeId: Long?,
     ): ShoppingTripEntity?
 
+    @Query("SELECT * FROM shopping_trip WHERE id = :id")
+    suspend fun getById(id: Long): ShoppingTripEntity?
+
     @Query("SELECT * FROM shopping_trip WHERE storeId = :storeId")
     suspend fun getByStore(storeId: Long): List<ShoppingTripEntity>
 

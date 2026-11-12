@@ -204,6 +204,7 @@ object CalendarTestTags {
     const val ADD_RECORD = "calendar_add_record"
     const val ADD_RECORD_NAME = "calendar_add_record_name"
     const val ADD_RECORD_SAVE = "calendar_add_record_save"
+    const val SNACKBAR = "calendar_snackbar"
 
     fun day(date: LocalDate) = "calendar_day_$date"
 

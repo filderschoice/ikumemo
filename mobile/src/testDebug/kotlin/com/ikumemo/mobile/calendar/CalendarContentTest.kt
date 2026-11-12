@@ -16,6 +16,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.data.DeletedRecord
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.designsystem.IkumemoTheme
@@ -163,6 +164,19 @@ class CalendarContentTest {
         show(CalendarSamples.state(selectedRecords = listOf(CalendarSamples.row(id = 7, name = "牛乳"))))
 
         assertEquals(0, panelCount())
+    }
+
+    @Test
+    fun deletedRecordOffersUndo() {
+        // BL-135。消した後に「消しました：品名 ／ 元に戻す」が出て、押すと元に戻すを送る
+        val deleted = DeletedRecord(CalendarSamples.row(id = 7, name = "牛乳").record, reminder = null, trip = null)
+        show(CalendarSamples.state().copy(undo = RecordUndoOffer(serial = 3, deleted = deleted)))
+
+        composeRule.onNodeWithText(text(R.string.calendar_record_deleted_message, "牛乳")).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.memo_undo)).performClick()
+
+        composeRule.waitForIdle()
+        assertEquals(listOf<CalendarEvent>(CalendarEvent.UndoDelete(3)), events.toList())
     }
 
     @Test

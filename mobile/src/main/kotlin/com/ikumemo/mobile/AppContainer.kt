@@ -47,7 +47,7 @@ class AppContainer(
 
     val shoppingRepository by lazy { ShoppingRepository(database, normalizer, clock) }
 
-    val recordRepository by lazy { RecordRepository(database, normalizer, clock) }
+    val recordRepository by lazy { RecordRepository(database, normalizer, clock) { reminderScheduler.reschedule() } }
 
     private val dataStore by lazy { dataStoreFactory(appContext) }
 

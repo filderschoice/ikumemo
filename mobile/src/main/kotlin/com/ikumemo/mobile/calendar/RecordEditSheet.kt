@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -45,7 +46,7 @@ private const val MILLIS_PER_DAY = 86_400_000L
 /**
  * 記録の編集シート（F-16）。購入日・お店・数量・メモ・写真を直す、または記録を消す。
  * メモの編集シート（F-04）と同じく、払う・戻る・外を押す・「閉じる」のどれで閉じても内容を保存する（確認なし、PLAN §1.3-4）。
- * 消すのは取り消せないが、記録 1 件の操作のため確認は出さない（PLAN §1.3-4 の例外は F-76 だけ）。
+ * 消すときは確認を出さず、消した後のカレンダーの「元に戻す」で救う（PLAN §1.3-4、BL-135）。
  * 消したときはシートが描かれなくなるだけで onDismissRequest は呼ばれないため、保存は走らない。
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,26 +106,26 @@ fun RecordEditSheet(
     }
 }
 
+/** 「閉じる」は右に、「この記録を消す」は区切り線の下の一番下へ離して置く（押し間違えを減らす、BL-135）。 */
 @Composable
 private fun DeleteAndClose(
     onDelete: () -> Unit,
     onClose: () -> Unit,
 ) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(
-            onClick = onDelete,
-            modifier = Modifier.heightIn(min = 48.dp).testTag(CalendarTestTags.RECORD_DELETE),
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Button(
+            onClick = onClose,
+            modifier = Modifier.heightIn(min = 48.dp).testTag(CalendarTestTags.RECORD_CLOSE),
         ) {
-            Text(stringResource(R.string.calendar_record_delete), color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.common_close))
         }
-        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
-            Button(
-                onClick = onClose,
-                modifier = Modifier.heightIn(min = 48.dp).testTag(CalendarTestTags.RECORD_CLOSE),
-            ) {
-                Text(stringResource(R.string.common_close))
-            }
-        }
+    }
+    HorizontalDivider(Modifier.padding(top = 24.dp))
+    TextButton(
+        onClick = onDelete,
+        modifier = Modifier.heightIn(min = 48.dp).testTag(CalendarTestTags.RECORD_DELETE),
+    ) {
+        Text(stringResource(R.string.calendar_record_delete), color = MaterialTheme.colorScheme.error)
     }
 }
 

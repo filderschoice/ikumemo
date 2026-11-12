@@ -185,6 +185,51 @@ class CalendarViewModelTest {
         }
 
     @Test
+    fun deletingOffersUndoThatRestoresRecord() =
+        runTest {
+            // BL-135。消すと元に戻すが出て、押すと同じ記録が戻る
+            val record = buy("牛乳", LocalDate.of(2026, 10, 25))
+
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                val before = awaitUntil { it.selectedRecords.size == 1 }.selectedRecords.single().record
+                viewModel.onEvent(CalendarEvent.EditRecord(record))
+                awaitUntil { it.editing != null }
+
+                viewModel.onEvent(CalendarEvent.DeleteRecord(record))
+                val deleted = awaitUntil { it.selectedRecords.isEmpty() && it.undo != null }
+                assertNull(deleted.editing)
+                assertEquals("牛乳", deleted.undo?.deleted?.record?.displayName)
+
+                viewModel.onEvent(CalendarEvent.UndoDelete(requireNotNull(deleted.undo).serial))
+                val restored = awaitUntil { it.selectedRecords.isNotEmpty() }
+                assertNull(restored.undo)
+                assertEquals(before, restored.selectedRecords.single().record)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun undoOfferDisappearsWhenExpired() =
+        runTest {
+            // BL-135。時間が過ぎると元に戻すは消え、記録は消えたまま。古い番号の元に戻すは効かない
+            val record = buy("牛乳", LocalDate.of(2026, 10, 25))
+
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.selectedRecords.size == 1 }
+                viewModel.onEvent(CalendarEvent.DeleteRecord(record))
+                val serial = requireNotNull(awaitUntil { it.undo != null && it.selectedRecords.isEmpty() }.undo).serial
+
+                viewModel.onEvent(CalendarEvent.UndoExpired(serial))
+                val expired = awaitUntil { it.undo == null }
+                assertEquals(emptyList<RecordRow>(), expired.selectedRecords)
+
+                viewModel.onEvent(CalendarEvent.UndoDelete(serial))
+                assertNull(db.purchaseRecordDao().getById(record))
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
     fun closingEditorWithoutChangesKeepsRecord() =
         runTest {
             val store = requireNotNull(stores.addStore("○○スーパー"))
