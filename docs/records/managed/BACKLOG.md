@@ -46,8 +46,7 @@
     .claude/agents/change-reviewer.md があり、frontmatter（name・description・tools・model）が Claude Code のサブエージェント定義の形式に沿っている。
     直近のコミット（例 ba45e98）を対象に 1 回呼んで、指摘が 3 段の形式で返ることを確かめ、結果の要約を CHANGELOG.md に書いている。
     markdownlint が Summary 0 issues、python scripts/validate-records.py が成功
-  依存:
-    - BL-121
+  依存: []
   根拠: >-
     .claude/agents/ が存在せず、サブエージェント定義が 1 つも無い。点検は現在オーケストレータが毎回プロンプトで指示しており、観点が回ごとにぶれる。
     観点 (4) はアプリ側の既存の方針（DESIGN.md「PLAN §8 アクセシビリティ」の行、AccessibilityTest）に合わせたもの
@@ -84,8 +83,7 @@
   完了条件: >-
     .claude/agents/backlog-task-implementer.md があり、autonomous-loop の委任の節（BL-121）から参照されている。
     markdownlint が Summary 0 issues、python scripts/validate-records.py が成功。定義の妥当性は次の実装イテレーションで実際に使って確かめ、気づいた点を CHANGELOG.md に残す
-  依存:
-    - BL-121
+  依存: []
   根拠: >-
     今回のループはオーケストレータが BACKLOG の 1 タスクを Opus のサブエージェントへ渡す運用だが、渡す指示が毎回の手書きで、.claude/agents/ に定義が無い。
     1 タスク 1 コミットの手順は .claude/skills/autonomous-loop/SKILL.md「イテレーション手順」にあるが、委任されたエージェントが返すべき内容は定めていない
@@ -98,12 +96,12 @@
     (5) 12.1 の「秘密情報スキャン」の具体的な手順の正本を CLAUDE.md（BL-119 で定める）とする参照を足す。
     変更する場合は同ファイル 10 節に従い CHANGELOG.md を更新する
   優先度: P3
-  状態: 要確認
-  担当: ユーザー
+  状態: 未着手
+  担当: AIエージェント
   完了条件: オーナーが案の採否を決め、採用する場合はガバナンス担当の承認を得たうえで本文が更新され、markdownlint と validate-records が成功している
-  依存:
-    - BL-121
+  依存: []
   根拠: >-
+    2026-11-13 にオーナーが、タスクに書いた 5 点の案で 12.7 を足すことを承認した。
     オーナーへの質問は「ガードレール 12 節にサブエージェント委任の統制（12.7）を足してよいか、足すなら上の 5 点でよいか」。
     同ファイル 10 節が重大変更に承認を求めるため要確認とした。現在の 12 節は単一エージェントの実行だけを想定し（rules/guardrails-unified.v1.md 12.1〜12.6）、
     12.1 の秘密情報スキャンには具体的な手順がリポジトリのどこにも書かれていない（CLAUDE.md・CONTRIBUTING.md・.claude/skills/ を検索して確認）
@@ -115,35 +113,16 @@
     python scripts/validate-records.py、python scripts/make-user-guide.py --check、python scripts/quality-gates.py（BL-119）、npx markdownlint-cli2、git status・git diff・git log を足し、
     permissions.deny へ git push（全形）と --no-verify を含む git commit を足す。あわせて PreToolUse フックで git push と --no-verify を止めるかを決める
   優先度: P2
-  状態: 要確認
-  担当: ユーザー
+  状態: 未着手
+  担当: AIエージェント
   完了条件: オーナーが許可・拒否の一覧とフックの採否を決め、採用分が .claude/settings.json に反映され、反映後のループで権限の確認が出ないことを確かめている
   依存: []
   根拠: >-
+    2026-11-13 にオーナーが、上の許可と git push・--no-verify の拒否を入れること、フックでもこの 2 つを止めること、
+    許可の候補に python scripts/scan-secrets.py と python scripts/quality-gates.py を含めることを承認した。
     オーナーへの質問は「上の許可と拒否を .claude/settings.json へ入れてよいか、git push と --no-verify をフックでも止めるか」。
     権限の変更は .github/copilot-instructions.md「確認が必要な場合」の高リスク操作（権限変更）に当たるため要確認とした。
     現在の .claude/settings.json は記録ファイル 3 つの Edit と docs/records 配下の Read だけを許可し、hooks は無い。禁止操作（guardrails 12.2）は文書の規定だけで、仕組みでは止めていない
-- id: BL-121
-  区分: 品質ゲート
-  タスク内容: >-
-    自律ループの「オーケストレータ＋実装担当のサブエージェント」運用と、スキル・サブエージェントのモデル指定の方針を文書に定める。
-    (1) .claude/skills/autonomous-loop/SKILL.md に「サブエージェントへの委任」の節を足す。内容はオーケストレータは BACKLOG の選択・状態の把握・結果の確認だけを行い、
-    1 タスクを 1 つの実装担当へ渡す。実装担当がゲート・記録・コミットまで行う。Gradle を流すサブエージェントは同時に 1 つだけ（メモリ）。
-    記録ファイル（BACKLOG・EXECUTE・DESIGN）は全タスクが触るため実装担当を並行に走らせない。委任先の結果をオーケストレータが確かめる項目（コミットの有無・ゲートの成否・新規の要確認）。
-    (2) 同スキルに「モデルの選び方」を短く書く（実装は opus、定型の実行と要約は haiku、判断を含む点検は sonnet。スキルの model 指定はユーザー共通スキル skill-model-pinning の分類に従う）。
-    (3) 既存のリポジトリのスキル 4 つの frontmatter の model を skill-model-pinning の手順で見直す（いまは pr-create だけが haiku）。
-    (4) CONTRIBUTING.md「エージェント指示ファイルの構成規約」の表に .claude/agents/*.md（Claude Code のサブエージェント定義）の行を足す。
-    guardrails 本文は変えない（統制の追加は BL-123）
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    SKILL.md に委任とモデルの節があり、CONTRIBUTING.md の表に .claude/agents の行がある。各スキルの model の判断（指定する・しない）と理由を CHANGELOG.md に書いている。
-    markdownlint が Summary 0 issues、python scripts/validate-records.py が成功
-  依存: []
-  根拠: >-
-    .claude/skills/autonomous-loop/SKILL.md は単一エージェントがイテレーションを回す前提で、委任・並行実行・Gradle の同時実行の制限を書いていない。
-    CONTRIBUTING.md の構成規約の表（89 行目からの節）に .claude/agents の行が無い。リポジトリのスキルで model を指定しているのは .claude/skills/pr-create/SKILL.md（haiku）だけ
 - id: BL-120
   区分: 品質ゲート
   タスク内容: >-
@@ -183,13 +162,14 @@
     calendar/CalendarScreen.kt の検索欄（SearchPane 付近、文言は strings.xml の calendar_search_hint）の trailingIcon に付け、認識した文字で検索する。
     使い方の正本 mobile/src/main/assets/help/ の該当ページと docs/USER_GUIDE.md（python scripts/make-user-guide.py で再生成）、DESIGN.md の F-42 の行を更新する
   優先度: P3
-  状態: 要確認
+  状態: 未着手
   担当: AIエージェント
   完了条件: >-
     検索欄にマイクがあり、話した品名で検索結果が出る。CalendarViewModel か Compose のテストで、マイクの結果が検索語に入ることを確かめている。
     CLAUDE.md の品質ゲートがすべて成功し、見た目が変わるためスクリーンショットテストの calendar を比べている
   依存: []
   根拠: >-
+    2026-11-13 にオーナーが、カレンダーの検索欄に音声入力を付けることを承認した。
     オーナーへの質問は「カレンダーの検索欄に音声入力（マイク）を付けてよいか」。DESIGN.md の F-42 の行が「検索欄の音声入力は未実装」と明記しており、
     部品（FieldMic）は EditItemSheet.kt 118 行目で既に使われているため小さく足せるが、画面に新しい操作を足す製品判断のため要確認とした
 - id: BL-116
