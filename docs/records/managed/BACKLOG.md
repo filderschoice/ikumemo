@@ -65,8 +65,7 @@
   完了条件: >-
     .claude/agents/quality-gate-runner.md があり、作業ブランチの現状で 1 回呼んで、全ゲートの成否が表で返ることを確かめている。
     markdownlint が Summary 0 issues、python scripts/validate-records.py が成功
-  依存:
-    - BL-119
+  依存: []
   根拠: >-
     Gradle の 5 ゲートの出力は長く、実装担当の文脈を圧迫する。CLAUDE.md「本リポジトリの品質ゲート定義」は Gradle をバックグラウンドで流すと強制停止されると定めており、
     流し方の注意を毎回プロンプトで渡している。.claude/agents/ は存在しない
@@ -86,7 +85,6 @@
     .claude/agents/backlog-task-implementer.md があり、autonomous-loop の委任の節（BL-121）から参照されている。
     markdownlint が Summary 0 issues、python scripts/validate-records.py が成功。定義の妥当性は次の実装イテレーションで実際に使って確かめ、気づいた点を CHANGELOG.md に残す
   依存:
-    - BL-119
     - BL-121
   根拠: >-
     今回のループはオーケストレータが BACKLOG の 1 タスクを Opus のサブエージェントへ渡す運用だが、渡す指示が毎回の手書きで、.claude/agents/ に定義が無い。
@@ -120,8 +118,7 @@
   状態: 要確認
   担当: ユーザー
   完了条件: オーナーが許可・拒否の一覧とフックの採否を決め、採用分が .claude/settings.json に反映され、反映後のループで権限の確認が出ないことを確かめている
-  依存:
-    - BL-119
+  依存: []
   根拠: >-
     オーナーへの質問は「上の許可と拒否を .claude/settings.json へ入れてよいか、git push と --no-verify をフックでも止めるか」。
     権限の変更は .github/copilot-instructions.md「確認が必要な場合」の高リスク操作（権限変更）に当たるため要確認とした。
@@ -166,28 +163,6 @@
   根拠: >-
     scripts/validate-records.py は YAML の読み込み・LF・BACKLOG の必須キーと優先度・状態・依存だけを検査し（94〜110 行目の main）、EXECUTE.md の必須キーは見ていない。
     FORMAT.md は区分の許容値（6 値）と EXECUTE の必須キーを定めている。採番の衝突確認は毎回手作業（今回も BL-112 が EXECUTE.md にだけ残っていた）
-- id: BL-119
-  区分: 品質ゲート
-  タスク内容: >-
-    品質ゲートを 1 コマンドで流すスクリプト scripts/quality-gates.py と、コミット前の秘密情報スキャン scripts/scan-secrets.py を新設する。
-    quality-gates.py は CLAUDE.md「本リポジトリの品質ゲート定義」の全ゲートを順に流し（最初に ./gradlew --stop、Gradle の 5 ゲートは 1 回の gradlew 呼び出し、
-    markdownlint は Summary 0 issues と Linting の件数を git ls-files --cached --others --exclude-standard "*.md" の件数と照合、validate-records、make-user-guide --check、scan-secrets）、
-    最後にゲートごとの成否と所要時間の表を出し、1 つでも失敗なら終了コード 1。--skip-gradle（文書だけの変更用）と --only ゲート名 を受け付ける。Windows の Git Bash と PowerShell の両方から python で起動できること（gradlew は gradlew.bat を使い分ける）。
-    scan-secrets.py は git diff --cached と未追跡ファイルを対象に、秘密鍵の見出し（BEGIN ... PRIVATE KEY）、Google API キー（AIza で始まる 39 文字）、GitHub トークン（ghp_ 等）、
-    *.jks・*.keystore・keystore.properties・local.properties の追跡、storePassword・keyPassword の値を検出し、見つかれば箇所を伏せ字で出して終了コード 1。
-    CLAUDE.md の品質ゲートの表に 2 行（一括実行・秘密情報スキャン）を足し、autonomous-loop の SKILL.md「イテレーション手順」7 の秘密情報の検査を scan-secrets.py の実行に置き換える
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    python scripts/quality-gates.py が現状の作業ブランチで全ゲート成功（終了コード 0）し、python scripts/quality-gates.py --skip-gradle も成功する。
-    scan-secrets.py が、スクラッチの場所に作った一時リポジトリに置いた偽の秘密鍵の見出しを検出して終了コード 1 になることを確かめている（偽の値はコミットしない）。
-    markdownlint が Summary 0 issues、python scripts/validate-records.py が成功
-  依存: []
-  根拠: >-
-    品質ゲートは CLAUDE.md の表で 9 行に分かれ、毎回コマンドを個別に組み立てている（scripts/ にあるのは make-user-guide.py・validate-records.py・release-build.* と ui-doc/ だけ）。
-    rules/guardrails-unified.v1.md 12.1 はコミット前の秘密情報スキャンを必須とするが、具体的なコマンドがリポジトリに無い（CLAUDE.md・CONTRIBUTING.md・.claude/skills/ を検索して確認）。
-    リリース署名は scripts/release-build.* が扱うため、keystore 系のファイルの混入を検出対象にする
 - id: BL-118
   区分: 人手検証
   タスク内容: >-

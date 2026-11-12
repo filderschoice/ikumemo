@@ -5,6 +5,45 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 00:16
+  summary: 品質ゲートの一括実行スクリプトと、コミット前の秘密情報スキャンを足す
+  details:
+    変更内容: >-
+      scripts/quality-gates.py を新設した。CLAUDE.md の品質ゲートの表と同じコマンドを順に流す（./gradlew --stop の後に Gradle の 5 ゲートを
+      --continue 付きの 1 回の呼び出しで流し、失敗したタスク名からゲートごとの合否を出す。markdownlint は Summary 0 issues と Linting の件数を
+      git ls-files の *.md の件数と照合。validate-records・make-user-guide --check・scan-secrets）。出力は成功したゲートが 1 行、失敗したゲートは
+      原因の抜粋（ktlint・detekt・コンパイル・テストの行と What went wrong の節、最大 25 行、パスはリポジトリからの相対）、最後に合否と所要時間の表で、
+      全文は build/quality-gates/ のログに残す。--skip-gradle・--only・--list を受け付け、Windows では gradlew.bat を使い、出力は UTF-8 にそろえる
+      （Git Bash で文字化けしたため）。scripts/scan-secrets.py を新設した。変更行と未追跡のファイルから秘密鍵の見出し・Google API キー・
+      GitHub トークン・AWS アクセスキー・署名のパスワードの値を、追跡中と未追跡のファイル名から署名鍵・資格情報のファイルを検出し、
+      ファイルと行と種類だけを出して値は出さない。明らかなダミー値・コードで読み込む書き方・行に scan-secrets の allow 印のある行は数えず、
+      自身のパターンは検出対象の文字列がソースに現れないよう組み立てた。CLAUDE.md の品質ゲートの表に 2 行と一括実行の説明を足し、
+      autonomous-loop の手順 4 と 7 から参照した。既定値で決めた点は 3 つ。(1) スキャンの既定の範囲は BACKLOG の案の git diff --cached ではなく
+      git diff HEAD（ステージ済みと未ステージの両方）とし、--staged で案どおりの範囲にした。git add の前に流せ、範囲が案を含むため安全側。
+      (2) BACKLOG の案の「伏せ字で出す」は、値を一切出さない形にした（より漏れにくいため）。(3) 対象のファイル名に secrets.properties・.env・
+      *.p12・*.pfx を足した（.gitignore が除外している資格情報のファイルと揃えるため）
+    変更ファイル:
+      - .claude/skills/autonomous-loop/SKILL.md
+      - CHANGELOG.md
+      - CLAUDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - scripts/quality-gates.py
+      - scripts/scan-secrets.py
+    検証コマンド: >-
+      python scripts/quality-gates.py --skip-gradle、python scripts/quality-gates.py --only ktlint（PowerShell から）、
+      一時的に置いた書式違反の Markdown と Kotlin のファイルで --only markdownlint,records と --only ktlint（失敗の表示の確認、ファイルは削除済み）、
+      --only に知らない名前を渡す確認、スクラッチの一時リポジトリでの python scripts/scan-secrets.py（検出と非検出）、
+      python scripts/validate-records.py、npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - --skip-gradle は 4 ゲート成功で終了コード 0。ktlint だけの実行は成功で終了コード 0、書式違反を置くと NG と違反の行だけが出て終了コード 1。
+      markdownlint の違反は該当行と Summary だけが出て終了コード 1、知らないゲート名は終了コード 2。秘密情報スキャンは偽の秘密鍵の見出し・
+      Google API キー・GitHub トークン・署名のパスワード・*.jks を検出して終了コード 1（値は出ない）、ダミー値・getProperty での読み込み・
+      説明文・allow 印の行は検出せず終了コード 0。Gradle の全ゲートの一括実行は、PC のメモリが少ないためオーケストレータの指示で今回は流していない
+      （Gradle のゲートはスクリプト経由で ktlint だけを確認。コードの変更は無い）。次に全ゲートを流すイテレーションで確かめる
+    関連ID:
+      - BL-119
 - date: 2026-10-25 22:29
   summary: ウィジェットの色と角の丸みを本体のテーマに合わせる
   details:

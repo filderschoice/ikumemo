@@ -29,7 +29,14 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 | Markdown の静的解析 | `npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml` | `Summary: 0 issues`、かつ出力の `Linting: N files` が `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致（対象漏れの検出） |
 | 記録ファイルの検証 | `python scripts/validate-records.py`（PyYAMLが必要） | 終了コード0 |
 | 使い方の Web 版 | `python scripts/make-user-guide.py --check` | 終了コード0（`docs/USER_GUIDE.md` がアプリ内の使い方の正本 `mobile/src/main/assets/help/` と一致。正本を直したら `python scripts/make-user-guide.py` で作り直す） |
+| 秘密情報スキャン | `python scripts/scan-secrets.py` | 終了コード0（作業ツリーの変更・未追跡のファイルに秘密鍵・API キー・トークン・署名のパスワードが無く、署名鍵・資格情報のファイルが Git の対象外。guardrails 12.1 のコミット前のスキャン） |
+| 一括実行 | `python scripts/quality-gates.py` | 終了コード0（上の全ゲートを順に流す。下記） |
 
+- `python scripts/quality-gates.py` は上の表と同じコマンドを順に流す（`./gradlew --stop` → Gradle の5ゲートを1回の呼び出しで
+  → markdownlint（件数の照合まで）→ 記録ファイル → 使い方の Web 版 → 秘密情報スキャン）。ゲートの定義の正本は上の表で、
+  表を変えたらスクリプトの `GRADLE_GATES`・`OTHER_GATES` も合わせる。出力は成功したゲートが1行、失敗したゲートは原因の抜粋だけ
+  （全文は `build/quality-gates/*.log`）、最後に合否の表。文書だけの変更は `--skip-gradle`、一部だけは `--only ktlint,detekt`
+  （名前は `--list`）。Git Bash・PowerShell のどちらからでも `python` で起動できる
 - Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug` で一度に実行できる。
   ktlint の違反は `./gradlew ktlintFormat` で自動修正できる（品質ゲートには含めない）
 - `mobile` の release 側の単体テスト（`testReleaseUnitTest`）は debug 側と同じ内容のため流さない。時間のかかるテスト（`@Category(SlowTest::class)`、
