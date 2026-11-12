@@ -5,12 +5,14 @@ import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AddItemResult
+import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.UndoableAction
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.ReminderStatus
+import com.ikumemo.mobile.guide.GuideId
 import com.ikumemo.mobile.testing.MainDispatcherRule
 import com.ikumemo.mobile.testing.MutableClock
 import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
@@ -18,6 +20,7 @@ import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
 import com.ikumemo.mobile.testing.testDataStore
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -41,6 +44,7 @@ class ReminderViewModelTest {
     private lateinit var clock: MutableClock
     private lateinit var shopping: ShoppingRepository
     private lateinit var viewModel: ReminderViewModel
+    private lateinit var prefs: ReminderPrefs
     private val today = LocalDate.of(2026, 10, 25)
 
     @Before
@@ -48,7 +52,8 @@ class ReminderViewModelTest {
         db = inMemoryDatabase()
         clock = fixedClock("2026-10-25T01:00:00Z")
         shopping = ShoppingRepository(db, ProductNameNormalizer(), clock)
-        viewModel = ReminderViewModel(ReminderRepository(db, clock), ReminderPrefs(testDataStore()), clock)
+        prefs = ReminderPrefs(testDataStore())
+        viewModel = ReminderViewModel(ReminderRepository(db, clock), prefs, clock)
     }
 
     @After
@@ -138,6 +143,88 @@ class ReminderViewModelTest {
             }
             assertEquals(ReminderStatus.USED_UP, db.reminderDao().findByRecord(milk)?.status)
             assertEquals(ReminderStatus.DISCARDED, db.reminderDao().findByRecord(bread)?.status)
+        }
+
+    @Test
+    fun noDueHidesTheRecordAndUndoBringsItBack() =
+        runTest {
+            val milk = buy("牛乳")
+            val paper = buy("トイレットペーパー")
+
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.recent.size == 2 }
+                viewModel.onEvent(ReminderEvent.NoDue(paper, "トイレットペーパー"))
+
+                val hidden = awaitUntil { it.recent.size == 1 && it.undo != null }
+                assertEquals(listOf(milk), hidden.recent.map { it.id })
+                assertEquals(NoDueUndo(1, paper, "トイレットペーパー"), hidden.undo)
+
+                viewModel.onEvent(ReminderEvent.UndoNoDue(1))
+                val back = awaitUntil { it.recent.size == 2 && it.undo == null }
+                assertEquals(setOf(milk, paper), back.recent.map { it.id }.toSet())
+                cancelAndIgnoreRemainingEvents()
+            }
+            // 記録は消さない
+            assertTrue(db.purchaseRecordDao().getById(paper) != null)
+            assertEquals(emptySet<Long>(), prefs.hiddenRecentIds.first())
+        }
+
+    @Test
+    fun noDueUndoExpiresWithoutBringingTheRecordBack() =
+        runTest {
+            val milk = buy("牛乳")
+
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.recent.size == 1 }
+                viewModel.onEvent(ReminderEvent.NoDue(milk, "牛乳"))
+                awaitUntil { it.recent.isEmpty() && it.undo != null }
+
+                viewModel.onEvent(ReminderEvent.NoDueUndoExpired(1))
+                val state = awaitUntil { it.undo == null }
+                assertTrue(state.recent.isEmpty())
+                cancelAndIgnoreRemainingEvents()
+            }
+            assertEquals(setOf(milk), prefs.hiddenRecentIds.first())
+        }
+
+    @Test
+    fun savingHiddenIdsDropsIdsNoLongerInRecent() =
+        runTest {
+            val old = buy("古い物", today.minusDays(7))
+            val milk = buy("牛乳")
+            // 前に外して 7 日を過ぎた id と、もう無い記録の id が残っている
+            prefs.updateHiddenRecentIds { setOf(old, 999L) }
+
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.recent.size == 1 }
+                viewModel.onEvent(ReminderEvent.NoDue(milk, "牛乳"))
+                awaitUntil { it.recent.isEmpty() }
+                cancelAndIgnoreRemainingEvents()
+            }
+            assertEquals(setOf(milk), prefs.hiddenRecentIds.first())
+        }
+
+    @Test
+    fun guideIsNotOfferedWhenAllRecentRecordsAreHidden() =
+        runTest {
+            val milk = buy("牛乳")
+            val bread = buy("パン")
+            prefs.updateHiddenRecentIds { setOf(milk) }
+            val guidePrefs = GuidePrefs(testDataStore()).apply { finishOnboarding() }
+            val guided = ReminderViewModel(ReminderRepository(db, clock), prefs, clock, guidePrefs)
+
+            guided.uiState.test(timeout = TURBINE_TIMEOUT) {
+                // 外した記録を除いた 1 行目（パン）で G-08 を出す
+                val first = awaitUntil { it.guide != null }
+                assertEquals(listOf(bread), first.recent.map { it.id })
+                assertEquals(GuideId.G08_DUE_DATE, first.guide)
+
+                guided.onEvent(ReminderEvent.NoDue(bread, "パン"))
+                val state = awaitUntil { it.recent.isEmpty() }
+                assertNull(state.guide)
+                cancelAndIgnoreRemainingEvents()
+            }
+            guided.viewModelScope.cancel()
         }
 
     @Test

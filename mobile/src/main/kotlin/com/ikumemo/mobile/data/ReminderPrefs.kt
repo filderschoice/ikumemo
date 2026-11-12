@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.ikumemo.core.reminder.ReminderSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -53,7 +54,30 @@ class ReminderPrefs(
         dataStore.edit { it[PERMISSION_REQUESTS] = (it[PERMISSION_REQUESTS] ?: 0) + 1 }
     }
 
+    /**
+     * 「期限なし」で最近買った物から外した記録の id（BL-142）。記録そのものは消さない。
+     * 7 日で一覧から消える一時的な値のため、設定の書き出し・読み込みには含めない。
+     */
+    val hiddenRecentIds: Flow<Set<Long>> =
+        dataStore.data.map { prefs ->
+            prefs[HIDDEN_RECENT_IDS].orEmpty().mapNotNull(String::toLongOrNull).toSet()
+        }
+
+    /** 外した id を書き換える。読んで書くまでを 1 回の edit で行い、続けて押しても取りこぼさない。 */
+    suspend fun updateHiddenRecentIds(transform: (Set<Long>) -> Set<Long>) {
+        dataStore.edit {
+            val current = it[HIDDEN_RECENT_IDS].orEmpty().mapNotNull(String::toLongOrNull).toSet()
+            val ids = transform(current)
+            if (ids.isEmpty()) {
+                it.remove(HIDDEN_RECENT_IDS)
+            } else {
+                it[HIDDEN_RECENT_IDS] = ids.map(Long::toString).toSet()
+            }
+        }
+    }
+
     private companion object {
+        val HIDDEN_RECENT_IDS = stringSetPreferencesKey("reminder_hidden_recent_ids")
         const val MINUTES_PER_HOUR = 60
         val TIME_MINUTES = intPreferencesKey("reminder_time_minutes")
         val NOTIFY_ON_DUE_DATE = booleanPreferencesKey("reminder_notify_on_due_date")

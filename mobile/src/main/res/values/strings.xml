@@ -82,6 +82,9 @@
     <string name="reminder_pending_empty">期限を決めた物が、ここに並びます</string>
     <string name="reminder_bought_on">%1$d月%2$d日に買った</string>
     <string name="reminder_set_due">期限を決める</string>
+    <string name="reminder_no_due">期限なし</string>
+    <string name="reminder_no_due_message">期限なしにしました：%1$s</string>
+    <string name="reminder_recent_more">ほか %1$d 件を見る</string>
     <string name="reminder_redo_due">期限を決め直す</string>
     <string name="reminder_due_title">%1$sの期限</string>
     <string name="reminder_due_3days">3日後</string>

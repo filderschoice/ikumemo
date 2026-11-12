@@ -10,7 +10,9 @@
   タスク内容: >-
     実機で端末の文字サイズを最大にし、着せ替えの文字の大きさを「とても大きい」にして、全画面で文字の切れ・重なりが無いかを確かめる（UX レビュー C6）。
     特に期限の画面の行のボタン（BL-142 の「期限なし」を含む）と上部のバーの設定・時刻のボタン（BL-143）、記録の画面のマスと上部のバー（BL-137 の「今日」「探す」）、
-    期限を決めるシートの 2 行のチップ（BL-132）、データ画面の説明と折りたたみ（BL-134・BL-145）、設定の一覧の説明（BL-139）を見る
+    期限を決めるシートの 2 行のチップ（BL-132）、データ画面の説明と折りたたみ（BL-134・BL-145）、設定の一覧の説明（BL-139）を見る。
+    初めての案内の 3 枚目は BL-141 で本文が長くなったので、文字を最大にして折り返しを確かめる。
+    期限の画面の最近買った物の行は「期限なし」と「期限を決める」が並び、スクリーンショットの「とても大きい」では買った日が 2 行に折り返すため、品名が長い行も確かめる
   優先度: P2
   状態: 未着手
   担当: ユーザー
@@ -20,7 +22,6 @@
     - BL-134
     - BL-137
     - BL-139
-    - BL-142
     - BL-143
     - BL-145
   根拠: >-
@@ -200,38 +201,6 @@
     既定で決めた点。レビューと質問は「10 項目から 7 項目」としていたが、案に書かれた統合（操作＋お知らせ、ご意見・ご要望を このアプリについて の中へ）だけでは 8 項目になる。
     承認された統合を超えて項目を減らさない。まとめた画面の名前は、レビューの「使い方の設定」だと設定の一番上の「使い方」（ヘルプ）と紛らわしいため「操作とお知らせ」とした。
     上部のバーと一覧を触るため BL-141（題名）と BL-130（お知らせの一覧の面）の後に行う
-- id: BL-142
-  区分: UX改善
-  タスク内容: >-
-    お知らせ（BL-141 の後は「期限」）の画面で、「期限が近い順」を上に出し、「最近買った物」は数件だけ出して「期限なし」で一覧から外せるようにする（UX レビュー B2、オーナー承認済み）。
-    パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/。
-    いまの状態。kotlin/reminder/ReminderScreen.kt の ReminderList（117〜159 行目）は 通知オフの帯 →「最近買った物」→「期限が近い順」→「お知らせが来ないときは」の順。
-    最近買った物は 7 日以内に買って期限を決めていない記録すべて（kotlin/data/ReminderRepository.kt の observeRecentWithoutReminder、kotlin/data/db/Daos.kt 173〜178 行目）で、
-    まとめ買いをすると数十行になり、期限切れの物が下へ押し出される。トイレットペーパーなど期限の要らない物も 7 日間並び続け、消す手段が無い。
-    どう変えるか（オーナーが承認した案）。(1) 並びを 通知オフの帯 →「期限が近い順」→「最近買った物」→「お知らせが来ないときは」にする（期限切れの有無によらず常にこの順）。
-    (2)「最近買った物」は最初の 3 件だけ出し、残りがあれば「ほか N 件を見る」を出す（押すと全部出す。開いた状態は rememberSaveable 程度でよく保存しない）。
-    (3) RecentRow（201〜230 行目）に「期限なし」（TextButton、48dp 以上）を足し、押すとその記録を一覧から外し、「期限なしにしました：品名 ／ 元に戻す」を 5 秒出す（メモの UndoEffect と同じ考え方）。
-    記録は消さない。外した記録の id は DB を変えずに kotlin/data/ReminderPrefs.kt（DataStore）へ保存し、7 日を過ぎて一覧に出なくなった id は保存のたびに掃除する。
-    品目ごとに覚えて次から出さない仕組みは作らない（承認された案に含まれないため）。
-    G-08 のガイド（最近買った物の一番上の「期限を決める」を照らす）は外した記録を除いた一覧の 1 行目で動くようにする（ReminderViewModel の guide の条件も外した記録を除いて判定する）
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    testDebug/reminder/ReminderContentTest（BL-116 で作る。mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/）に、期限が近い順が最近買った物より上にあること、
-    4 件以上で 3 件と「ほか N 件を見る」が出て押すと全部出ること、「期限なし」でイベントが出ることのテストを、
-    mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest に、外した記録が一覧から消えること・元に戻すと戻ること・古い id が掃除されることのテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*ReminderContentTest" --tests "*ReminderViewModelTest" が成功する。
-    見た目が変わるため、スクリーンショットテストの reminder を CLAUDE.md の手順で -Proborazzi.test.record=true で記録し直し、画像の差分を確かめてコミットに含める。
-    設定の書き出し・読み込み（kotlin/data/backup/BackupSettingsStore.kt）に外した id を含めるかを決めて EXECUTE.md に書く（7 日で消える一時的な値のため含めないのが既定）。
-    使い方 mobile/src/main/assets/help/due.md（下の「お知らせ」の「最近買った物」で、の手順）に並びと「期限なし」を足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の F-50・F-53・G-07・G-08 の行と「設定の保存方針（DataStore）」に外した記録の保存を足す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー B2（効果 大）。オーナーが 2026-11-13 に、質問の案（期限が近い順を先、最近買った物は数件だけ、期限なしで外せる）のとおりで承認した。
-    既定で決めた点。最初に出す件数はレビューの「3〜5 件」の少ない方の 3 件。並びは期限切れの有無で入れ替えず常に期限が近い順を先（並びが変わると迷うため）。
-    外した記録の保存は DB の版を上げずに DataStore に置く（IkumemoDatabase は version 1 で、マイグレーションを避ける）。押し間違いに備えて元に戻すを出す（アプリ全体の「間違えても戻せる」に合わせる）。
-    いずれも記録を消さず、期限を決める操作も残るため安全。BL-141 が同じ due.md の手順を書き換えるため、その後に行う
 - id: BL-140
   区分: UX改善
   タスク内容: >-
@@ -493,7 +462,7 @@
     いまの状態。kotlin/designsystem/AppThemeHost.kt の 49〜56 行目はペンの色（InkColor）で onBackground と LocalContentColor だけを差し替える。
     一方、kotlin/calendar/MonthGrid.kt の weekdayColor（136〜145 行目）は平日が colorScheme.onSurface、日曜・土曜が CalendarColors（テーマの明暗だけで決まる）で、DayCell の日付（183〜187 行目）もその色。
     kotlin/calendar/CalendarScreen.kt の RecordRowView（248〜287 行目）と検索結果の補足は onSurfaceVariant、
-    kotlin/reminder/ReminderScreen.kt の RecentRow・PendingRow（201〜272 行目）は「○月○日に買った」と期限の文字が onSurfaceVariant と error、「使い切った」「捨てた」は TextButton の primary。
+    kotlin/reminder/ReminderScreen.kt の PendingRow と kotlin/reminder/RecentSection.kt の RecentRow（BL-142 で移した）は「○月○日に買った」と期限の文字が onSurfaceVariant と error、「使い切った」「捨てた」は TextButton の primary。
     これらの行は不透明な面を持たず写真と膜（designsystem/BackgroundScrim.kt）の上に直接描かれるため、明るいテーマ＋ペン「しろ」（暗い膜）や暗いテーマ＋「くろ・あお・あか」（明るい膜）で読めなくなる。
     メモの行だけは surface を敷いている（kotlin/shoppinglist/SwipeableItemRow.kt）。
     どう変えるか。LocalHasBackgroundImage が true のとき、カレンダーの月の表（MonthHeader と MonthGrid）、日の詳細（見出し・記録の行・「買った物を記録する」）、検索の欄と結果、
@@ -511,8 +480,7 @@
     （差分が出たら意図したものか確かめて -Proborazzi.test.record=true で記録し直し、画像をコミットに含める）。
     使い方 mobile/src/main/assets/help/background.md に、カレンダーとお知らせの一覧は写真の上に面を敷いて読みやすくすることを足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-61 の行（「メモの行・バー・下タブなどテーマの面の上の文字は変えない」の箇所）に、カレンダーとお知らせの一覧にも面を敷くことを足す
-  依存:
-    - BL-142
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー A1（効果 大）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     レビューの 2 案のうち、ペンの色ごとに onSurface・CalendarColors・primary・error を選び直す案 2 は色の組み合わせが増え、

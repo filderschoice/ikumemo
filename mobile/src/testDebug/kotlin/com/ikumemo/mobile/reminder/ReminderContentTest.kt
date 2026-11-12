@@ -4,11 +4,15 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
@@ -17,6 +21,7 @@ import com.ikumemo.mobile.data.db.ReminderRow
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.help.HelpPages
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -92,6 +97,71 @@ class ReminderContentTest {
         composeRule.onNodeWithTag(ReminderTestTags.setDue(2)).performScrollTo().performClick()
 
         assertEquals(listOf<ReminderEvent>(ReminderEvent.OpenDue(DueTarget(2, "牛乳"))), events.toList())
+    }
+
+    @Test
+    fun pendingSectionComesBeforeRecentSection() {
+        show(
+            ReminderSamples.state(
+                recent = listOf(ReminderSamples.recent(id = 2, name = "牛乳")),
+                pending = listOf(ReminderSamples.pending(id = 4, name = "豆腐")),
+            ),
+        )
+
+        val pendingTitle = composeRule.onNodeWithText(text(R.string.reminder_pending)).fetchSemanticsNode()
+        val recentTitle = composeRule.onNodeWithText(text(R.string.reminder_recent)).fetchSemanticsNode()
+        val pendingRow = composeRule.onNodeWithTag(ReminderTestTags.pending(4)).fetchSemanticsNode()
+        assertTrue(pendingTitle.boundsInRoot.top < pendingRow.boundsInRoot.top)
+        assertTrue(pendingRow.boundsInRoot.top < recentTitle.boundsInRoot.top)
+    }
+
+    @Test
+    fun recentShowsThreeAndMoreButtonShowsTheRest() {
+        val recent = (1L..5L).map { ReminderSamples.recent(id = it, name = "品$it") }
+        show(ReminderSamples.state(recent = recent))
+
+        val list = composeRule.onNode(hasScrollAction())
+        // 一覧は LazyColumn のため、画面外の行は作られない。「ほか N 件を見る」まで送ってから確かめる
+        list.performScrollToNode(hasTestTag(ReminderTestTags.RECENT_MORE))
+        composeRule.onNodeWithTag(ReminderTestTags.setDue(3)).assertExists()
+        composeRule.onNodeWithTag(ReminderTestTags.setDue(4)).assertDoesNotExist()
+        composeRule
+            .onNodeWithTag(ReminderTestTags.RECENT_MORE)
+            .assertTextEquals(text(R.string.reminder_recent_more, 2))
+            .performClick()
+
+        list.performScrollToNode(hasTestTag(ReminderTestTags.setDue(5)))
+        composeRule.onNodeWithTag(ReminderTestTags.setDue(5)).assertIsDisplayed()
+        composeRule.onNodeWithTag(ReminderTestTags.RECENT_MORE).assertDoesNotExist()
+    }
+
+    @Test
+    fun threeRecentRecordsHaveNoMoreButton() {
+        show(ReminderSamples.state(recent = (1L..3L).map { ReminderSamples.recent(id = it, name = "品$it") }))
+
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasTestTag(ReminderTestTags.NOT_ARRIVING))
+        composeRule.onNodeWithTag(ReminderTestTags.setDue(3)).assertExists()
+        composeRule.onNodeWithTag(ReminderTestTags.RECENT_MORE).assertDoesNotExist()
+    }
+
+    @Test
+    fun noDueOnARecentRecordSendsItsEvent() {
+        show(ReminderSamples.state(recent = listOf(ReminderSamples.recent(id = 2, name = "トイレットペーパー"))))
+
+        composeRule.onNodeWithTag(ReminderTestTags.noDue(2)).performScrollTo().performClick()
+
+        assertEquals(listOf<ReminderEvent>(ReminderEvent.NoDue(2, "トイレットペーパー")), events.toList())
+    }
+
+    @Test
+    fun noDueUndoOfferShowsMessageAndUndo() {
+        show(ReminderSamples.state().copy(undo = NoDueUndo(serial = 1, recordId = 2, name = "牛乳")))
+
+        composeRule.onNodeWithText(text(R.string.reminder_no_due_message, "牛乳")).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.memo_undo)).performClick()
+
+        composeRule.waitForIdle()
+        assertEquals(listOf<ReminderEvent>(ReminderEvent.UndoNoDue(1)), events.toList())
     }
 
     @Test

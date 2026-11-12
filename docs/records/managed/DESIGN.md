@@ -54,8 +54,8 @@
 | F-41 | 日の詳細（品名・数量・お店・メモ・写真のサムネイル、写真は押すと拡大）。買い物が無い日は「この日のお買い物はありません」 | `calendar/CalendarScreen.kt` |
 | F-42（文字のみ） | 品名検索（正規化名か表示名に含む記録を新しい順に最大 200 件）、結果から該当日へ移る。検索欄の音声入力は未実装 | `RecordRepository.search`、`CalendarViewModel` |
 | PLAN §3 | 下タブ 3 つ（メモ・記録・期限。アイコン＋文字ラベル。上部のバーの題名も同じ。記録はカレンダーで買った物を見返す画面、期限は買った物の期限の一覧） | `IkumemoApp.kt`、`calendar/`、`reminder/` |
-| F-50 | お知らせ画面の上部に最近買った物（今日を含む 7 日以内・期限未設定）と「期限を決める」（3日後／1週間後／2週間後／1か月後／日付を選ぶ）。記録画面からの設定は未実装 | `reminder/ReminderScreen.kt`、`DueSheet.kt`、`data/ReminderRepository.kt` |
-| F-53・R-22 | 期限が近い順の一覧。期限切れは error 色＋「期限切れ」、今日・明日は文字で示す。「使い切った」「捨てた」で片付け、行を押すと決め直し | `reminder/ReminderScreen.kt` |
+| F-50 | 期限の画面の「期限が近い順」の下に最近買った物（今日を含む 7 日以内・期限未設定）と「期限を決める」（3日後／1週間後／2週間後／1か月後／日付を選ぶ）。最近買った物は最初の 3 件だけ出し、残りは「ほか N 件を見る」で全部出す（開いた状態は `rememberSaveable` だけで保存しない）。各行の「期限なし」でその記録を一覧から外し（記録は消さない）、「期限なしにしました：品名 ／ 元に戻す」を 5 秒出す。外した id は `ReminderPrefs` に置く。品目ごとに覚えて次から出さない仕組みは無い。記録画面からの設定は未実装 | `reminder/ReminderScreen.kt`、`RecentSection.kt`、`DueSheet.kt`、`ReminderViewModel.kt`、`data/ReminderRepository.kt`、`data/ReminderPrefs.kt` |
+| F-53・R-22 | 期限が近い順の一覧（通知オフの帯の下、最近買った物より上。期限切れの有無によらず常にこの順）。期限切れは error 色＋「期限切れ」、今日・明日は文字で示す。「使い切った」「捨てた」で片付け、行を押すと決め直し | `reminder/ReminderScreen.kt` |
 | R-29 | 通知が許可されていなければ「通知がオフのため、お知らせが届きません」＋「通知をオンにする」（端末の通知の設定を開く） | `ReminderScreen.kt` の `NotificationsOffBanner` |
 | F-01・F-02・PLAN §4.4 | 音声テキストの分割・数量抽出・不要語除去・誤変換補正・N-best の選択 | `core/voice/VoiceTextParser.kt`、`QuantityParser.kt` |
 | F-01・PLAN §3.2 | 🎤 話して追加（ホーム下部、64dp）→ 聞いている間は途中の文字を表示 → 確認カード（タップで直す、× で外す）→「追加する」 | `voice/VoiceInputSheet.kt`、`VoiceInputViewModel.kt` |
@@ -85,7 +85,7 @@
 | F-74 | アイコン長押しのショートカット「話して追加」「文字で追加」「記録」「期限」（長い名前は「買った物の記録を開く」「期限の一覧を開く」）。各画面を `MainActivity.intent` で開く（「話して追加」はメモ画面で音声入力を始める）。debug 版は applicationId が違い静的な shortcuts.xml にはパッケージ名を固定で書くしかないため、起動時に動的なショートカットとして登録し直す | `AppShortcuts.kt`、`res/drawable/ic_shortcut_*.xml` |
 | F-70・G-01 | 初めての案内。初回起動時（保存値を読み終えてから）だけ全画面で出す。「話すだけでメモ」「買ったらスワイプ」「後から見返せる」の 3 枚（3 枚目に「予定表やなんでもリマインダーではなく、買い物のためのメモです」を添える。使い方の冒頭 start.md も同じ）と、最後に「ホーム画面に置く」（W-03 の「置く」2 つと「後で」。非対応なら置き方の説明）。「飛ばす」は常に出し、飛ばす・後で のどちらでも見終えたことにする。権限は求めない。通知・ウィジェット・ショートカットから起動したときは挟まずにその画面を開く（次の通常の起動で出す）。1 枚目は「牛乳とたまご」が 2 つに分かれる手本を 3 回くり返して分かれた形で止まる（`VoiceSplitDemo`） | `guide/OnboardingScreen.kt`、`guide/GuideViewModel.kt`、`IkumemoApp.kt` |
 | R-50・R-52・R-53・R-55 | その場のガイドを出すかの判定 `GuidePolicy.next`（きっかけを満たすガイドのうち未表示の最初の 1 つだけ。音声入力中・シート表示中・外から開いた直後・「ガイドを出さない」・初めての案内の前は出さない）。「ガイドを出さない」は表示済みと止める設定を 1 回で保存する（`GuidePrefs.disableAll`） | `guide/Guide.kt`、`data/GuidePrefs.kt` |
-| G-07・G-08 | カレンダーとお知らせのその場のガイド（`ScreenGuides`）。G-07 は見ている月に買い物のあった日があるとき、その月の最初の買い物の日を照らす（検索中・記録のシート表示中は出さない。先に日付を押したら出さない）。G-08 は最近買った物があるとき（初めての「買った」の後）、一番上の「期限を決める」を照らす（期限の設定シート表示中は出さない。先に「期限を決める」を押したら出さない）。通知・ウィジェット・ショートカットから開いた画面にいる間は吹き出しを出さない（表示済みにもしないので、ほかの画面へ移ってから自分で開くと出る、R-52） | `guide/ScreenGuides.kt`、`CalendarViewModel`、`ReminderViewModel`、`MonthGrid.kt`、`ReminderScreen.kt` |
+| G-07・G-08 | カレンダーとお知らせのその場のガイド（`ScreenGuides`）。G-07 は見ている月に買い物のあった日があるとき、その月の最初の買い物の日を照らす（検索中・記録のシート表示中は出さない。先に日付を押したら出さない）。G-08 は「期限なし」で外した記録を除いた最近買った物があるとき（初めての「買った」の後）、その 1 行目の「期限を決める」のボタンを照らす（期限の設定シート表示中は出さない。先に「期限を決める」を押したら出さない）。通知・ウィジェット・ショートカットから開いた画面にいる間は吹き出しを出さない（表示済みにもしないので、ほかの画面へ移ってから自分で開くと出る、R-52） | `guide/ScreenGuides.kt`、`CalendarViewModel`、`ReminderViewModel`、`MonthGrid.kt`、`ReminderScreen.kt` |
 | H-01〜H-03 | 使い方。設定の一番上に「使い方」。目次（PLAN §2.12 の章立て。未実装の「LINE などで送る」は載せない）から 1 ページずつ文で説明し、通信なしで見られる（画面の絵はスクリーンショットテスト BL-062 が保留のため無い）。各ページの下に「ガイドをもう一度見る」（そのガイドを未表示に戻して画面を開く）と「やってみる」、目次の先頭に「初めての案内をもう一度見る」。メモが空の画面・音声が使えない機種の表示・お知らせ一覧の「お知らせが来ないときは」から関係するページへ移る。本文の正本は `mobile/src/main/assets/help/` の Markdown（見出し・段落・箇条書きと `<!-- try: 画面; guide: g02 -->` だけ）で、`HelpParser` で読む。Web 版 `docs/USER_GUIDE.md` は `scripts/make-user-guide.py` で作り、品質ゲートで一致を確かめる | `help/HelpContent.kt`、`help/HelpScreen.kt`、`assets/help/`、`scripts/make-user-guide.py` |
 | G-02〜G-06・R-51・R-54・R-56 | メモ画面のその場のガイド。照らす場所（🎤・練習項目・一番上の項目の ○・「元に戻す」・お店チップ）の位置を `guideTarget` で集め、`GuideOverlay` が周りを暗くして吹き出し（「分かった」「ガイドを出さない」）を出す。暗くするのは見た目だけで、照らした部品はそのまま操作できる。きっかけは `MemoGuides.candidates`（空のメモ → G-02、項目が入った → G-03、G-03 の後 → G-04（○ を出す設定のときだけ）、初めての「買った」の「元に戻す」→ G-05、G-05 の後でお店未選択 → G-06）。G-03 の間はメモの一番上に「練習：にんじん」（ID -1、DB に入れない）を出し、スワイプ・○ で練習を終える（記録・品目・元に戻すに残さない）。先に 🎤 を押す・本物の項目を動かす・元に戻す・お店を選ぶ画面を開くと、そのガイドは出さない。シート表示中（音声入力を含む）とウィジェットの行から開いて光らせている間は出さない。読み上げ（タッチで探索）を使っているときは照らさず画面下のカードで出し「分かった」へ移動する。G-03 の間は練習項目を右へ少し動かして戻す手本を 2 回見せて止まる（`SwipeNudge`）。どちらの手本も、端末の「アニメーションを減らす」（`ANIMATOR_DURATION_SCALE` が 0）では動かさない | `guide/GuideOverlay.kt`、`guide/MemoGuides.kt`、`ShoppingListViewModel`、`ShoppingListScreen.kt` |
 | R-41 | アプリが動いている間はメモ・お知らせ・お店・見た目の変化で描き直す。日付の変わり目と選んだお店の解除は省電力のアラーム（`set`）で描き直す。定期的な自動更新はしない | `widget/WidgetUpdater.kt` |
@@ -131,6 +131,9 @@
 - 端末内の設定は DataStore Preferences（ファイル名 `ikumemo_settings`、`AppSettings.createDataStore` で 1 つだけ作る）に置き、
   用途ごとのクラスで共有する。お店の選択は `AppSettings`、お知らせ（通知時刻 `reminder_time_minutes`・当日のオン/オフ・最後に通知した日・
   許可を求めた回数）は `ReminderPrefs`。品目ごとに持たない値だけを入れる
+- 「期限なし」で最近買った物から外した記録の id は `ReminderPrefs` の `reminder_hidden_recent_ids`（文字列の集合）に置く。
+  DB の版を上げないため DataStore に置き、保存のたびに最近買った物（7 日以内・期限未設定）に無い id を掃除する。
+  7 日で消える一時的な値のため、設定の書き出し・読み込み（`BackupSettingsStore`）には含めない
 - 選んでいるお店は `selected_store_id`・`selected_store_at`・`last_bought_at`（epoch ミリ秒）で持ち、解除の判定は読むたびに行う。
   「買った」に付けるときに解除の条件を満たしていれば保存値も消す
 - ガイドは `GuidePrefs`（`guide_onboarding_done`・`guide_disabled`・`guide_shown` はガイドの `storageKey`「g02」〜の集合）。

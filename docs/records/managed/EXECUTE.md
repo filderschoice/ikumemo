@@ -5,6 +5,47 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 01:45
+  summary: 期限の画面で期限が近い順を上に出し、最近買った物は 3 件だけ出して「期限なし」で一覧から外せるようにする
+  details:
+    変更内容: >-
+      BL-142 を実装した。ReminderList の並びを 通知オフの帯 → 期限が近い順 → 最近買った物 → お知らせが来ないときは にした（期限切れの有無によらず常にこの順）。
+      最近買った物の行と「ほか N 件を見る」を新しい reminder/RecentSection.kt に移し（ReminderScreen.kt の行数を抑えるため）、最初の 3 件だけ出して
+      残りは「ほか N 件を見る」で全部出す（開いた状態は rememberSaveable だけで保存しない）。各行に「期限なし」（TextButton、48dp 以上）を足し、
+      押すと ReminderEvent.NoDue で記録の id を ReminderPrefs の reminder_hidden_recent_ids（文字列の集合）へ保存して一覧から外し、
+      「期限なしにしました：品名 ／ 元に戻す」を 5 秒出す（メモの UndoEffect と同じ作り。押すと UndoNoDue で id を外す）。記録は消さない。
+      保存のたびに、その時点の最近買った物（7 日以内・期限未設定）に無い id を掃除する。読んで書くまでは 1 回の DataStore の edit で行う。
+      ReminderViewModel は外した記録を除いた一覧で uiState.recent と G-08 の条件を作るため、G-08 は外した記録を除いた 1 行目で出る。
+      G-08 で照らす場所は行全体から「期限を決める」のボタンに絞った（行に「期限なし」が並んだため）。
+      設定の書き出し・読み込み（BackupSettingsStore）には外した id を含めない（7 日で消える一時的な値のため、既定のとおり）。
+      データを全部消す（DataEraser）は DataStore を丸ごと消すため、外した id も消える。
+      使い方 due.md に並びと「ほか ○ 件を見る」「期限なし」「元に戻す」を足して docs/USER_GUIDE.md を作り直し、
+      DESIGN.md の F-50・F-53・G-07/G-08 の行と設定の保存方針を更新した。スクリーンショットの reminder 24 枚を記録し直した
+      （並びが入れ替わり、最近買った物の行に「期限なし」が並ぶ。とても大きい文字では買った日が 2 行に折り返すが切れない）。
+      あわせて BL-151 の確認項目に初めての案内の 3 枚目と最近買った物の行を足し、BL-151・BL-130 の依存から BL-142 を外した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/RecentSection.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ReminderPrefs.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/due.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest.kt
+      - mobile/screenshots/reminder/（24 枚）
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ReminderContentTest" --tests "*ReminderViewModelTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.reminder*" --tests "*ScreenGuidesTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功し、
+      reminder のスクリーンショットの記録と ScreenGuidesTest も成功した（フル検証はループの最後に流す）
+    関連ID:
+      - BL-142
 - date: 2026-11-13 01:33
   summary: 下タブと画面の名前を「カレンダー」「お知らせ」から中身に合わせた「記録」「期限」に変え、買い物のためのメモであることを案内と使い方に添える
   details:
