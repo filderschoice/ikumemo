@@ -37,7 +37,7 @@ class HelpScreenTest {
         val page =
             HelpPage(
                 id = "calendar",
-                title = "カレンダー",
+                title = "記録",
                 blocks = listOf(HelpBlock.Paragraph("日付ごとに見られます。")),
                 tryScreen = HelpScreens.CALENDAR,
                 guide = GuideId.G07_CALENDAR_DAY,

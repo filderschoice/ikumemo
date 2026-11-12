@@ -19,7 +19,7 @@ class AppShortcutsTest {
 
         val shortcuts = ShortcutManagerCompat.getDynamicShortcuts(context).sortedBy { it.rank }
         assertEquals(
-            listOf("話して追加", "文字で追加", "カレンダー", "お知らせ"),
+            listOf("話して追加", "文字で追加", "記録", "期限"),
             shortcuts.map { it.shortLabel.toString() },
         )
         // 各ショートカットの Intent は MainActivity を開き、開く画面として受け取られる

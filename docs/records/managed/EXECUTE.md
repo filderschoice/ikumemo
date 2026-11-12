@@ -5,6 +5,52 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 01:33
+  summary: 下タブと画面の名前を「カレンダー」「お知らせ」から中身に合わせた「記録」「期限」に変え、買い物のためのメモであることを案内と使い方に添える
+  details:
+    変更内容: >-
+      BL-141 を実装した。strings.xml の tab_calendar を「記録」、tab_reminder を「期限」にし（上部のバーの題名も同じ文字列で変わる）、
+      ショートカットを「記録」「期限」と長い名前「買った物の記録を開く」「期限の一覧を開く」に、設定の「ホーム画面に置く」の説明と
+      通知の本文（押すと、期限の一覧を開きます）を新しい名前に合わせた。初めての案内の 3 枚目の本文と使い方の start.md に
+      「予定表やなんでもリマインダーではなく、買い物のためのメモです」を添えた。使い方は calendar.md の見出しを「記録」、目次の章を「期限とお知らせ」にし、
+      due.md・shortcuts.md・add-later.md・edit-record.md・search.md・not-arriving.md の画面を指す箇所を直して docs/USER_GUIDE.md を作り直した。
+      通知そのものを指す「お知らせ」（チャンネル名・お知らせの時刻・お知らせが来ないときは・設定の「お知らせ」・notified.md）は変えていない。
+      テストの目印（TopLevelTabTags）と route、アイコンは変えていない。AppShortcutsTest・HelpContentTest・HelpScreenTest の名前を直した
+      （OnboardingTest には 3 枚目の文言のテストが無いため変えていない）。スクリーンショットの calendar と reminder を記録し直し、
+      48 枚とも差分が上部のバーの題名の範囲だけであることを確かめた。memo は verify で変わらないことを確かめた。
+      DESIGN.md の PLAN §3・F-74・F-70/G-01 の行と UI/UX 方針、docs/design/WIREFRAME.md のタブと画面の名前を合わせた
+    変更ファイル:
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppShortcuts.kt
+      - mobile/src/main/assets/help/start.md
+      - mobile/src/main/assets/help/index.md
+      - mobile/src/main/assets/help/calendar.md
+      - mobile/src/main/assets/help/due.md
+      - mobile/src/main/assets/help/shortcuts.md
+      - mobile/src/main/assets/help/add-later.md
+      - mobile/src/main/assets/help/edit-record.md
+      - mobile/src/main/assets/help/search.md
+      - mobile/src/main/assets/help/not-arriving.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/AppShortcutsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/help/HelpContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/help/HelpScreenTest.kt
+      - mobile/screenshots/calendar/（24 枚）
+      - mobile/screenshots/reminder/（24 枚）
+      - docs/USER_GUIDE.md
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*AppShortcutsTest" --tests "*HelpContentTest" --tests "*HelpScreenTest" --tests "*OnboardingTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true（calendar と reminder を 1 画面ずつ）、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功し、
+      スクリーンショットの記録と memo の verify も成功した（フル検証はループの最後に流す）
+    関連ID:
+      - BL-141
 - date: 2026-11-13 01:25
   summary: カレンダーとおしらせの画面に、画面の操作を確かめる Compose のテスト（Robolectric）を足す
   details:

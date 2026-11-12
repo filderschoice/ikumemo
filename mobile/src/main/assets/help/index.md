@@ -22,12 +22,12 @@
 
 ## 見返す
 
-- [カレンダー](calendar.md)
+- [記録](calendar.md)
 - [探す](search.md)
 - [後から記録する](add-later.md)
 - [記録を直す・消す](edit-record.md)
 
-## お知らせ
+## 期限とお知らせ
 
 - [期限を決める](due.md)
 - [お知らせが来たら](notified.md)

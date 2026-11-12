@@ -195,7 +195,6 @@
     docs/design/WIREFRAME.md の設定と上部のバーを直す
   依存:
     - BL-130
-    - BL-141
   根拠: >-
     2026-11-13 の UX レビュー B3（効果 大）。オーナーが 2026-11-13 に、質問の案（設定ボタンを 3 つのタブすべてに置き、操作とお知らせを 1 画面にまとめて項目を減らす）のとおりで承認した。
     既定で決めた点。レビューと質問は「10 項目から 7 項目」としていたが、案に書かれた統合（操作＋お知らせ、ご意見・ご要望を このアプリについて の中へ）だけでは 8 項目になる。
@@ -227,45 +226,12 @@
     設定の書き出し・読み込み（kotlin/data/backup/BackupSettingsStore.kt）に外した id を含めるかを決めて EXECUTE.md に書く（7 日で消える一時的な値のため含めないのが既定）。
     使い方 mobile/src/main/assets/help/due.md（下の「お知らせ」の「最近買った物」で、の手順）に並びと「期限なし」を足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-50・F-53・G-07・G-08 の行と「設定の保存方針（DataStore）」に外した記録の保存を足す
-  依存:
-    - BL-141
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー B2（効果 大）。オーナーが 2026-11-13 に、質問の案（期限が近い順を先、最近買った物は数件だけ、期限なしで外せる）のとおりで承認した。
     既定で決めた点。最初に出す件数はレビューの「3〜5 件」の少ない方の 3 件。並びは期限切れの有無で入れ替えず常に期限が近い順を先（並びが変わると迷うため）。
     外した記録の保存は DB の版を上げずに DataStore に置く（IkumemoDatabase は version 1 で、マイグレーションを避ける）。押し間違いに備えて元に戻すを出す（アプリ全体の「間違えても戻せる」に合わせる）。
     いずれも記録を消さず、期限を決める操作も残るため安全。BL-141 が同じ due.md の手順を書き換えるため、その後に行う
-- id: BL-141
-  区分: UX改善
-  タスク内容: >-
-    下タブの「カレンダー」「お知らせ」を中身に合わせて「記録」「期限」に変え、予定・用事を扱うアプリではないことを初めての案内と使い方に短く書く（UX レビュー B1、オーナー承認済み）。
-    パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/、strings.xml は mobile/src/main/res/values/strings.xml。
-    いまの状態。下タブ（kotlin/IkumemoApp.kt の TopLevelTab、72〜95 行目）と各画面の上部のバーの題名は strings.xml の tab_calendar「カレンダー」・tab_reminder「お知らせ」（6・7 行目）。
-    「カレンダー」は買った物の記録の振り返り、「お知らせ」は買った物の期限の通知だけで、予定・用事を入れる機能は無い。「お知らせ」は運営からのお知らせの意味でもよく使われる。
-    どう変えるか（オーナーの決定）。tab_calendar を「記録」、tab_reminder を「期限」にする（上部のバーの題名も同じ文字列なので一緒に変わる）。アイコンは今のまま。
-    アイコン長押しのショートカット（shortcut_calendar・shortcut_calendar_long・shortcut_reminder・shortcut_reminder_long、193〜196 行目、kotlin/AppShortcuts.kt）、
-    設定の「ホーム画面に置く」の説明（home_screen_shortcuts、188 行目）、通知の本文 notification_due_body「押すと、お知らせの一覧を開きます」（112 行目）もタブの新しい名前に合わせる。
-    初めての案内の 3 枚目（onboarding_look_back_title・onboarding_look_back_body、151〜152 行目）と使い方の冒頭（mobile/src/main/assets/help/start.md）に
-    「予定表やなんでもリマインダーではなく、買い物のためのメモです」を短く添える。
-    通知そのものを指す「お知らせ」（通知のチャンネル名、お知らせの時刻、「お知らせが来ないときは」）は変えない。使い方の目次の章「お知らせ」（index.md）は期限と通知の両方の章なので「期限とお知らせ」にする。
-    予定・用事のメモは今後も扱わない（オーナーの決定）。テストの目印（TopLevelTabTags）と route の名前は変えない
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    下タブ・上部のバー・ショートカット・初めての案内・使い方が新しい名前になっている。テストの test/ は mobile/src/test/kotlin/com/ikumemo/mobile/、testDebug/ は mobile/src/testDebug/kotlin/com/ikumemo/mobile/。
-    名前を文字で確かめている既存のテスト test/AppShortcutsTest（22 行目）、testDebug/help/HelpScreenTest（40 行目の title）、test/help/HelpContentTest（35 行目の目次の章）を直し、
-    testDebug/guide/OnboardingTest に 3 枚目の文言のテストがあれば合わせる。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*AppShortcutsTest" --tests "*HelpContentTest" --tests "*HelpScreenTest" --tests "*OnboardingTest" が成功する。
-    上部のバーの題名が変わるため、スクリーンショットテストの calendar と reminder を CLAUDE.md の手順で画面ごとに -Proborazzi.test.record=true で記録し直し、
-    画像の差分を確かめてコミットに含める（memo は変わらないことを確かめる）。
-    使い方 mobile/src/main/assets/help/ を「カレンダー」「お知らせ」で Grep し（2026-11-13 時点で start.md・calendar.md・due.md・shortcuts.md・add-later.md・edit-record.md・search.md・index.md・notified.md）、
-    タブと画面を指す箇所を新しい名前にして python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の「PLAN §3」の下タブの行、F-74（ショートカット）、F-70・G-01（初めての案内）の行と「UI/UX 方針」の表記の例を合わせ、docs/design/WIREFRAME.md のタブの名前も直す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー B1（効果 大）。オーナーが 2026-11-13 に、下タブの名前を「記録」「期限」に変え、予定・用事のメモは今後も扱わない前提で進めると決めた。
-    通知を指す「お知らせ」まで変えると通知の設定・よくある質問の意味が変わるため、タブと画面の名前だけを変えることを既定とした。
-    strings.xml を広く触るため、ボタンの言葉をそろえる BL-133 より先に行う
 - id: BL-140
   区分: UX改善
   タスク内容: >-
@@ -469,7 +435,6 @@
   依存:
     - BL-134
     - BL-135
-    - BL-141
     - BL-143
   根拠: >-
     2026-11-13 の UX レビュー A4（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
@@ -766,8 +731,7 @@
   担当: ユーザー
   完了条件: >-
     主要タスクが説明なしで完了し、ガイドで詰まらないことを観察で確認している。ガイドについて 3 人中 2 人以上が「助かった」と答える（下回ったら感想を記録している）
-  依存:
-    - BL-141
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー C3 は観察する人とペルソナが同じため、新しく作らずここへ足した。
     下タブの名前を変える BL-141 の後に、変えた後の名前で迷わないかも含めて見る
