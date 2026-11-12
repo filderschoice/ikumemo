@@ -44,7 +44,9 @@ private const val MILLIS_PER_DAY = 86_400_000L
 
 /**
  * 記録の編集シート（F-16）。購入日・お店・数量・メモ・写真を直す、または記録を消す。
+ * メモの編集シート（F-04）と同じく、払う・戻る・外を押す・「閉じる」のどれで閉じても内容を保存する（確認なし、PLAN §1.3-4）。
  * 消すのは取り消せないが、記録 1 件の操作のため確認は出さない（PLAN §1.3-4 の例外は F-76 だけ）。
+ * 消したときはシートが描かれなくなるだけで onDismissRequest は呼ばれないため、保存は走らない。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +68,7 @@ fun RecordEditSheet(
         )
     }
     ModalBottomSheet(
-        onDismissRequest = { onEvent(CalendarEvent.CloseEditor) },
+        onDismissRequest = save,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         Column(
@@ -88,7 +90,7 @@ fun RecordEditSheet(
             EditField(quantity, { quantity = it }, R.string.edit_quantity, "record_quantity", singleLine = true)
             EditField(note, { note = it }, R.string.edit_note, "record_note", singleLine = false)
             PhotoSection(photo = photo, photoStore = photoStore, onPhotoChange = { photo = it })
-            DeleteAndSave(onDelete = { onEvent(CalendarEvent.DeleteRecord(record.id)) }, onSave = save)
+            DeleteAndClose(onDelete = { onEvent(CalendarEvent.DeleteRecord(record.id)) }, onClose = save)
         }
     }
     if (pickingDate) {
@@ -104,9 +106,9 @@ fun RecordEditSheet(
 }
 
 @Composable
-private fun DeleteAndSave(
+private fun DeleteAndClose(
     onDelete: () -> Unit,
-    onSave: () -> Unit,
+    onClose: () -> Unit,
 ) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         TextButton(
@@ -116,8 +118,11 @@ private fun DeleteAndSave(
             Text(stringResource(R.string.calendar_record_delete), color = MaterialTheme.colorScheme.error)
         }
         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
-            Button(onClick = onSave, modifier = Modifier.heightIn(min = 48.dp).testTag(CalendarTestTags.RECORD_SAVE)) {
-                Text(stringResource(R.string.calendar_record_save))
+            Button(
+                onClick = onClose,
+                modifier = Modifier.heightIn(min = 48.dp).testTag(CalendarTestTags.RECORD_CLOSE),
+            ) {
+                Text(stringResource(R.string.common_close))
             }
         }
     }

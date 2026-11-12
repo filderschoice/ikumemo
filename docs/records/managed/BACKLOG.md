@@ -138,31 +138,6 @@
   根拠: >-
     2026-11-13 の UX レビュー B5（効果 中）。オーナーが 2026-11-13 に質問の案のとおりで承認した。
     データの画面を組み替える BL-134 の後に行う（同じ DataContent の並びを触るため）
-- id: BL-144
-  区分: UX改善
-  タスク内容: >-
-    カレンダーの記録の編集シートも、メモの編集シートと同じく「閉じたら保存」にする（UX レビュー B4、オーナー承認済み）。
-    いまの状態。mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt の ModalBottomSheet（68〜71 行目）は onDismissRequest で CalendarEvent.CloseEditor を送り、
-    下へ払う・戻る・外を押すと変更を捨てて閉じる（保存は DeleteAndSave の「直す」ボタン、118〜122 行目、strings.xml の calendar_record_save だけ）。
-    メモの編集シート（mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/EditItemSheet.kt 75〜78 行目）は onDismissRequest = save で、閉じれば保存する（確認なし、PLAN §1.3-4）。
-    どう変えるか（オーナーの決定）。onDismissRequest も save（CalendarEvent.SaveRecord）にし、「直す」ボタンは common_close「閉じる」に替えて、押すと保存して閉じる（メモの編集と同じ）。
-    日付を変えた場合は今の saveRecord（calendar/CalendarViewModel.kt 234〜246 行目）のとおり保存後にその日へ移る。何も変えずに閉じたときは記録の中身が変わらないこと。
-    「この記録を消す」を押したときに保存が走らないこと（消した後にシートが消えるとき onDismissRequest が呼ばれないことを確かめる）。testTag の RECORD_SAVE は名前を変えてもよい
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    記録の編集シートを払って閉じると内容が保存される。RecordEditSheet を直接描く Compose のテスト（mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/RecordEditSheetTest を新設）で、
-    欄を変えて閉じるボタンを押すと SaveRecord が出ること、消すを押すと DeleteRecord だけが出ることを確かめ、
-    mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest に変更なしの保存で記録が変わらないテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*RecordEditSheetTest" --tests "*CalendarViewModelTest" が成功する。
-    シートはスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/edit-record.md に「シートを閉じると保存されます」（edit.md と同じ書き方）を足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の F-16 の行に「閉じると保存」を足す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー B4（効果 大）。オーナーが 2026-11-13 に承認した。メモで覚えた閉じ方をカレンダーでもすると、直した内容が黙って消えるのを防ぐ。
-    レビュー A4（BL-133）は保存ボタンを「保存する」にする案だったが、本タスクで「閉じる」になるため BL-133 では触らない
 - id: BL-140
   区分: UX改善
   タスク内容: >-
@@ -303,11 +278,10 @@
     使い方 mobile/src/main/assets/help/edit-record.md の「消した記録は元に戻せません」を直し、undo.md（今は「買った」「やめた」だけ）に記録を消したときの元に戻すを足して、
     python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-16・R-12 の行（写真の扱いを変えたら R-14 も）に、記録の削除の元に戻すを足す
-  依存:
-    - BL-144
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー A6（効果 大）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
-    同じ DeleteAndSave を触る BL-144（閉じたら保存）の後に行う
+    同じ DeleteAndSave（BL-144 で DeleteAndClose に改名、ボタンは「閉じる」）を触る BL-144（閉じたら保存、完了）の後に行う
 - id: BL-134
   区分: UX改善
   タスク内容: >-

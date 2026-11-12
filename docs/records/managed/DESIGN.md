@@ -48,7 +48,7 @@
 | F-12・R-04 | 「買った：牛乳 ／ 元に戻す」を 5 秒表示（TalkBack 等の利用時は推奨時間まで延長）。元に戻せるのは最新の 1 件 | `ShoppingListScreen.kt` の `UndoEffect` |
 | R-03・R-10・R-11・R-15 | 「やめた」は記録せず品目を残す。「買った」は端末の今日の日付で記録、同じ日の 2 回目も別記録、写真は同じファイルを参照 | `data/ShoppingRepository.kt` |
 | R-12 | 購入回数・最後に買った日・平均間隔を残っている記録から計算し直す。記録を消すと紐づくお知らせも消す | `core/suggest/PurchaseStats.kt`、`data/ProductStatsUpdater.kt` |
-| F-16 | 記録の修正（購入日・お店・数量・メモ・写真。日付かお店が変わればお買い物を付け替え）と削除。日の詳細の記録を押すと編集シート | `data/RecordRepository.kt`、`calendar/RecordEditSheet.kt` |
+| F-16 | 記録の修正（購入日・お店・数量・メモ・写真。日付かお店が変わればお買い物を付け替え）と削除。日の詳細の記録を押すと編集シート。シートは払う・戻る・外を押す・「閉じる」のどれで閉じても保存する（閉じると保存、確認なし。消すときは保存しない） | `data/RecordRepository.kt`、`calendar/RecordEditSheet.kt` |
 | F-17 | 後から記録。日の詳細の下（買い物が無い日も）の「買った物を記録する」から、品名・買った日（選んだ日が既定）・お店・数量・メモ・写真を入れて記録する。メモは変えず、初めての品名は品目に登録し、購入回数などを計算し直す（R-12）。品名が空のうちは「記録する」を押せない。記録したら記録した日へ移る | `RecordRepository.addRecord`、`calendar/AddRecordSheet.kt` |
 | F-40・PLAN §2.7 | 月カレンダー（日曜始まり、日曜は赤・土曜は青の文字色＋曜日名、買い物の日にお店の色のドット最大 3 つ、今日は枠線） | `calendar/MonthGrid.kt`、`designsystem/CalendarColors.kt` |
 | F-41 | 日の詳細（品名・数量・お店・メモ・写真のサムネイル、写真は押すと拡大）。買い物が無い日は「この日のお買い物はありません」 | `calendar/CalendarScreen.kt` |

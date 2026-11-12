@@ -5,6 +5,38 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 05:26
+  summary: カレンダーの記録の編集シートを、メモの編集と同じく閉じたら保存するようにする
+  details:
+    変更内容: >-
+      BL-144 を実装した。calendar/RecordEditSheet.kt の ModalBottomSheet の onDismissRequest を CalendarEvent.CloseEditor から save（CalendarEvent.SaveRecord）にし、
+      払う・戻る・外を押すのどれで閉じても内容を保存するようにした（確認なし、PLAN §1.3-4）。「直す」ボタンは common_close の「閉じる」に替えて押すと保存し、
+      DeleteAndSave を DeleteAndClose、testTag を RECORD_SAVE から RECORD_CLOSE（calendar_record_close）に改名した。
+      使われなくなった CalendarEvent.CloseEditor と文字列 calendar_record_save は消した。
+      消すときはシートが描かれなくなるだけで onDismissRequest は呼ばれず、保存が走らないことを RecordEditSheetTest で確かめた。
+      日付を変えて閉じたときに保存後その日へ移る動き（saveRecord）は変えていない。
+      使い方 edit-record.md に「シートを閉じると保存されます」を足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-16 の行に閉じると保存を足した。
+      シートはスクリーンショットテストの対象外のため画像の記録し直しはしていない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/edit-record.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/RecordEditSheetTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*RecordEditSheetTest" --tests "*CalendarViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト（RecordEditSheetTest 3 件、CalendarViewModelTest 6 件）・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は「閉じる」ボタンの行が 120 文字を超えて ktlint と detekt が失敗したため、引数を行に分けた。フル検証はループの最後に流す）
+    関連ID:
+      - BL-144
 - date: 2026-11-13 05:18
   summary: 3 つのタブのどこからでも設定を開けるようにし、設定を 8 項目に減らして期限の画面からお知らせの時刻へ 1 タップで行けるようにする
   details:

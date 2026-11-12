@@ -80,8 +80,7 @@ sealed interface CalendarEvent {
         val recordId: Long,
     ) : CalendarEvent
 
-    data object CloseEditor : CalendarEvent
-
+    /** 記録の編集シートを閉じたときに送る（閉じると保存、F-16）。 */
     data class SaveRecord(
         val recordId: Long,
         val edit: RecordEdit,
@@ -213,7 +212,6 @@ class CalendarViewModel(
     private fun onRecordEvent(event: CalendarEvent) {
         when (event) {
             is CalendarEvent.EditRecord -> local.update { it.copy(editingId = event.recordId) }
-            CalendarEvent.CloseEditor -> local.update { it.copy(editingId = null) }
             is CalendarEvent.SaveRecord -> saveRecord(event)
             is CalendarEvent.DeleteRecord -> deleteRecord(event.recordId)
             CalendarEvent.OpenAddRecord -> local.update { it.copy(adding = true) }

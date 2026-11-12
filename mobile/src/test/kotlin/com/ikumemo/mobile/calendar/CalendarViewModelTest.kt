@@ -183,4 +183,36 @@ class CalendarViewModelTest {
                 cancelAndIgnoreRemainingEvents()
             }
         }
+
+    @Test
+    fun closingEditorWithoutChangesKeepsRecord() =
+        runTest {
+            val store = requireNotNull(stores.addStore("○○スーパー"))
+            val recordId = buy("牛乳", LocalDate.of(2026, 10, 20), store.id)
+
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                viewModel.onEvent(CalendarEvent.SelectDate(LocalDate.of(2026, 10, 20)))
+                viewModel.onEvent(CalendarEvent.EditRecord(recordId))
+                val before = requireNotNull(awaitUntil { it.editing != null }.editing)
+
+                // シートを何も変えずに閉じたときに送られる内容（RecordEditSheet は null を空文字で持つ）
+                viewModel.onEvent(
+                    CalendarEvent.SaveRecord(
+                        recordId,
+                        RecordEdit(
+                            before.purchasedDate,
+                            before.storeId,
+                            before.quantity.orEmpty(),
+                            before.note.orEmpty(),
+                            before.photoUri,
+                        ),
+                    ),
+                )
+
+                val closed = awaitUntil { it.editing == null && it.selectedRecords.isNotEmpty() }
+                assertEquals(LocalDate.of(2026, 10, 20), closed.selectedDate)
+                assertEquals(before, closed.selectedRecords.single().record)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
 }
