@@ -55,19 +55,27 @@ import com.ikumemo.mobile.designsystem.panelEdge
 import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.rememberGuideTargets
+import com.ikumemo.mobile.settings.SettingsButton
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
 fun CalendarScreen(
+    onOpenSettings: () -> Unit = {},
     showGuide: Boolean = true,
     viewModel: CalendarViewModel = viewModel(factory = AppViewModelFactory.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val photoStore = remember(context) { PhotoStore(context) }
-    CalendarContent(state = state, photoStore = photoStore, onEvent = viewModel::onEvent, showGuide = showGuide)
+    CalendarContent(
+        state = state,
+        photoStore = photoStore,
+        onEvent = viewModel::onEvent,
+        showGuide = showGuide,
+        onOpenSettings = onOpenSettings,
+    )
     state.editing?.let { record ->
         RecordEditSheet(record = record, stores = state.stores, photoStore = photoStore, onEvent = viewModel::onEvent)
     }
@@ -87,13 +95,14 @@ fun CalendarContent(
     photoStore: PhotoStore,
     onEvent: (CalendarEvent) -> Unit,
     showGuide: Boolean = true,
+    onOpenSettings: () -> Unit = {},
 ) {
     var enlargedPhoto by rememberSaveable { mutableStateOf<String?>(null) }
     val guideTargets = rememberGuideTargets()
     CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
-                CalendarTopBar(searchOpen = state.searchOpen, onEvent = onEvent)
+                CalendarTopBar(searchOpen = state.searchOpen, onEvent = onEvent, onOpenSettings = onOpenSettings)
                 if (state.searchOpen) {
                     SearchPane(state, onEvent)
                 } else {
@@ -126,7 +135,9 @@ fun CalendarContent(
 private fun CalendarTopBar(
     searchOpen: Boolean,
     onEvent: (CalendarEvent) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
+    // 右は 探す → ⚙ 設定（設定はメモ・期限と同じ右端、BL-143）
     TopAppBar(
         title = { Text(stringResource(R.string.tab_calendar)) },
         actions = {
@@ -140,6 +151,7 @@ private fun CalendarTopBar(
                         stringResource(if (searchOpen) R.string.calendar_search_close else R.string.calendar_search),
                 )
             }
+            SettingsButton(onOpenSettings, CalendarTestTags.SETTINGS)
         },
         windowInsets = WindowInsets(0),
     )

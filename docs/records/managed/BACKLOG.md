@@ -22,7 +22,6 @@
     - BL-134
     - BL-137
     - BL-139
-    - BL-143
     - BL-145
   根拠: >-
     2026-11-13 の UX レビュー C6。スクリーンショットテストは幅 360dp と文字の 3 段階だけで、端末の文字サイズ最大との組み合わせは実機でしか確かめられないため。
@@ -60,8 +59,7 @@
   状態: 未着手
   担当: ユーザー
   完了条件: 各タブから設定を開いた後に下タブを押すと、そのタブの画面（メモなら一覧）が出る。迷った点や設定が出てきた操作があれば画面名と手順を記録している
-  依存:
-    - BL-143
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー C2。下タブの戻る履歴の保存・復元（IkumemoApp.kt の navigateToTab の saveState・restoreState）の実際の動きは実機の操作で確かめるため。
     不具合と分かったら、手順を添えて不具合のタスクを起票する
@@ -165,41 +163,6 @@
   根拠: >-
     2026-11-13 の UX レビュー B4（効果 大）。オーナーが 2026-11-13 に承認した。メモで覚えた閉じ方をカレンダーでもすると、直した内容が黙って消えるのを防ぐ。
     レビュー A4（BL-133）は保存ボタンを「保存する」にする案だったが、本タスクで「閉じる」になるため BL-133 では触らない
-- id: BL-143
-  区分: UX改善
-  タスク内容: >-
-    設定の項目を減らし、3 つのタブのどこからでも設定へ行けるようにする（UX レビュー B3、オーナー承認済み）。パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/。
-    いまの状態。設定の入口はメモ画面の右上（kotlin/shoppinglist/ShoppingListScreen.kt、HomeNavigation.onOpenSettings）だけで、カレンダー（kotlin/calendar/CalendarScreen.kt の CalendarTopBar、120〜142 行目）と
-    お知らせ（kotlin/reminder/ReminderScreen.kt の ReminderContent の TopAppBar、102 行目）には無く、kotlin/IkumemoApp.kt の NavHost（178〜196 行目）は CalendarScreen・ReminderScreen に設定を開く処理を渡していない。
-    設定（kotlin/settings/SettingsScreen.kt の SettingsItem、58〜74 行目）は 10 項目で、「操作」（kotlin/settings/OperationScreen.kt、スイッチ 2 つ）と
-    「お知らせ」（kotlin/settings/ReminderSettingsScreen.kt、時刻とスイッチ 1 つ）が別の画面、「ご意見・ご要望」（FEEDBACK）と「このアプリについて」（ABOUT）が別の行。お知らせの時刻はお知らせ画面から辿れない。
-    どう変えるか（オーナーが承認した案）。(1) カレンダーとお知らせの上部のバーの右に、メモ画面と同じ「⚙ 設定」（アイコン＋文字）を置き、押すと SettingsRoute を開く。
-    (2) お知らせ画面の一覧の上（通知オフの帯の下）に、お知らせの設定へ直接行くボタン「お知らせの時刻 9:00」（時刻は設定値。ReminderUiState に時刻を持たせ、ReminderViewModel で kotlin/data/ReminderPrefs.kt から読む）を置き、
-    押すと (3) の画面を開く。(3)「操作」と「お知らせ」を 1 つの画面「操作とお知らせ」にまとめる（○ を出す・振動・お知らせの時刻・期限の当日もお知らせ の 4 行。
-    OperationContent と ReminderSettingsContent の中身を並べ、ViewModel は 2 つのまま使ってよい）。
-    (4)「ご意見・ご要望」を設定の一覧から外し、「このアプリについて」（kotlin/settings/AboutScreen.kt）の中の行にする（FeedbackRoute と、使い方の「やってみる」の行き先 HelpScreens.FEEDBACK は残す）。
-    使い方は一番上に残す（H-01）。結果として設定は 8 項目（使い方・着せ替え・操作とお知らせ・お店の管理・よく買う物の管理・ホーム画面に置く・データ・このアプリについて）
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    3 つのタブから設定が開け、お知らせ画面から時刻の設定へ 1 タップで行け、設定の一覧が 8 項目になっている。テストの testDebug/ は mobile/src/testDebug/kotlin/com/ikumemo/mobile/、test/ は mobile/src/test/kotlin/com/ikumemo/mobile/。
-    testDebug/settings/AboutContentTest の settingsListsFeedbackAndAbout（settings_feedback の行を押している）を新しい並びに直し、このアプリについての中からご意見・ご要望が開けるテストを足す。
-    testDebug/settings/OperationContentTest をまとめた画面に合わせて直す（時刻と当日のお知らせの行を含める）。
-    testDebug/calendar/CalendarContentTest と testDebug/reminder/ReminderContentTest（BL-116 で作る）に設定のボタンと時刻のボタンのイベントのテストを、test/reminder/ReminderViewModelTest に時刻が状態に入るテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*AboutContentTest" --tests "*OperationContentTest" --tests "*CalendarContentTest" --tests "*ReminderContentTest" --tests "*ReminderViewModelTest" が成功する。
-    上部のバーと一覧が変わるため、スクリーンショットテストの calendar と reminder を CLAUDE.md の手順で画面ごとに -Proborazzi.test.record=true で記録し直し、
-    画像の差分（extra_large で題名とボタンが重ならないこと）を確かめてコミットに含める（memo は変わらないことを確かめる）。
-    使い方 mobile/src/main/assets/help/ の 設定の「操作」（bought-button.md・swipe.md）、設定の「お知らせ」（notified.md）、設定の「ご意見・ご要望」（feedback.md・faq.md）を新しい場所に直し、
-    python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の「PLAN §3（一部）」（設定の入口と項目の並び）、「F-13・R-05・PLAN §3 操作」、「R-20・R-21・PLAN §3 お知らせ」、F-77、「PLAN §3・§5・§7」（このアプリについて）の行を合わせ、
-    docs/design/WIREFRAME.md の設定と上部のバーを直す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー B3（効果 大）。オーナーが 2026-11-13 に、質問の案（設定ボタンを 3 つのタブすべてに置き、操作とお知らせを 1 画面にまとめて項目を減らす）のとおりで承認した。
-    既定で決めた点。レビューと質問は「10 項目から 7 項目」としていたが、案に書かれた統合（操作＋お知らせ、ご意見・ご要望を このアプリについて の中へ）だけでは 8 項目になる。
-    承認された統合を超えて項目を減らさない。まとめた画面の名前は、レビューの「使い方の設定」だと設定の一番上の「使い方」（ヘルプ）と紛らわしいため「操作とお知らせ」とした。
-    上部のバーと一覧を触るため BL-141（題名）と BL-130（お知らせの一覧の面）の後に行う
 - id: BL-140
   区分: UX改善
   タスク内容: >-
@@ -220,8 +183,7 @@
     使い方 mobile/src/main/assets/help/ を「許可」「通知」で Grep し（2026-11-13 時点では due.md・not-arriving.md に通知の許可を求める流れの記述は無い）、
     due.md に「初めて決めたときに、通知の許可を求めます」を足して python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の「PLAN §5・R-29」の行（説明の文言）を合わせる
-  依存:
-    - BL-143
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー A11（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     お知らせ画面の状態へ通知の時刻を持たせる BL-143 の後に行い、時刻の読み込みを二重に作らない
@@ -245,8 +207,7 @@
     設定の画面はスクリーンショットテストの対象外のため記録し直しは不要。
     使い方 mobile/src/main/assets/help/ を「設定の」で Grep し、項目の場所の説明が新しい区切りと食い違う記述があれば直して python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の「PLAN §3（一部）」の行（設定の項目の並び）に見出しと説明を足す
-  依存:
-    - BL-143
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー A10（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     既定で決めた点。レビューの区切りは「困ったとき」に使い方を入れていたが、DESIGN の H-01 と BL-143（使い方は上に残す）に合わせ、使い方は見出し無しで一番上に残す（項目と行き先を変えないため安全）。
@@ -293,8 +254,7 @@
     画像の差分（点の大きさ・探すの文字、extra_large ではみ出しが無いこと）を確かめてコミットに含める。
     使い方 mobile/src/main/assets/help/calendar.md に「今日」ボタンを足し、search.md の「右上の「探す」」が新しい見た目と合うか確かめて、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-40（点の大きさ・今日へ戻る）と F-42 の行（探すの入口）を合わせる
-  依存:
-    - BL-143
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー A8（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     MonthGrid を触る BL-130 と、CalendarTopBar に設定のボタンを足す BL-143 の後に行う。BL-117（検索欄の音声入力）は検索の入口と search.md を触るため本タスクの後にした
@@ -402,7 +362,6 @@
   依存:
     - BL-134
     - BL-135
-    - BL-143
   根拠: >-
     2026-11-13 の UX レビュー A4（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     既定で決めた点。取り消しはレビューの推奨の「戻る」。音声カードの「できた」とシートの「閉じる」はダイアログではないため対象外。

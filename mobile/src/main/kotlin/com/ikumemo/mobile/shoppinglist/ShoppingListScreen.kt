@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Mic
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -58,6 +57,7 @@ import com.ikumemo.mobile.guide.SwipeNudge
 import com.ikumemo.mobile.guide.guideTarget
 import com.ikumemo.mobile.guide.rememberGuideTargets
 import com.ikumemo.mobile.help.HelpPages
+import com.ikumemo.mobile.settings.SettingsButton
 import com.ikumemo.mobile.voice.VoiceInputSheet
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.delay
@@ -174,7 +174,7 @@ fun ShoppingListContent(
             Column(Modifier.fillMaxSize()) {
                 TopAppBar(
                     title = { Text(stringResource(R.string.memo_title)) },
-                    actions = { SettingsButton(onOpenSettings) },
+                    actions = { SettingsButton(onOpenSettings, TestTags.SETTINGS) },
                     windowInsets = WindowInsets(0),
                 )
                 StoreChip(
@@ -314,15 +314,6 @@ private fun UndoEffect(
         } else {
             onEvent(ShoppingListEvent.UndoExpired(offer.serial))
         }
-    }
-}
-
-/** 右上の ⚙ せってい。アイコンだけにせず文字を添える（PLAN §2.7）。 */
-@Composable
-private fun SettingsButton(onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.SETTINGS)) {
-        Icon(Icons.Rounded.Settings, contentDescription = null)
-        Text(stringResource(R.string.settings_title), modifier = Modifier.padding(start = 4.dp))
     }
 }
 

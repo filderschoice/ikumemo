@@ -40,8 +40,10 @@ import com.ikumemo.mobile.designsystem.LocalHasBackgroundImage
 import com.ikumemo.mobile.guide.GuideViewModel
 import com.ikumemo.mobile.guide.OnboardingContent
 import com.ikumemo.mobile.help.HelpScreens
+import com.ikumemo.mobile.reminder.ReminderNavigation
 import com.ikumemo.mobile.reminder.ReminderScreen
 import com.ikumemo.mobile.settings.HelpPageRoute
+import com.ikumemo.mobile.settings.OperationRoute
 import com.ikumemo.mobile.settings.SettingsRoute
 import com.ikumemo.mobile.settings.settingsGraph
 import com.ikumemo.mobile.shoppinglist.HomeNavigation
@@ -186,10 +188,21 @@ private fun AppScaffold(
                         ),
                 )
             }
-            composable<CalendarRoute> { CalendarScreen(showGuide = outsideRoute != CalendarRoute::class) }
+            // 設定は 3 つのタブのどこからでも開ける（BL-143）
+            composable<CalendarRoute> {
+                CalendarScreen(
+                    onOpenSettings = { navController.navigate(SettingsRoute) },
+                    showGuide = outsideRoute != CalendarRoute::class,
+                )
+            }
             composable<ReminderRoute> {
                 ReminderScreen(
-                    onOpenHelp = { navController.navigate(HelpPageRoute(it)) },
+                    navigation =
+                        ReminderNavigation(
+                            onOpenHelp = { navController.navigate(HelpPageRoute(it)) },
+                            onOpenSettings = { navController.navigate(SettingsRoute) },
+                            onOpenReminderSettings = { navController.navigate(OperationRoute) },
+                        ),
                     showGuide = outsideRoute != ReminderRoute::class,
                 )
             }

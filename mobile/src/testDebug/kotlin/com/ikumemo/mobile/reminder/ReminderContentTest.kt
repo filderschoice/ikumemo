@@ -34,6 +34,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * おしらせの画面（F-50・F-53・R-29）の操作。[ReminderContent] に状態を渡して描き、押したときに出るイベントを確かめる。
@@ -49,6 +50,8 @@ class ReminderContentTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val events = mutableStateListOf<ReminderEvent>()
     private val openedHelp = mutableStateListOf<String>()
+    private var openedSettings = 0
+    private var openedReminderSettings = 0
     private var enableRequests = 0
 
     private fun show(
@@ -62,7 +65,12 @@ class ReminderContentTest {
                         state = state,
                         onEvent = { events += it },
                         onEnableNotifications = { enableRequests++ },
-                        onOpenHelp = { openedHelp += it },
+                        navigation =
+                            ReminderNavigation(
+                                onOpenHelp = { openedHelp += it },
+                                onOpenSettings = { openedSettings++ },
+                                onOpenReminderSettings = { openedReminderSettings++ },
+                            ),
                         showGuide = false,
                     )
                 }
@@ -205,6 +213,30 @@ class ReminderContentTest {
     }
 
     @Test
+    fun settingsButtonOpensSettings() {
+        show()
+
+        composeRule.onNodeWithTag(ReminderTestTags.SETTINGS).performClick()
+
+        assertEquals(1, openedSettings)
+    }
+
+    @Test
+    fun reminderTimeButtonShowsTheTimeAndOpensItsSettings() {
+        show(ReminderSamples.state().copy(notificationsEnabled = false, notifyTime = LocalTime.of(7, 30)))
+
+        // 通知オフの帯の下、一覧の上に設定値の時刻を出す（BL-143）
+        val banner = composeRule.onNodeWithTag(ReminderTestTags.NOTIFICATIONS_OFF).fetchSemanticsNode().boundsInRoot
+        val button = composeRule.onNodeWithTag(ReminderTestTags.TIME).fetchSemanticsNode().boundsInRoot
+        val title = composeRule.onNodeWithText(text(R.string.reminder_pending)).fetchSemanticsNode().boundsInRoot
+        assertTrue(button.top >= banner.bottom && button.bottom <= title.top)
+        composeRule.onNodeWithText(text(R.string.reminder_time_button, "7:30")).assertIsDisplayed()
+        composeRule.onNodeWithTag(ReminderTestTags.TIME).performClick()
+
+        assertEquals(1, openedReminderSettings)
+    }
+
+    @Test
     fun emptyListsShowTheirHints() {
         show(ReminderSamples.state())
 
@@ -223,6 +255,7 @@ class ReminderContentTest {
         )
 
         // 期限が近い順の行・最近買った物の行・「おしらせが届かないとき」は面の上に描き、見出しは写真の上に残す（BL-130）
+        assertOnPanel(ReminderTestTags.TIME)
         assertOnPanel(ReminderTestTags.pending(4))
         assertOnPanel(ReminderTestTags.setDue(2))
         assertOnPanel(ReminderTestTags.NOT_ARRIVING)
@@ -232,6 +265,8 @@ class ReminderContentTest {
 
     /** [tag] の要素まで送り、その全体がどれかの面の内側にあることを確かめる。 */
     private fun assertOnPanel(tag: String) {
+        // 一覧は LazyColumn のため、画面外の行は作られない。送ってから探す
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasTestTag(tag))
         val bounds = composeRule.onNodeWithTag(tag).performScrollTo().fetchSemanticsNode().boundsInRoot
         assertTrue("$tag が面の上に無い", onPanel(bounds))
     }

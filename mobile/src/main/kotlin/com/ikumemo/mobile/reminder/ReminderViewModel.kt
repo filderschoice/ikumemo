@@ -2,6 +2,7 @@ package com.ikumemo.mobile.reminder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikumemo.core.reminder.ReminderSettings
 import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
@@ -15,11 +16,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalTime
 
 /** 期限を決めるシートの対象。 */
 data class DueTarget(
@@ -44,6 +47,8 @@ data class ReminderUiState(
     val guide: GuideId? = null,
     /** 「期限なしにしました：品名 ／ 元に戻す」の表示（BL-142）。 */
     val undo: NoDueUndo? = null,
+    /** お知らせの時刻（設定値。一覧の上の「お知らせの時刻 9:00」に出す、BL-143）。 */
+    val notifyTime: LocalTime = ReminderSettings.DEFAULT_TIME,
 )
 
 /** 「期限なし」で外した記録を元に戻す申し出。[serial] は押すたびに変わり、前の表示を置き換える。 */
@@ -134,8 +139,8 @@ class ReminderViewModel(
             repository.observePending(),
             local,
             guides.state,
-            prefs.hiddenRecentIds,
-        ) { allRecent, pending, state, guideState, hidden ->
+            combine(prefs.hiddenRecentIds, prefs.settings.map { it.time }, ::Pair),
+        ) { allRecent, pending, state, guideState, (hidden, notifyTime) ->
             // 「期限なし」で外した記録を除く（BL-142）
             val recent = allRecent.filterNot { it.id in hidden }
             ReminderUiState(
@@ -147,6 +152,7 @@ class ReminderViewModel(
                 loaded = true,
                 permissionRequests = state.permissionRequests,
                 undo = state.undo,
+                notifyTime = notifyTime,
                 // G-08: 初めて「買った」にした後に開いた（外した記録を除いた最近買った物があり、「期限を決める」を照らせる）。
                 // 期限の設定シートを出している間は出さない（R-52）
                 guide =

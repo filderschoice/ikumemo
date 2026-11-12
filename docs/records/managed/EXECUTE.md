@@ -5,6 +5,67 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 05:18
+  summary: 3 つのタブのどこからでも設定を開けるようにし、設定を 8 項目に減らして期限の画面からお知らせの時刻へ 1 タップで行けるようにする
+  details:
+    変更内容: >-
+      BL-143 を実装した。メモ画面の ⚙ 設定（アイコン＋文字の TextButton）を settings/SettingsScreen.kt の SettingsButton として共通にし、
+      記録の画面の上部のバー（探すの右）と期限の画面の上部のバーにも置いて、IkumemoApp.kt の NavHost から SettingsRoute を開く処理を渡した。
+      期限の画面は開く先を ReminderNavigation（使い方・設定・お知らせの設定）にまとめ、一覧の先頭（通知オフの帯の下）に「お知らせの時刻 9:00」の
+      ボタン（時刻は設定値、背景の写真があるときは面の上）を置いて OperationRoute を開くようにした。時刻は ReminderViewModel で ReminderPrefs.settings から読み、
+      ReminderUiState.notifyTime に持たせた。「操作」と「お知らせ」は 1 つの画面「操作とお知らせ」（OperationScreen）にまとめ、
+      ○ を出す・振動・お知らせの時刻・期限の当日もお知らせ の 4 行を並べた。ViewModel は OperationViewModel と ReminderSettingsViewModel のまま使い、
+      DataStore のキーは変えていない（分けていた頃のキーで保存した値がまとめた画面に出ることをテストで確かめた）。
+      ReminderSettingsScreen と ReminderSettingsRoute は廃止し、お知らせの行は ReminderSettingsRows にした。
+      「ご意見・ご要望」は設定の一覧から外して このアプリについて の中の行にした（FeedbackRoute と使い方の「やってみる」の行き先は残した）。
+      設定は 使い方・着せ替え・操作とお知らせ・お店の管理・よく買う物の管理・ホーム画面に置く・データ・このアプリについて の 8 項目になった。
+      文言は settings_operation を「操作とお知らせ」にし、使われなくなった settings_reminder を消し、reminder_time_button を足した。
+      使い方（bought-button.md・swipe.md・notified.md・feedback.md・faq.md）と docs/SUPPORT.md の場所の説明を直して docs/USER_GUIDE.md を作り直し、
+      DESIGN.md の設定・操作・お知らせ・F-77・このアプリについて の行と docs/design/WIREFRAME.md の設定と上部のバーを直した。
+      スクリーンショットは calendar（上部のバーの右だけが変わった）と reminder（設定のボタンと時刻のボタンが入って一覧が下がった）を記録し直し、memo は差分なしを確かめた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/OperationScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AboutScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/bought-button.md
+      - mobile/src/main/assets/help/swipe.md
+      - mobile/src/main/assets/help/notified.md
+      - mobile/src/main/assets/help/feedback.md
+      - mobile/src/main/assets/help/faq.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AboutContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/OperationContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - mobile/screenshots/calendar/（24 枚）
+      - mobile/screenshots/reminder/（24 枚）
+      - docs/USER_GUIDE.md
+      - docs/SUPPORT.md
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*AboutContentTest" --tests "*OperationContentTest" --tests "*CalendarContentTest"
+      --tests "*ReminderContentTest" --tests "*ReminderViewModelTest" --tests "*AccessibilityTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.calendar*"、
+      同じく --tests "*MainScreensScreenshotTest.reminder*"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は ReminderContentTest の面のテストが、時刻のボタンで画面外に出た行を探せず失敗したため、一覧を送ってから探すよう直した）。
+      memo のスクリーンショットは差分なし、calendar と reminder は記録し直し、extra_large でも題名と設定のボタンが重ならないことを画像で確かめた（フル検証はループの最後に流す）
+    関連ID:
+      - BL-143
 - date: 2026-11-13 05:03
   summary: 背景の写真があるとき、記録と期限の画面の一覧にテーマの面を敷いて文字を読めるようにする
   details:

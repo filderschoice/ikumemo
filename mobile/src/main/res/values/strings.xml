@@ -125,8 +125,7 @@
     <string name="help_open">使い方を見る</string>
     <string name="help_not_arriving">お知らせが来ないときは</string>
     <string name="settings_appearance">着せ替え</string>
-    <string name="settings_operation">操作</string>
-    <string name="settings_reminder">お知らせ</string>
+    <string name="settings_operation">操作とお知らせ</string>
     <string name="settings_stores">お店の管理</string>
     <string name="settings_products">よく買う物の管理</string>
     <string name="settings_home_screen">ホーム画面に置く</string>
@@ -238,6 +237,7 @@
     <string name="operation_vibration">振動</string>
     <string name="operation_vibration_detail">スワイプで「買った」「やめた」が決まる時に、軽く振動します</string>
     <string name="reminder_settings_time">お知らせの時刻</string>
+    <string name="reminder_time_button">お知らせの時刻 %1$s</string>
     <string name="reminder_settings_time_detail">期限の前日のこの時刻にお知らせします</string>
     <string name="reminder_settings_on_due_date">期限の当日もお知らせ</string>
     <string name="reminder_settings_on_due_date_detail">前日に加えて、期限の日にもお知らせします</string>

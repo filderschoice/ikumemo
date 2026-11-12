@@ -13,6 +13,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -20,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -55,7 +57,10 @@ fun SettingsScaffold(
     }
 }
 
-/** せっていの項目（PLAN §3 の並び。まだ無い項目は作った時に足す）。 */
+/**
+ * せっていの項目（PLAN §3 の並び、8 項目）。BL-143 で「操作」と「お知らせ」を「操作とお知らせ」にまとめ、
+ * 「ご意見・ご要望」は「このアプリについて」の中へ移した。
+ */
 enum class SettingsItem(
     val title: Int,
     val route: Any,
@@ -64,13 +69,23 @@ enum class SettingsItem(
     HELP(R.string.settings_help, HelpRoute),
     APPEARANCE(R.string.settings_appearance, AppearanceRoute),
     OPERATION(R.string.settings_operation, OperationRoute),
-    REMINDER(R.string.settings_reminder, ReminderSettingsRoute),
     STORES(R.string.settings_stores, StoreManageRoute),
     PRODUCTS(R.string.settings_products, ProductManageRoute),
     HOME_SCREEN(R.string.settings_home_screen, HomeScreenRoute),
-    FEEDBACK(R.string.settings_feedback, FeedbackRoute),
     DATA(R.string.settings_data, DataRoute),
     ABOUT(R.string.settings_about, AboutRoute),
+}
+
+/** 上部のバーの右の ⚙ 設定（メモ・記録・期限の 3 つのタブで共通、BL-143）。アイコンだけにせず文字を添える（PLAN §2.7）。 */
+@Composable
+fun SettingsButton(
+    onClick: () -> Unit,
+    testTag: String,
+) {
+    TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).testTag(testTag)) {
+        Icon(Icons.Rounded.Settings, contentDescription = null)
+        Text(stringResource(R.string.settings_title), modifier = Modifier.padding(start = 4.dp))
+    }
 }
 
 /** せってい（PLAN §3 右上メニュー）。項目を押すとそれぞれの画面を開く。 */

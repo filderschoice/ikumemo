@@ -197,6 +197,7 @@ object CalendarTestTags {
     const val PREVIOUS = "calendar_previous"
     const val NEXT = "calendar_next"
     const val SEARCH = "calendar_search"
+    const val SETTINGS = "calendar_settings"
     const val SEARCH_INPUT = "calendar_search_input"
     const val RECORD_DELETE = "calendar_record_delete"
     const val RECORD_SAVE = "calendar_record_save"

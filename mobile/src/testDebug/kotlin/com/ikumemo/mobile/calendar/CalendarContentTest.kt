@@ -44,6 +44,7 @@ class CalendarContentTest {
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val events = mutableStateListOf<CalendarEvent>()
+    private var openedSettings = 0
 
     private fun show(
         state: CalendarUiState = CalendarSamples.state(),
@@ -58,6 +59,7 @@ class CalendarContentTest {
                         photoStore = photoStore,
                         onEvent = { events += it },
                         showGuide = false,
+                        onOpenSettings = { openedSettings++ },
                     )
                 }
             }
@@ -161,6 +163,18 @@ class CalendarContentTest {
         show(CalendarSamples.state(selectedRecords = listOf(CalendarSamples.row(id = 7, name = "牛乳"))))
 
         assertEquals(0, panelCount())
+    }
+
+    @Test
+    fun settingsButtonOpensSettings() {
+        show()
+
+        // 探すと並んで、上部のバーの右に ⚙ 設定がある（BL-143）
+        composeRule.onNodeWithTag(CalendarTestTags.SEARCH).assertIsDisplayed()
+        composeRule.onNodeWithTag(CalendarTestTags.SETTINGS).assertIsDisplayed().performClick()
+
+        assertEquals(1, openedSettings)
+        assertTrue(events.isEmpty())
     }
 }
 

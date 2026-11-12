@@ -3,6 +3,7 @@ package com.ikumemo.mobile.reminder
 import androidx.lifecycle.viewModelScope
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
+import com.ikumemo.core.reminder.ReminderSettings
 import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.GuidePrefs
@@ -33,6 +34,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 
 /** BL-051 の完了条件「期限の設定・使い切った・捨てたが DB に反映される」。 */
 @RunWith(RobolectricTestRunner::class)
@@ -93,6 +95,18 @@ class ReminderViewModelTest {
             viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
                 val state = awaitUntil { it.loaded && it.recent.size == 2 }
                 assertEquals(listOf("牛乳", "パン"), state.recent.map { it.displayName })
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun notifyTimeFollowsTheSetting() =
+        runTest {
+            // 一覧の上の「お知らせの時刻 9:00」は設定値を出し、変えたらすぐ追う（BL-143）
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                assertEquals(ReminderSettings.DEFAULT_TIME, awaitUntil { it.loaded }.notifyTime)
+                prefs.update(ReminderSettings(time = LocalTime.of(20, 15)))
+                awaitUntil { it.notifyTime == LocalTime.of(20, 15) }
                 cancelAndIgnoreRemainingEvents()
             }
         }

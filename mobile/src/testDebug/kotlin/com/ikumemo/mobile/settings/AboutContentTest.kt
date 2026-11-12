@@ -15,21 +15,44 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** BL-093 の完了条件「このアプリについて・ご意見・ご要望 が開け、ライセンス一覧が表示される」。 */
+/**
+ * BL-093 の完了条件「このアプリについて・ご意見・ご要望 が開け、ライセンス一覧が表示される」。
+ * BL-143 で ご意見・ご要望 は このアプリについて の中から開くようにした。
+ */
 @RunWith(RobolectricTestRunner::class)
 class AboutContentTest {
     @get:Rule
     val composeRule = createComposeRule()
 
     @Test
-    fun settingsListsFeedbackAndAbout() {
+    fun settingsListsEightItemsWithoutFeedback() {
         val opened = mutableStateListOf<SettingsItem>()
         composeRule.setContent { IkumemoTheme { SettingsScreen(onBack = {}, onOpen = { opened += it }) } }
 
-        composeRule.onNodeWithTag("settings_feedback").performScrollTo().performClick()
+        // BL-143: 操作とお知らせを 1 つにまとめ、ご意見・ご要望は このアプリについて の中へ移した
+        assertEquals(
+            listOf("HELP", "APPEARANCE", "OPERATION", "STORES", "PRODUCTS", "HOME_SCREEN", "DATA", "ABOUT"),
+            SettingsItem.entries.map { it.name },
+        )
+        composeRule.onNodeWithTag("settings_feedback").assertDoesNotExist()
+        composeRule.onNodeWithTag("settings_operation").performScrollTo().performClick()
         composeRule.onNodeWithTag("settings_about").performScrollTo().performClick()
 
-        assertEquals(listOf(SettingsItem.FEEDBACK, SettingsItem.ABOUT), opened.toList())
+        assertEquals(listOf(SettingsItem.OPERATION, SettingsItem.ABOUT), opened.toList())
+    }
+
+    @Test
+    fun aboutOpensFeedback() {
+        var feedback = 0
+        composeRule.setContent {
+            IkumemoTheme {
+                AboutContent(version = "1.2.3", onOpenLicenses = {}, onOpenLink = {}, onOpenFeedback = { feedback++ })
+            }
+        }
+
+        composeRule.onNodeWithTag(AboutTestTags.FEEDBACK).performScrollTo().performClick()
+
+        assertEquals(1, feedback)
     }
 
     @Test

@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,11 +56,24 @@ import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.rememberGuideTargets
 import com.ikumemo.mobile.help.HelpPages
+import com.ikumemo.mobile.settings.SettingsButton
+import com.ikumemo.mobile.settings.formatReminderTime
 import java.time.LocalDate
+import java.time.LocalTime
+
+/**
+ * 期限の画面から開く先。[onOpenHelp] は使い方のページ（H-03）、[onOpenSettings] は上部のバーの ⚙ 設定、
+ * [onOpenReminderSettings] は一覧の上の「お知らせの時刻」から開く「操作とお知らせ」（BL-143）。
+ */
+data class ReminderNavigation(
+    val onOpenHelp: (String) -> Unit = {},
+    val onOpenSettings: () -> Unit = {},
+    val onOpenReminderSettings: () -> Unit = {},
+)
 
 @Composable
 fun ReminderScreen(
-    onOpenHelp: (String) -> Unit = {},
+    navigation: ReminderNavigation = ReminderNavigation(),
     showGuide: Boolean = true,
     viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory),
 ) {
@@ -82,7 +96,7 @@ fun ReminderScreen(
         state = state,
         onEvent = onEvent,
         onEnableNotifications = permission::enable,
-        onOpenHelp = onOpenHelp,
+        navigation = navigation,
         showGuide = showGuide,
     )
     state.dueTarget?.let { DueSheet(target = it, today = state.today, onEvent = onEvent) }
@@ -95,7 +109,7 @@ fun ReminderContent(
     state: ReminderUiState,
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
-    onOpenHelp: (String) -> Unit = {},
+    navigation: ReminderNavigation = ReminderNavigation(),
     showGuide: Boolean = true,
 ) {
     val guideTargets = rememberGuideTargets()
@@ -104,8 +118,12 @@ fun ReminderContent(
     CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
-                TopAppBar(title = { Text(stringResource(R.string.tab_reminder)) }, windowInsets = WindowInsets(0))
-                ReminderList(state, onEvent, onEnableNotifications, onOpenHelp)
+                TopAppBar(
+                    title = { Text(stringResource(R.string.tab_reminder)) },
+                    actions = { SettingsButton(navigation.onOpenSettings, ReminderTestTags.SETTINGS) },
+                    windowInsets = WindowInsets(0),
+                )
+                ReminderList(state, onEvent, onEnableNotifications, navigation)
             }
             SnackbarHost(
                 snackbarHostState,
@@ -128,7 +146,7 @@ private fun ReminderList(
     state: ReminderUiState,
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
-    onOpenHelp: (String) -> Unit,
+    navigation: ReminderNavigation,
 ) {
     val targets = LocalGuideTargets.current
     // 「ほか N 件を見る」で開いた状態。画面を回しても保つが、保存はしない（BL-142）
@@ -139,6 +157,8 @@ private fun ReminderList(
         if (!state.notificationsEnabled) {
             item { NotificationsOffBanner(onEnableNotifications) }
         }
+        // お知らせの時刻を 1 タップで変えられるように（BL-143）
+        item { ReminderTimeButton(state.notifyTime, navigation.onOpenReminderSettings) }
         item { SectionTitle(R.string.reminder_pending) }
         if (state.loaded && state.pending.isEmpty()) {
             item { ReadablePanel { Hint(R.string.reminder_pending_empty) } }
@@ -158,7 +178,7 @@ private fun ReminderList(
         item {
             ReadablePanel {
                 TextButton(
-                    onClick = { onOpenHelp(HelpPages.NOT_ARRIVING) },
+                    onClick = { navigation.onOpenHelp(HelpPages.NOT_ARRIVING) },
                     modifier = Modifier.padding(8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.NOT_ARRIVING),
                 ) {
                     Text(stringResource(R.string.help_not_arriving))
@@ -190,6 +210,26 @@ private fun NotificationsOffBanner(onEnable: () -> Unit) {
             Button(onClick = onEnable, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.reminder_enable_notifications))
             }
+        }
+    }
+}
+
+/** 「🕘 お知らせの時刻 9:00」。押すと「操作とお知らせ」を開く（BL-143）。背景の写真の上でも読めるよう面を敷く。 */
+@Composable
+private fun ReminderTimeButton(
+    time: LocalTime,
+    onClick: () -> Unit,
+) {
+    ReadablePanel {
+        TextButton(
+            onClick = onClick,
+            modifier = Modifier.padding(horizontal = 8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.TIME),
+        ) {
+            Icon(Icons.Rounded.Schedule, contentDescription = null)
+            Text(
+                stringResource(R.string.reminder_time_button, formatReminderTime(time)),
+                modifier = Modifier.padding(start = 4.dp),
+            )
         }
     }
 }
@@ -276,6 +316,8 @@ object ReminderTestTags {
     const val NOT_ARRIVING = "reminder_not_arriving"
     const val RECENT_MORE = "reminder_recent_more"
     const val SNACKBAR = "reminder_snackbar"
+    const val SETTINGS = "reminder_settings"
+    const val TIME = "reminder_time"
 
     fun setDue(recordId: Long) = "reminder_set_due_$recordId"
 

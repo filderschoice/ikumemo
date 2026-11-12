@@ -3,12 +3,9 @@ package com.ikumemo.mobile.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -27,66 +24,53 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.core.reminder.ReminderSettings
-import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-/** おしらせの設定（PLAN §3）。通知の時刻と、期限当日のおしらせのオン/オフ。 */
+/**
+ * お知らせの設定の行（PLAN §3）。通知の時刻と、期限当日のお知らせのオン/オフ。
+ * 「操作とお知らせ」（[OperationContent]）の中に並べる（BL-143 で独立の画面をやめた）。
+ */
 @Composable
-fun ReminderSettingsScreen(
-    onBack: () -> Unit,
-    viewModel: ReminderSettingsViewModel = viewModel(factory = AppViewModelFactory.Factory),
-) {
-    val settings by viewModel.settings.collectAsStateWithLifecycle()
-    SettingsScaffold(title = R.string.settings_reminder, onBack = onBack) {
-        ReminderSettingsContent(settings, viewModel::onEvent)
-    }
-}
-
-@Composable
-fun ReminderSettingsContent(
+fun ReminderSettingsRows(
     settings: ReminderSettings,
     onEvent: (ReminderSettingsEvent) -> Unit,
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .clickable { picking = true }
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .testTag(ReminderSettingsTestTags.TIME),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f).padding(end = 16.dp)) {
-                Text(stringResource(R.string.reminder_settings_time), style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    stringResource(R.string.reminder_settings_time_detail),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clickable { picking = true }
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .testTag(ReminderSettingsTestTags.TIME),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(stringResource(R.string.reminder_settings_time), style = MaterialTheme.typography.bodyLarge)
             Text(
-                settings.time.format(TIME_FORMAT),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
+                stringResource(R.string.reminder_settings_time_detail),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        HorizontalDivider()
-        SettingsSwitchRow(
-            title = R.string.reminder_settings_on_due_date,
-            detail = R.string.reminder_settings_on_due_date_detail,
-            checked = settings.notifyOnDueDate,
-            onCheckedChange = { onEvent(ReminderSettingsEvent.SetNotifyOnDueDate(it)) },
-            modifier = Modifier.testTag(ReminderSettingsTestTags.ON_DUE_DATE),
+        Text(
+            formatReminderTime(settings.time),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
         )
     }
+    HorizontalDivider()
+    SettingsSwitchRow(
+        title = R.string.reminder_settings_on_due_date,
+        detail = R.string.reminder_settings_on_due_date_detail,
+        checked = settings.notifyOnDueDate,
+        onCheckedChange = { onEvent(ReminderSettingsEvent.SetNotifyOnDueDate(it)) },
+        modifier = Modifier.testTag(ReminderSettingsTestTags.ON_DUE_DATE),
+    )
     if (picking) {
         TimePickerDialog(
             initial = settings.time,
@@ -124,6 +108,9 @@ private fun TimePickerDialog(
         },
     )
 }
+
+/** お知らせの時刻の書き方（例 9:00）。設定の行と、期限の画面の「お知らせの時刻 9:00」で揃える。 */
+fun formatReminderTime(time: LocalTime): String = time.format(TIME_FORMAT)
 
 private val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("H:mm")
 
