@@ -5,6 +5,41 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 00:55
+  summary: 品質ゲートに軽い検証のモードを足し、自律ループの各イテレーションは軽い検証、最後と止める前にフル検証を流す運用にする
+  details:
+    変更内容: >-
+      オーナーの判断（2026-11-13）で起票した BL-129 を実装した。scripts/quality-gates.py に --quick と --tests（くり返し可）を足した。
+      軽い検証は Gradle を ktlintCheck・detekt・コンパイル（:core:compileTestKotlin と :mobile:compileDebugUnitTestKotlin）と、
+      --tests で渡したテストだけにし、Android Lint と assembleDebug は SKIP（軽い検証）、--tests が無ければ test を SKIP（--tests の指定なし）と表に出す。
+      --tests のパターンはクラス名と同じ名前の .kt を core/src/test と mobile/src/test・testDebug から探して :core:test か
+      :mobile:testDebugUnitTest へ振り分け、見つからなければ test を失敗にする。最後の行は「軽い検証の結果」と
+      「フル検証ではない」を出す。run_gradle はゲートの表と受け皿のゲートを引数で受けるようにし、引数なし・--only・--skip-gradle の挙動は変えていない。
+      --quick と --only・--skip-gradle の併用、--quick なしの --tests は引数の誤り（終了コード 2）。
+      手順は CLAUDE.md「本リポジトリの品質ゲート定義」にいつ何を流すかを正本として足し、autonomous-loop のイテレーション手順 4・委任の指示・
+      完了条件（最後と止める前にフル検証、失敗したら原因のコミットを特定して直すイテレーションを足す）と、backlog-task-implementer の検証の節
+      （フル検証は指示されたときだけ、180 秒でバックグラウンドへ移ったら待って 2 つ目を起動しない、無関係な失敗は 1 回だけ流し直す、
+      確かめなかった完了条件を報告に書く）を直した。DESIGN.md の品質ゲートの段落にも反映した。
+      所要時間は、軽い検証（--tests "*DataViewModelTest"）がコマンド全体で 36 秒（Gradle 32 秒）。コンパイルは UP-TO-DATE で、
+      テストのタスクは実際に流れた。フル検証は流しておらず、比較は BL-113 の 396 秒・269 秒
+    変更ファイル:
+      - scripts/quality-gates.py
+      - CLAUDE.md
+      - .claude/skills/autonomous-loop/SKILL.md
+      - .claude/agents/backlog-task-implementer.md
+      - CHANGELOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataViewModelTest"、
+      python scripts/quality-gates.py --quick --tests "*NoSuchZzTest" --tests "*DataViewModelTest.zzNoSuchMethod"、
+      python scripts/quality-gates.py --quick、python scripts/quality-gates.py --skip-gradle、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は終了コード 0 で lint・build が SKIP（軽い検証）。存在しないテストのクラスと一致しないフィルタを渡すと
+      test が NG で原因（見つからないクラス、No tests found）が出て終了コード 1。--tests なしは test が SKIP（--tests の指定なし）で終了コード 0。
+      --tests だけ、--quick と --only の併用は終了コード 2。--skip-gradle は終了コード 0。フル検証は流していない
+    関連ID:
+      - BL-129
 - date: 2026-11-13 00:50
   summary: 読み上げでカレンダーの選択中の日・質問の開閉・おしらせの行の操作が伝わるようにする
   details:

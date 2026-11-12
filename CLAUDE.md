@@ -39,6 +39,10 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
   （名前は `--list`）。Git Bash・PowerShell のどちらからでも `python` で起動できる
 - Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug` で一度に実行できる。
   ktlint の違反は `./gradlew ktlintFormat` で自動修正できる（品質ゲートには含めない）
+- いつ何を流すか（オーナー判断、2026-11-13。正本は本節）: 自律ループの各イテレーションは、コードを触ったら軽い検証
+  `python scripts/quality-gates.py --quick --tests "*<変更に関係するテストクラス>"`（ktlint・detekt・コンパイル・指定したテストだけ。
+  Android Lint・全テスト・assembleDebug は流さない）、文書・スクリプトだけなら `--skip-gradle`。フル検証（引数なし、上の表のすべて）は
+  ループの最後と、ループを止める前に 1 回流す。軽い検証の成功はフル検証の成功ではない（最後の行で区別する）
 - `mobile` の release 側の単体テスト（`testReleaseUnitTest`）は debug 側と同じ内容のため流さない。時間のかかるテスト（`@Category(SlowTest::class)`、
   例 2 万件の検索性能）は通常は外し、性能に関わる変更の時とマイルストーンの区切りに
   `./gradlew testDebugUnitTest -PslowTests` で流す（オーナー判断、2026-10-25）

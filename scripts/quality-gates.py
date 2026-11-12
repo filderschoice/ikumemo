@@ -21,6 +21,13 @@
     python scripts/quality-gates.py                       # 全ゲート
     python scripts/quality-gates.py --skip-gradle         # Gradle 以外（文書だけの変更）
     python scripts/quality-gates.py --only ktlint,detekt  # 指定したゲートだけ（--list で名前の一覧）
+    python scripts/quality-gates.py --quick --tests "*DataViewModelTest"  # 軽い検証
+
+軽い検証（--quick）は、Gradle を ktlint・detekt・コンパイル（core と mobile の main とテスト。
+`:core:compileTestKotlin :mobile:compileDebugUnitTestKotlin`）と、--tests で渡したテストだけにする（Android Lint・全テスト・
+assembleDebug は流さず SKIP と出す）。--tests はくり返し渡せ、Gradle の --tests と同じ書き方で、クラス名と同じ名前の
+.kt を core/src/test と mobile/src/test* から探して core と mobile のどちらのテストかを決める（見つからなければ失敗）。
+Gradle 以外の 4 ゲートは同じ。最後の行で軽い検証と分かるようにする（フル検証の成功と取り違えないため）。
 
 終了コードは、流したゲートがすべて成功で0、1 つでも失敗で1、引数の誤りで2。
 Claude Code ではバックグラウンドで流さず、通常のコマンド（タイムアウト 10 分）で流す（CLAUDE.md）。
@@ -49,6 +56,20 @@ GRADLE_GATES = {
 OTHER_GATES = ["markdownlint", "records", "user-guide", "secrets"]
 ALL_GATES = list(GRADLE_GATES) + OTHER_GATES
 EXCERPT_LINES = 25
+
+# 軽い検証（--quick）の Gradle のゲート。test のタスクは --tests から組み立てる。compile は振り分けられない失敗の受け皿
+QUICK_GATES = {
+    "ktlint": GRADLE_GATES["ktlint"],
+    "detekt": GRADLE_GATES["detekt"],
+    "compile": ([":core:compileTestKotlin", ":mobile:compileDebugUnitTestKotlin"], re.compile(r".")),
+    "test": ([], re.compile(r":core:test$|:testDebugUnitTest$")),
+}
+QUICK_SKIPPED = ["lint", "build"]  # 軽い検証では流さない
+QUICK_ORDER = ["ktlint", "detekt", "compile", "test", *QUICK_SKIPPED, *OTHER_GATES]
+TEST_DIRS = {
+    ":mobile:testDebugUnitTest": ["mobile/src/test", "mobile/src/testDebug"],
+    ":core:test": ["core/src/test"],
+}
 
 # Gradle の出力から原因の分かる行だけを拾う（ktlint・detekt・コンパイル・テスト・Lint の書式）
 GRADLE_INTERESTING = re.compile(
@@ -114,10 +135,38 @@ def gradle_excerpt(output: str) -> list[str]:
     return unique[:EXCERPT_LINES] if unique else tail(output)
 
 
-def run_gradle(selected: list[str]) -> dict[str, tuple[bool, float, list[str]]]:
-    """選んだ Gradle のゲートを 1 回の呼び出しで流し、ゲートごとの (成否, 秒, 抜粋) を返す。"""
+def resolve_tests(patterns: list[str]) -> tuple[list[str], list[str]]:
+    """--tests の各パターンを core・mobile のテストのタスクへ振り分け、(Gradle の引数, 見つからないパターン) を返す。"""
+    found: dict[str, list[str]] = {task: [] for task in TEST_DIRS}
+    missing: list[str] = []
+    for pattern in patterns:
+        classes = [part.strip("*") for part in pattern.split(".") if re.fullmatch(r"[A-Z]\w*", part.strip("*"))]
+        hits = [
+            task
+            for task, dirs in TEST_DIRS.items()
+            if classes and any(any((ROOT / d).rglob(f"{classes[-1]}.kt")) for d in dirs)
+        ]
+        if not hits:
+            missing.append(pattern)
+        for task in hits:
+            found[task].append(pattern)
+    args: list[str] = []
+    for task, names in found.items():
+        if names:
+            args += [task, *[item for name in names for item in ("--tests", name)]]
+    return args, missing
+
+
+def run_gradle(
+    selected: list[str], gates: dict | None = None, fallback: str = "build"
+) -> dict[str, tuple[bool, float, list[str]]]:
+    """選んだ Gradle のゲートを 1 回の呼び出しで流し、ゲートごとの (成否, 秒, 抜粋) を返す。
+
+    gates はゲート名 → (タスク, 失敗の振り分け)。fallback はどのゲートにも当たらない失敗を受けるゲート。
+    """
+    gates = GRADLE_GATES if gates is None else gates
     run([GRADLEW, "--stop"], "gradle-stop")
-    tasks = [task for gate in selected for task in GRADLE_GATES[gate][0]]
+    tasks = [task for gate in selected for task in gates[gate][0]]
     code, output, elapsed = run([GRADLEW, "--console=plain", "--continue", *tasks], "gradle")
     results: dict[str, tuple[bool, float, list[str]]] = {}
     if code == 0:
@@ -128,17 +177,17 @@ def run_gradle(selected: list[str]) -> dict[str, tuple[bool, float, list[str]]]:
     excerpt = gradle_excerpt(output)
     assigned: set[str] = set()
     for gate in selected:
-        if gate == "build":
+        if gate == fallback:
             continue
-        hits = [task for task in failed_tasks if GRADLE_GATES[gate][1].search(task)]
+        hits = [task for task in failed_tasks if gates[gate][1].search(task)]
         assigned.update(hits)
         results[gate] = (not hits, elapsed, excerpt if hits else [])
     rest = [task for task in failed_tasks if task not in assigned]
     unknown = not failed_tasks  # 失敗したのにタスク名が出ない（設定の誤り・プロセスの強制停止など）
-    if "build" in selected:
-        results["build"] = (not rest and not unknown, elapsed, excerpt if rest or unknown else [])
+    if fallback in selected:
+        results[fallback] = (not rest and not unknown, elapsed, excerpt if rest or unknown else [])
     elif rest or unknown:
-        # build を選んでいないときは、振り分けられない失敗を選んだゲートすべての失敗にする
+        # 受け皿のゲートを選んでいないときは、振り分けられない失敗を選んだゲートすべての失敗にする
         for gate in selected:
             results[gate] = (False, elapsed, excerpt)
     if unknown:
@@ -198,18 +247,26 @@ def report(gate: str, ok: bool, seconds: float, lines: list[str]) -> None:
     if not ok:
         for line in lines:
             print(f"    {line[:200]}")
-        log = "gradle" if gate in GRADLE_GATES else gate
+        log = "gradle" if gate in GRADLE_GATES or gate in QUICK_GATES else gate
         print(f"    全文: build/quality-gates/{log}.log", flush=True)
 
 
-def parse_args(argv: list[str]) -> tuple[list[str], bool] | None:
+def parse_args(argv: list[str]) -> tuple[list[str], bool, list[str] | None] | None:
+    """(選んだゲート, --skip-gradle, 軽い検証の --tests の一覧。軽い検証でなければ None) を返す。誤りは None。"""
     selected = list(ALL_GATES)
     skip_gradle = False
+    quick = False
+    tests: list[str] = []
     index = 0
     while index < len(argv):
         arg = argv[index]
         if arg == "--skip-gradle":
             skip_gradle = True
+        elif arg == "--quick":
+            quick = True
+        elif arg == "--tests" and index + 1 < len(argv):
+            index += 1
+            tests.append(argv[index])
         elif arg == "--list":
             print("ゲート名: " + ", ".join(ALL_GATES))
             sys.exit(0)
@@ -225,7 +282,40 @@ def parse_args(argv: list[str]) -> tuple[list[str], bool] | None:
             print(f"知らない引数: {arg}（使い方は scripts/quality-gates.py の先頭）")
             return None
         index += 1
-    return selected, skip_gradle
+    if tests and not quick:
+        print("--tests は --quick と一緒に使う")
+        return None
+    if quick and (skip_gradle or selected != ALL_GATES):
+        print("--quick は --only・--skip-gradle と一緒に使えない")
+        return None
+    return selected, skip_gradle, tests if quick else None
+
+
+def run_quick_gradle(tests: list[str]) -> dict[str, tuple[bool, float, list[str]] | None]:
+    """軽い検証の Gradle を流す。流さなかったゲートは None（SKIP）。"""
+    test_args, missing = resolve_tests(tests)
+    gates = dict(QUICK_GATES)
+    gates["test"] = (test_args, QUICK_GATES["test"][1])
+    selected = ["ktlint", "detekt", "compile"] + (["test"] if test_args else [])
+    print(f"Gradle（軽い検証）: {' '.join(task for gate in selected for task in gates[gate][0])} を流す", flush=True)
+    results: dict[str, tuple[bool, float, list[str]] | None] = dict(run_gradle(selected, gates, "compile"))
+    results.update({gate: None for gate in QUICK_SKIPPED})
+    if missing:
+        note = [f"テストのクラスが見つからない: {name}（core/src/test・mobile/src/test* で <クラス名>.kt を探した）" for name in missing]
+        ok, seconds, lines = results.get("test") or (True, 0.0, [])
+        results["test"] = (False, seconds, note + lines)
+    elif not test_args:
+        results["test"] = None
+    for gate in ["ktlint", "detekt", "compile", "test"]:
+        if results[gate] is not None:
+            report(gate, *results[gate])
+    return results
+
+
+def skip_reason(gate: str, quick: bool) -> str:
+    if not quick:
+        return "SKIP"
+    return "SKIP（--tests の指定なし）" if gate == "test" else "SKIP（軽い検証）"
 
 
 def main() -> int:
@@ -234,11 +324,15 @@ def main() -> int:
     parsed = parse_args(sys.argv[1:])
     if parsed is None:
         return 2
-    selected, skip_gradle = parsed
+    selected, skip_gradle, tests = parsed
+    quick = tests is not None
     gradle = [gate for gate in selected if gate in GRADLE_GATES and not skip_gradle]
     results: dict[str, tuple[bool, float, list[str]] | None] = {}
 
-    if gradle:
+    if quick:
+        selected = QUICK_ORDER
+        results.update(run_quick_gradle(tests))
+    elif gradle:
         print(f"Gradle: {' '.join(task for gate in gradle for task in GRADLE_GATES[gate][0])} を流す", flush=True)
         for gate, result in run_gradle(gradle).items():
             results[gate] = result
@@ -256,13 +350,17 @@ def main() -> int:
     for gate in selected:
         result = results[gate]
         if result is None:
-            print(f"| {gate} | SKIP | - |")
+            print(f"| {gate} | {skip_reason(gate, quick)} | - |")
         else:
-            seconds = f"{result[1]:.0f}" + ("（Gradle 一括）" if gate in GRADLE_GATES else "")
+            seconds = f"{result[1]:.0f}" + ("（Gradle 一括）" if gate in GRADLE_GATES or gate in QUICK_GATES else "")
             print(f"| {gate} | {'OK' if result[0] else 'NG'} | {seconds} |")
     failed = [gate for gate, result in results.items() if result is not None and not result[0]]
     print("")
-    print("全ゲート成功" if not failed else f"失敗 {len(failed)} 件: {', '.join(failed)}")
+    if quick:
+        status = "成功" if not failed else f"失敗 {len(failed)} 件: {', '.join(failed)}"
+        print(f"軽い検証の結果: {status}（フル検証ではない。Android Lint・全テスト・assembleDebug は流していない）")
+    else:
+        print("全ゲート成功" if not failed else f"失敗 {len(failed)} 件: {', '.join(failed)}")
     return 1 if failed else 0
 
 
