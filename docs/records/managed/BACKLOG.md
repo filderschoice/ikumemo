@@ -209,22 +209,6 @@
     MonthGrid.kt の DayCell は選択中を背景色（secondaryContainer）だけで示し、semantics には contentDescription しか付けていない（160〜175 行目）。
     FeedbackScreen.kt の質問の開閉は opened の状態で答えを出し入れするだけで状態の説明が無い。ReminderScreen.kt の PendingRow の clickable は onClickLabel が無く「ダブルタップで有効にします」としか読まれない。
     リポジトリで selectable や stateDescription を使っているのは settings/AppearanceScreen.kt だけ（grep で確認）
-- id: BL-114
-  区分: 不具合
-  タスク内容: >-
-    データの書き出し・読み込み（settings/DataViewModel.kt）で、IOException 以外の例外でアプリが落ちないようにし、DataViewModel の単体テストを新設する。
-    ContentResolver.openOutputStream・openInputStream が投げうる SecurityException と IllegalArgumentException を、それぞれ EXPORT_FAILED・IMPORT_FAILED に対応させる。
-    mobile/src/test/kotlin/com/ikumemo/mobile/settings/DataViewModelTest.kt を新設し、(1) 処理中（busy）に重ねて押しても 2 回目を無視する、(2) openOutput が null・例外のときに EXPORT_FAILED、
-    (3) openInput が null・例外のときに IMPORT_FAILED、(4) 成功時の EXPORTED・IMPORTED・ERASED を確かめる（DataEraser・BackupExporter・BackupImporter は既存のテストの TestDatabase を使うか偽物にする）
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: DataViewModelTest が通り、CLAUDE.md の Gradle 系の 5 ゲートがすべて成功する
-  依存: []
-  根拠: >-
-    DataViewModel.kt の export・import は IOException だけを捕まえている（87・99 行目）。開き方は AppViewModelFactory.kt 63〜64 行目の resolver.openOutputStream・openInputStream で、
-    Android の ContentResolver はファイルの選択元のアプリや権限の取り消しによって SecurityException を投げうる。viewModelScope の中で捕まえない例外はアプリを落とす。
-    DataViewModel を参照するテストは mobile/src/test と testDebug のどちらにも無い（grep で確認）
 - id: BL-111
   区分: 人手検証
   タスク内容: >-

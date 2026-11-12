@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 00:43
+  summary: データの書き出し・読み込みでファイルを開けないときにアプリが落ちないようにする
+  details:
+    変更内容: >-
+      settings/DataViewModel.kt の export・import を、IOException に加えて SecurityException と IllegalArgumentException も捕まえる
+      orWhenUnreadable にまとめ、それぞれ EXPORT_FAILED・IMPORT_FAILED を返すようにした（ContentResolver が選択元のアプリの都合や
+      権限の取り消しで投げうるため。CancellationException は IllegalStateException の仲間で捕まえない）。DataViewModelTest を新設し、
+      処理中に重ねて押した書き出し・読み込みを無視すること、開く関数が null・SecurityException・IllegalArgumentException のときの失敗の知らせ、
+      書き出し・読み込み・消去の成功の知らせを、インメモリ DB と本物の BackupExporter・BackupImporter・DataEraser で確かめる。
+      状態は Turbine で 1 件ずつ追わず、StateFlow を実時間で結果が出るまで待つ書き方にした（負荷による時間切れを避けるため）。
+      DESIGN.md の F-72 の行に、開けないときの扱いを足した。既定値で決めた点は、捕まえる例外をタスクに挙がった 2 種と既存の IOException に限ったこと
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataViewModel.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/DataViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest --tests "*DataViewModelTest*"、python scripts/quality-gates.py、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - DataViewModelTest の 4 件が成功。quality-gates.py は 1 回目で Gradle の 5 ゲートと markdownlint・records・user-guide・secrets がすべて成功
+    関連ID:
+      - BL-114
 - date: 2026-11-13 00:36
   summary: 写真の取り込みで元の写真が読めないときにアプリが落ちないようにする
   details:

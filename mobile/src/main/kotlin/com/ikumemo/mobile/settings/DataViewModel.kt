@@ -80,23 +80,38 @@ class DataViewModel(
     }
 
     private suspend fun export(event: DataEvent.Export): DataResult =
-        try {
+        orWhenUnreadable(DataResult.EXPORT_FAILED) {
             val output = openOutput(event.uri) ?: throw IOException("開けません")
             output.use { exporter.export(event.kind, it) }
             DataResult.EXPORTED
-        } catch (_: IOException) {
-            DataResult.EXPORT_FAILED
         }
 
     private suspend fun import(event: DataEvent.Import): DataResult =
-        try {
+        orWhenUnreadable(DataResult.IMPORT_FAILED) {
             val input = openInput(event.uri) ?: throw IOException("開けません")
             when (input.use { importer.import(it) }) {
                 ImportResult.Success -> DataResult.IMPORTED
                 is ImportResult.Invalid -> DataResult.IMPORT_INVALID
                 ImportResult.Failed -> DataResult.IMPORT_FAILED
             }
+        }
+
+    /**
+     * ファイルを開けない・読み書きできないときに [failed] を返す。ContentResolver は入出力の失敗（IOException）のほか、
+     * 選択元のアプリの都合や権限の取り消しで SecurityException、扱えない Uri で IllegalArgumentException を投げうるため、
+     * これらも失敗として知らせる（捕まえないとアプリが落ちる、BL-114）。
+     */
+    private suspend fun orWhenUnreadable(
+        failed: DataResult,
+        block: suspend () -> DataResult,
+    ): DataResult =
+        try {
+            block()
         } catch (_: IOException) {
-            DataResult.IMPORT_FAILED
+            failed
+        } catch (_: SecurityException) {
+            failed
+        } catch (_: IllegalArgumentException) {
+            failed
         }
 }
