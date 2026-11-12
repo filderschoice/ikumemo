@@ -82,6 +82,7 @@
     <string name="reminder_pending_empty">期限を決めた物が、ここに並びます</string>
     <string name="reminder_bought_on">%1$d月%2$d日に買った</string>
     <string name="reminder_set_due">期限を決める</string>
+    <string name="reminder_redo_due">期限を決め直す</string>
     <string name="reminder_due_title">%1$sの期限</string>
     <string name="reminder_due_3days">3日後</string>
     <string name="reminder_due_1week">1週間後</string>
@@ -202,6 +203,10 @@
     <string name="about_store">ストアで評価する</string>
     <string name="about_no_browser">ページを開けるアプリが見つかりません</string>
     <string name="feedback_faq_title">よくある質問</string>
+    <string name="feedback_faq_expanded">答えを表示中</string>
+    <string name="feedback_faq_collapsed">答えは閉じています</string>
+    <string name="feedback_faq_open">答えを開く</string>
+    <string name="feedback_faq_close">答えを閉じる</string>
     <string name="faq_notification_q">期限のお知らせが届きません</string>
     <string name="faq_notification_a">端末の設定で、いくメモの通知がオンになっているか確かめてください。電池の節約の設定でアプリが止められていると、お知らせが遅れることがあります。</string>
     <string name="faq_voice_q">声で入れられません</string>

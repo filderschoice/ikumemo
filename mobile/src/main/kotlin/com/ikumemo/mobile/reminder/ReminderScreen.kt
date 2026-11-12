@@ -242,7 +242,8 @@ private fun PendingRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable {
+                // 読み上げで「ダブルタップで期限を決め直す」と伝える（BL-115）
+                .clickable(onClickLabel = stringResource(R.string.reminder_redo_due)) {
                     onEvent(ReminderEvent.OpenDue(DueTarget(row.reminder.purchaseRecordId, row.displayName, due)))
                 }.padding(horizontal = 16.dp, vertical = 8.dp)
                 .testTag(ReminderTestTags.pending(row.reminder.id)),

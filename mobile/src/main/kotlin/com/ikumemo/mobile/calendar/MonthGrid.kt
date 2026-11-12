@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -170,7 +171,11 @@ private fun DayCell(
                 .background(if (selected) colors.secondaryContainer else Color.Transparent, MaterialTheme.shapes.small)
                 .then(if (isToday) Modifier.border(2.dp, colors.primary, MaterialTheme.shapes.small) else Modifier)
                 .clickable(onClick = onClick)
-                .semantics { contentDescription = description }
+                .semantics {
+                    contentDescription = description
+                    // 選ばれている日は背景色だけでなく、読み上げでも「選択中」と伝える（BL-115）
+                    this.selected = selected
+                }
                 .testTag(CalendarTestTags.day(date)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

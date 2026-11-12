@@ -152,8 +152,7 @@
   状態: 未着手
   担当: ユーザー
   完了条件: 上の 4 点を実機で確かめ、読まれ方が不自然な箇所があれば画面名と読まれた文言を記録している
-  依存:
-    - BL-115
+  依存: []
   根拠: 読めない写真の発生のさせ方と TalkBack の読み上げは実機でしか確かめられないため
 - id: BL-117
   区分: 機能追加
@@ -184,31 +183,11 @@
   状態: 未着手
   担当: AIエージェント
   完了条件: 新しい 2 つのテストクラスが ./gradlew testDebugUnitTest で通り、CLAUDE.md の Gradle 系の 5 ゲートがすべて成功する
-  依存:
-    - BL-115
+  依存: []
   根拠: >-
     mobile/src/testDebug/ の Compose のテストは guide・help・settings・shoppinglist・voice・designsystem にあるが、calendar と reminder の画面は
     MainScreensScreenshotTest.kt（遅いテスト扱いで通常は流さない）にしか無く、通常の品質ゲートでは画面の操作が確かめられていない。
     BL-115 が同じ画面の意味づけ（semantics）を変えるため、その後に書く
-- id: BL-115
-  区分: UX改善
-  タスク内容: >-
-    読み上げ（TalkBack）で状態と操作の意味が伝わらない 3 か所を補う。見た目は変えない。
-    (1) calendar/MonthGrid.kt の DayCell（147 行目付近）に選ばれている日の状態（Modifier.semantics の selected、または selectable）を付ける、
-    (2) settings/FeedbackScreen.kt の困ったときの質問（72 行目付近の clickable）に開いている・閉じているの状態（stateDescription）と押したときの意味（onClickLabel）を付ける、
-    (3) reminder/ReminderScreen.kt の PendingRow（234 行目付近の clickable）に onClickLabel「期限を決め直す」を付ける。
-    文言は mobile/src/main/res/values/strings.xml に足し、直書きしない。testDebug の shoppinglist/AccessibilityTest.kt にこの 3 点の検査を足す
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    AccessibilityTest に足した検査が通り、CLAUDE.md の Gradle 系の 5 ゲートがすべて成功する。スクリーンショットテストの calendar と reminder を画面ごとに比べて差分が無い。
-    DESIGN.md の「PLAN §8 アクセシビリティ」の行に足した内容を反映している
-  依存: []
-  根拠: >-
-    MonthGrid.kt の DayCell は選択中を背景色（secondaryContainer）だけで示し、semantics には contentDescription しか付けていない（160〜175 行目）。
-    FeedbackScreen.kt の質問の開閉は opened の状態で答えを出し入れするだけで状態の説明が無い。ReminderScreen.kt の PendingRow の clickable は onClickLabel が無く「ダブルタップで有効にします」としか読まれない。
-    リポジトリで selectable や stateDescription を使っているのは settings/AppearanceScreen.kt だけ（grep で確認）
 - id: BL-111
   区分: 人手検証
   タスク内容: >-

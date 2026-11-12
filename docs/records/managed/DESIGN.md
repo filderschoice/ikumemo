@@ -43,7 +43,7 @@
 | R-01・R-02 | 同じ物がメモにあれば追加せず、既存の項目を一瞬光らせて「○○はもうメモにあります」 | `data/ShoppingRepository.kt`、`ShoppingListViewModel` |
 | F-10・F-11・D-4・R-05 | 右へスワイプで「買った」、左へで「やめた」。幅の 40% で確定し、超えた瞬間に軽い振動。背景は色＋アイコン＋文字 | `shoppinglist/SwipeableItemRow.kt` |
 | PLAN §8 アプリサイズ・起動 | release は R8 で縮小・難読化（`isMinifyEnabled`、アプリ固有の規則は `proguard-rules.pro` で今は無し）。署名なしの release APK は約 3.2MB（上限 15MB）。Baseline Profile は `src/main/baseline-prof.txt`（アプリのコード全体を対象にした広い規則。実機の Macrobenchmark で作り直すのは BL-100）を `profileinstaller` で反映し、ライブラリの規則と合わせて APK の `assets/dexopt/baseline.prof` に入る | `mobile/build.gradle.kts`、`src/main/baseline-prof.txt` |
-| PLAN §8 アクセシビリティ | メモの行は読み上げ（TalkBack）の操作の一覧に「買った」「やめた」を出し、スワイプしなくても操作できる（`CustomAccessibilityAction`）。アイコンだけのボタン・写真ありの印には説明を付け、文字と並ぶアイコンは説明なし（読み上げの重複を防ぐ）。「元に戻す」は読み上げ利用時に端末の推奨時間まで延ばす（R-04） | `shoppinglist/SwipeableItemRow.kt` |
+| PLAN §8 アクセシビリティ | メモの行は読み上げ（TalkBack）の操作の一覧に「買った」「やめた」を出し、スワイプしなくても操作できる（`CustomAccessibilityAction`）。アイコンだけのボタン・写真ありの印には説明を付け、文字と並ぶアイコンは説明なし（読み上げの重複を防ぐ）。「元に戻す」は読み上げ利用時に端末の推奨時間まで延ばす（R-04）。状態と操作の意味も読み上げで伝える（BL-115）。カレンダーの選ばれている日は `selected` で「選択中」と読ませ、困ったときの質問は開閉の状態（`stateDescription`「答えを表示中」「答えは閉じています」）と押したときの意味（`onClickLabel`「答えを開く」「答えを閉じる」）、おしらせの期限が近い順の行は `onClickLabel`「期限を決め直す」を付ける。文言は `strings.xml` に置く | `shoppinglist/SwipeableItemRow.kt`・`calendar/MonthGrid.kt`・`settings/FeedbackScreen.kt`・`reminder/ReminderScreen.kt` |
 | F-13 | 行の左の ○ でも「買った」（○ を隠す設定は「操作」で切り替える） | `SwipeableItemRow.kt` の `ItemRowContent` |
 | F-12・R-04 | 「買った：牛乳 ／ 元に戻す」を 5 秒表示（TalkBack 等の利用時は推奨時間まで延長）。元に戻せるのは最新の 1 件 | `ShoppingListScreen.kt` の `UndoEffect` |
 | R-03・R-10・R-11・R-15 | 「やめた」は記録せず品目を残す。「買った」は端末の今日の日付で記録、同じ日の 2 回目も別記録、写真は同じファイルを参照 | `data/ShoppingRepository.kt` |

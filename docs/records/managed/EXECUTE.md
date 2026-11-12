@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 00:50
+  summary: 読み上げでカレンダーの選択中の日・質問の開閉・おしらせの行の操作が伝わるようにする
+  details:
+    変更内容: >-
+      calendar/MonthGrid.kt の DayCell の semantics に selected を足し、選ばれている日を読み上げで「選択中」と伝える。
+      settings/FeedbackScreen.kt の困ったときの質問に、開閉の状態（stateDescription「答えを表示中」「答えは閉じています」）と
+      押したときの意味（onClickLabel「答えを開く」「答えを閉じる」）を付けた。reminder/ReminderScreen.kt の PendingRow の clickable に
+      onClickLabel「期限を決め直す」を付けた。文言は strings.xml に 5 件足した。見た目は変えていない。
+      AccessibilityTest に 3 件の検査（選択中の日の selected、質問の状態と操作の文言が開閉で切り替わること、期限が近い順の行の操作の文言）を足した。
+      DESIGN.md の「PLAN §8 アクセシビリティ」の行に反映した。既定値で決めた点は、選択中の表し方を selectable でなく semantics の selected にしたこと
+      （押したときの処理は既存の clickable のまま）と、質問の状態・操作の文言
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/FeedbackScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/AccessibilityTest.kt
+    検証コマンド: >-
+      python scripts/quality-gates.py、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - quality-gates.py は 1 回目で Gradle の 5 ゲートと markdownlint・records・user-guide・secrets がすべて成功し、
+      AccessibilityTest は 6 件すべて成功。見た目を変えていないためスクリーンショットテストは流していない
+    関連ID:
+      - BL-115
 - date: 2026-11-13 00:43
   summary: データの書き出し・読み込みでファイルを開けないときにアプリが落ちないようにする
   details:

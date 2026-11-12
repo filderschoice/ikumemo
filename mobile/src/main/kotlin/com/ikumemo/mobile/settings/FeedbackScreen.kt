@@ -24,6 +24,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
@@ -65,16 +67,21 @@ fun FeedbackContent(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         SectionTitle(R.string.feedback_faq_title)
         FAQ.forEachIndexed { index, (question, answer) ->
+            val isOpen = opened == index
+            // 読み上げで開閉の状態と、押すと何が起きるかを伝える（BL-115）
+            val state = stringResource(if (isOpen) R.string.feedback_faq_expanded else R.string.feedback_faq_collapsed)
+            val clickLabel = stringResource(if (isOpen) R.string.feedback_faq_close else R.string.feedback_faq_open)
             Column(
                 Modifier
                     .fillMaxWidth()
                     .heightIn(min = 56.dp)
-                    .clickable { opened = if (opened == index) null else index }
+                    .clickable(onClickLabel = clickLabel) { opened = if (isOpen) null else index }
+                    .semantics { stateDescription = state }
                     .padding(16.dp)
                     .testTag(FeedbackTestTags.faq(index)),
             ) {
                 Text(stringResource(question), style = MaterialTheme.typography.bodyLarge)
-                if (opened == index) {
+                if (isOpen) {
                     Text(
                         stringResource(answer),
                         style = MaterialTheme.typography.bodyMedium,
