@@ -228,7 +228,6 @@
     使い方 mobile/src/main/assets/help/due.md（下の「お知らせ」の「最近買った物」で、の手順）に並びと「期限なし」を足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-50・F-53・G-07・G-08 の行と「設定の保存方針（DataStore）」に外した記録の保存を足す
   依存:
-    - BL-116
     - BL-141
   根拠: >-
     2026-11-13 の UX レビュー B2（効果 大）。オーナーが 2026-11-13 に、質問の案（期限が近い順を先、最近買った物は数件だけ、期限なしで外せる）のとおりで承認した。
@@ -548,7 +547,6 @@
     使い方 mobile/src/main/assets/help/background.md に、カレンダーとお知らせの一覧は写真の上に面を敷いて読みやすくすることを足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-61 の行（「メモの行・バー・下タブなどテーマの面の上の文字は変えない」の箇所）に、カレンダーとお知らせの一覧にも面を敷くことを足す
   依存:
-    - BL-116
     - BL-142
   根拠: >-
     2026-11-13 の UX レビュー A1（効果 大）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
@@ -686,26 +684,6 @@
     オーナーへの質問は「カレンダーの検索欄に音声入力（マイク）を付けてよいか」。DESIGN.md の F-42 の行が「検索欄の音声入力は未実装」と明記しており、
     部品（FieldMic）は EditItemSheet.kt 118 行目で既に使われているため小さく足せるが、画面に新しい操作を足す製品判断のため要確認とした。
     2026-11-13 の UX レビューの取り込みで、検索の入口（探すのボタン）と使い方の search.md を変える BL-137 の後に行うよう依存を足した
-- id: BL-116
-  区分: 品質ゲート
-  タスク内容: >-
-    カレンダーとおしらせの画面に、スクリーンショット以外の Compose のテスト（Robolectric）を足す。
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt と reminder/ReminderContentTest.kt を新設し、
-    公開されている CalendarContent（calendar/CalendarScreen.kt 81 行目）と ReminderContent（reminder/ReminderScreen.kt 91 行目）に状態を渡して、
-    日を押すと日を選ぶイベント（CalendarEvent の該当するもの）が出る、買い物の無い日の文言、検索結果を押すとその日へ移るイベント、おしらせの「使い切った」「捨てた」のイベント、
-    通知オフの帯（ReminderTestTags.NOTIFICATIONS_OFF）の表示を確かめる。既存の settings/DataContentTest.kt・shoppinglist/ShoppingListScreenTest.kt の書き方に合わせる。本体のコードは変えない。
-    後続の BL-142・BL-130・BL-143・BL-137 がこの 2 つのテストクラスへテストを足すため、状態のサンプルの作り方と描き方を後から足しやすい形にする
-  優先度: P1
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: 新しい 2 つのテストクラスが ./gradlew testDebugUnitTest で通り、CLAUDE.md の Gradle 系の 5 ゲートがすべて成功する
-  依存: []
-  根拠: >-
-    mobile/src/testDebug/ の Compose のテストは guide・help・settings・shoppinglist・voice・designsystem にあるが、calendar と reminder の画面は
-    MainScreensScreenshotTest.kt（遅いテスト扱いで通常は流さない）にしか無く、通常の品質ゲートでは画面の操作が確かめられていない。
-    BL-115 が同じ画面の意味づけ（semantics）を変えるため、その後に書く。
-    2026-11-13 の UX レビューの取り込みで P3 から P1 に上げた。同じ 2 画面の並びと見た目を変える P1 のタスク（BL-142・BL-130・BL-143）の前に画面の操作のテストを用意し、
-    変えたときの退行を通常のゲートで見つけられるようにするため（P3 のままだと依存する P1 のタスクが P2 のタスクの後まで待つ）
 - id: BL-111
   区分: 人手検証
   タスク内容: >-

@@ -5,6 +5,32 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 01:25
+  summary: カレンダーとおしらせの画面に、画面の操作を確かめる Compose のテスト（Robolectric）を足す
+  details:
+    変更内容: >-
+      BL-116 を実装した。mobile/src/testDebug に calendar/CalendarContentTest.kt（5 件）と reminder/ReminderContentTest.kt（7 件）を新設した。
+      公開されている CalendarContent と ReminderContent に状態を渡して描き、日を押すと SelectDate、記録の行を押すと EditRecord、
+      検索結果を押すと JumpTo が出ること、買い物の無い日と検索で見つからないときの文言を確かめる。おしらせは 使い切った と 捨てた のイベント、
+      期限が近い順の行を押すと OpenDue（期限つき）、最近買った物の 期限を決める で OpenDue、通知オフの帯の表示と 通知をオンにする の呼び出し、
+      通知オンでは帯が無いこと、困ったときの入口がヘルプの NOT_ARRIVING を開くこと、空の一覧の案内を確かめる。
+      後続のタスク（BL-142・BL-130・BL-143・BL-137 など）が文言やレイアウトを変えても壊れにくいよう、要素はテストタグ（CalendarTestTags・ReminderTestTags）で探し、
+      文言は文字列リソースから context.getString で引く（表示文字列を直書きしない）。状態は同じファイル内の CalendarSamples・ReminderSamples の
+      既定値つきの関数（state・row・recent・pending）で組み立て、描くのは各クラスの show に寄せた。ガイドは showGuide を false にして出さない。
+      本体のコードは変えていない
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*ReminderContentTest"、
+      python scripts/quality-gates.py（フル検証、直前に ./gradlew --stop）、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証で CalendarContentTest 5 件・ReminderContentTest 7 件がすべて通り、フル検証は ktlint・detekt・lint・test・build・
+      markdownlint・records・user-guide・secrets の全ゲートが成功した
+    関連ID:
+      - BL-116
 - date: 2026-11-13 01:06
   summary: Claude Code の権限にゲート系と読み取り系のコマンドの許可を足し、git push と --no-verify を permissions.deny と PreToolUse フックの 2 段で止める
   details:
