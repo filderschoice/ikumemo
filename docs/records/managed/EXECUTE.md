@@ -5,6 +5,47 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 01:06
+  summary: Claude Code の権限にゲート系と読み取り系のコマンドの許可を足し、git push と --no-verify を permissions.deny と PreToolUse フックの 2 段で止める
+  details:
+    変更内容: >-
+      オーナーが 2026-11-13 に承認した BL-122 を実装した。.claude/settings.json の permissions.allow に、既存の記録ファイル 3 つの Edit と
+      docs/records の Read を残したまま、./gradlew の品質ゲート（--stop・ktlintCheck・detekt・lintDebug・testDebugUnitTest・:core:test・
+      :mobile:testDebugUnitTest・assembleDebug）、python scripts の quality-gates.py・validate-records.py・make-user-guide.py --check・
+      scan-secrets.py・guard-git-hook.py --self-test、npx markdownlint-cli2、git status・git diff・git log・git branch --show-current を
+      Bash と PowerShell の両方で足した。git add と git commit の許可は足していない。
+      permissions.deny には git push *、git * --no-verify（末尾と途中の 2 形）、git commit -n * を Bash と PowerShell の両方で足した。
+      2 段目として scripts/guard-git-hook.py を作り、hooks.PreToolUse（matcher は Bash|PowerShell、exec 形式で python に渡す、timeout 10 秒）に繋いだ。
+      フックは tool_input.command を shlex で字句に分け（PowerShell はバッククォートを escape にし、ヒアストリングは先に空にする。
+      bash のヒアドキュメントの本文も先に除く）、区切り（; && || | & 改行など）ごとにコマンドの位置の語だけを見る
+      （先頭の変数代入と sudo・env・timeout などの前置きは読み飛ばし、引数の中の git は見ない）。その語が git なら大域オプション
+      （-C・-c・--git-dir など）を読み飛ばしてサブコマンドが push か、--no-verify があるか、git commit の -n（-nm のようなまとめた形も含む）かを見る。
+      bash -c・pwsh -Command の中も 3 段まで調べる。
+      最初の版は区切りの中のどの位置の git も見ていたため、ヒアドキュメントで渡したコミットメッセージ本文の git push を拾って自分のコミットを止めた。
+      settings.json をいったん戻し、コマンドの位置だけを見る判定とヒアドキュメントの本文の除外に直し、その例を self-test に足してから繋ぎ直した。
+      止めるときは終了コード 2 と日本語 1 行の理由（push はユーザーが実行する旨）を標準エラーへ返し、入力が読めない・JSON でない・
+      想定外の例外ではすべて終了コード 0 で通す。引用符の対応が取れない入力は、引用符を含まない素直な書き方だけを正規表現で見る。
+      設定の書式は公式ドキュメント（code.claude.com/docs の hooks と permissions）で確かめた
+    変更ファイル:
+      - .claude/settings.json
+      - scripts/guard-git-hook.py
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/guard-git-hook.py --self-test、標準入力へサンプルの PreToolUse の JSON を渡す確認（スクラッチの drive_hook.py）、
+      設定を繋いだ後の無害なコマンド（Bash と PowerShell の git status --short、python scripts/quality-gates.py --skip-gradle）、
+      本文に git push の語を含む cat のヒアドキュメントと PowerShell のヒアストリング、deny の届かない bash -c と pwsh -Command の中の
+      git --version --no-verify（push しない無害な発火の確認）、python scripts/scan-secrets.py、本記録を含むコミット（ヒアドキュメントのメッセージ）
+    検証結果: >-
+      成功 - self-test は止める例 22 件と通す例 19 件がすべて期待どおり。標準入力の確認は git push・git push --force origin main・
+      git commit --no-verify -m x・git -C path push が終了コード 2、git status・git log --oneline・quality-gates.py --quick・./gradlew ktlintCheck・
+      push の語を含むコミットメッセージと grep が終了コード 0、空・壊れた JSON・不正なバイト列・command の欠けた入力も終了コード 0。
+      繋ぎ直した後は無害なコマンドと git push の語を含むヒアドキュメント・ヒアストリングが Bash・PowerShell の両方で通り、
+      bash -c と pwsh -Command の中の --no-verify は両方でフックが日本語の理由を出して止めた。
+      git push そのものは実行していない
+    関連ID:
+      - BL-122
 - date: 2026-11-13 00:58
   summary: 記録ファイルの検証に、BACKLOG の id の重複・区分・担当、EXECUTE の必須キーと date の形式、採番の衝突の検査を足す
   details:

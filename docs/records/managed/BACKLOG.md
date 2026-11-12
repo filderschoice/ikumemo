@@ -106,24 +106,6 @@
     オーナーへの質問は「ガードレール 12 節にサブエージェント委任の統制（12.7）を足してよいか、足すなら上の 5 点でよいか」。
     同ファイル 10 節が重大変更に承認を求めるため要確認とした。現在の 12 節は単一エージェントの実行だけを想定し（rules/guardrails-unified.v1.md 12.1〜12.6）、
     12.1 の秘密情報スキャンには具体的な手順がリポジトリのどこにも書かれていない（CLAUDE.md・CONTRIBUTING.md・.claude/skills/ を検索して確認）
-- id: BL-122
-  区分: 品質ゲート
-  タスク内容: >-
-    .claude/settings.json に、ループで繰り返す読み取り・検証のコマンドの許可と、禁止操作の拒否を足す提案。
-    案は permissions.allow へ ./gradlew の品質ゲート（ktlintCheck・detekt・lintDebug・testDebugUnitTest・:core:test・assembleDebug・--stop）、
-    python scripts/validate-records.py、python scripts/make-user-guide.py --check、python scripts/quality-gates.py（BL-119）、npx markdownlint-cli2、git status・git diff・git log を足し、
-    permissions.deny へ git push（全形）と --no-verify を含む git commit を足す。あわせて PreToolUse フックで git push と --no-verify を止めるかを決める
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: オーナーが許可・拒否の一覧とフックの採否を決め、採用分が .claude/settings.json に反映され、反映後のループで権限の確認が出ないことを確かめている
-  依存: []
-  根拠: >-
-    2026-11-13 にオーナーが、上の許可と git push・--no-verify の拒否を入れること、フックでもこの 2 つを止めること、
-    許可の候補に python scripts/scan-secrets.py と python scripts/quality-gates.py を含めることを承認した。
-    オーナーへの質問は「上の許可と拒否を .claude/settings.json へ入れてよいか、git push と --no-verify をフックでも止めるか」。
-    権限の変更は .github/copilot-instructions.md「確認が必要な場合」の高リスク操作（権限変更）に当たるため要確認とした。
-    現在の .claude/settings.json は記録ファイル 3 つの Edit と docs/records 配下の Read だけを許可し、hooks は無い。禁止操作（guardrails 12.2）は文書の規定だけで、仕組みでは止めていない
 - id: BL-118
   区分: 人手検証
   タスク内容: >-

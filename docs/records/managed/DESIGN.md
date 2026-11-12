@@ -256,6 +256,16 @@
   秘密情報スキャン（変更行と未追跡のファイル、署名鍵のファイル名。値は表示しない）を行う。自律ループの各イテレーションは
   `--quick --tests` の軽い検証（ktlint・detekt・コンパイル・指定したテストだけ）、フル検証はループの最後と止める前に流す。時間のかかるテストは
   `@Category(SlowTest::class)` を付け、`-PslowTests` の時だけ流す。Gradle のビルドキャッシュを使う
+- `.claude/settings.json` は、記録ファイル 3 つの編集に加え、品質ゲートのコマンド（`./gradlew` の各ゲートと `--stop`、
+  `python scripts/` の検証・秘密情報スキャン、`npx markdownlint-cli2`）と読み取り系の git（status・diff・log・
+  `branch --show-current`）を Bash と PowerShell の両方で許可する。`git add` / `git commit` は許可しない（通常の対話ではユーザーが実行する）。
+  `git push` と `--no-verify` は 2 段で止める。1 段目は `permissions.deny`（`git push *`・`git * --no-verify`・`git commit -n *`）、
+  2 段目は PreToolUse フック `scripts/guard-git-hook.py`（Bash・PowerShell の両方。字句に分けて区切りごとにコマンドの位置の語だけを見て
+  （先頭の変数代入と sudo・env などの前置きは読み飛ばす）、git の大域オプションを読み飛ばしてサブコマンドを判定し、`git -C path push` や
+  `bash -c` の中も見る。引用符の中の語は 1 語として扱い、引数の中の git と bash のヒアドキュメントの本文は見ないため、
+  コミットメッセージや grep の検索語の push では止めない）。
+  フックは止めるときだけ終了コード 2 と日本語の理由を返し、入力が読めないなどフック自身の異常では終了コード 0 で通す。
+  判定の例は `python scripts/guard-git-hook.py --self-test` で確かめる
 
 ### 運用制約
 
