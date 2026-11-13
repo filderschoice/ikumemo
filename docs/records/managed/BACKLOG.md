@@ -109,30 +109,6 @@
     core/build/intermediates/ktLint を消しても再現し、gradle.log で runKtlintCheckOverMainSourceSet が FROM-CACHE だったため、
     入力が元に戻った時点のキャッシュの項目に違反入りの結果が保存されたと推測（ktlint の Gradle プラグインの増分処理が原因かは未確認）。
     ./gradlew :core:runKtlintCheckOverMainSourceSet --rerun で解消した
-- id: BL-127
-  区分: 品質ゲート
-  タスク内容: >-
-    スクリーンショットテスト（Roborazzi）を画面ごとに比べる・記録し直す手順を、リポジトリのスキル .claude/skills/screenshot-verify/SKILL.md として新設する。
-    内容は (1) 流す前に ./gradlew --stop、(2) 画面ごとに 1 回ずつ流す（memo・calendar・reminder。3 画面まとめるとメモリ不足）コマンド
-    ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"、
-    (3) 失敗時に mobile/build/outputs/roborazzi/ 配下の差分画像の場所を示し、画像は縮小・必要な画面だけ読む（ユーザー共通スキル verification-cost-control に従う）、
-    (4) 見た目を意図して変えたときだけ -Proborazzi.test.record=true で記録し直し、git diff --stat mobile/screenshots/ で変わった画像を列挙してコミットに含める、
-    (5) 見た目に関わる変更かどうかの判断基準（designsystem/・*Screen.kt・strings.xml の変更など）。
-    frontmatter の description は日本語で「スクリーンショットを比べて」「Roborazzi」「見た目の回帰」等の依頼で使う旨を書き、model は sonnet を指定する
-    （定型の手順だが、差分が意図したものかの判断を含むため。ユーザー共通スキル skill-model-pinning の分類に従う）。
-    CLAUDE.md「本リポジトリの品質ゲート定義」のスクリーンショットの段落は、詳細をスキルへ寄せて 1〜2 行の参照に縮める（コマンドの正本は CLAUDE.md に残す）
-  優先度: P3
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    .claude/skills/screenshot-verify/SKILL.md があり、CLAUDE.md から参照されている。
-    npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml が Summary 0 issues（Linting の件数が git ls-files の *.md 件数と一致）、python scripts/validate-records.py が成功。
-    手順のコマンドで memo 画面の比較を 1 回流し、終了コード 0 を確かめて記録している（Gradle は通常のコマンドで流す）
-  依存: []
-  根拠: >-
-    手順が CLAUDE.md の品質ゲート定義の箇条書きに 3 行で埋もれており、差分画像の置き場所・画像の読み方・記録し直しの判断が書かれていない。
-    スクリーンショットテストは mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/MainScreensScreenshotTest.kt、正解画像は mobile/screenshots/{memo,calendar,reminder}。
-    リポジトリのスキルは .claude/skills/ に 4 つ（autonomous-loop・dependabot-alert-triage・docs-consistency-review・pr-create）で、該当するものが無い
 - id: BL-118
   区分: 人手検証
   タスク内容: >-

@@ -46,11 +46,9 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 - `mobile` の release 側の単体テスト（`testReleaseUnitTest`）は debug 側と同じ内容のため流さない。時間のかかるテスト（`@Category(SlowTest::class)`、
   例 2 万件の検索性能）は通常は外し、性能に関わる変更の時とマイルストーンの区切りに
   `./gradlew testDebugUnitTest -PslowTests` で流す（オーナー判断、2026-10-25）
-- スクリーンショットテスト（Roborazzi、`mobile/screenshots/` の正解画像と比べる。遅いテスト扱い）は、見た目に関わる変更の時と
-  マイルストーンの区切りに、画面ごとに比べる（3 画面をまとめて流すと PC のメモリが足りない）。
+- スクリーンショットテスト（Roborazzi、遅いテスト扱い）は見た目に関わる変更の時とマイルストーンの区切りに、画面ごとに
   `./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"`
-  （`calendar`・`reminder` も同様）で終了コード0。見た目を意図して変えたときは `-Proborazzi.test.record=true` で記録し直し、
-  画像の差分も確認してコミットする
+  （`calendar`・`reminder` も同様）で終了コード0。判断基準・差分画像の読み方・記録し直し（`-Proborazzi.test.record=true`）は Skill `screenshot-verify`
 - Claude Code では Gradle 系のゲートをバックグラウンドで流さず、通常のコマンド（タイムアウト 10 分）で流す。PC のメモリが少なく、
   バックグラウンドのコマンドはセッションの待機中に Claude Code に強制停止されるため。流す前に `./gradlew --stop` で常駐プロセスを止める
 - 本リポジトリに CI はなく（sesami-wear に合わせたオーナー判断）、上記コマンドのローカル実行が唯一の品質ゲート
