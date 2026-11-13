@@ -52,6 +52,9 @@ description: 自律ループ実行モード（Loop Engineering）の実行手順
   Gradle もメモリの制約で同時に1つしか流せない（スクリプト側では止めていないため、運用として守る）
 - **実装担当の定義**: `.claude/agents/backlog-task-implementer.md`（subagent_type `backlog-task-implementer`）を使えば、
   下の項目は定義側が読むため、指示は対象の `id` だけでよい
+- **ゲート実行担当の定義**: ループの最後や止める前のフル検証は、`.claude/agents/quality-gate-runner.md`
+  （subagent_type `quality-gate-runner`、`haiku`）に任せると、全ゲートの成否の表と失敗の要約だけが返る。修正はしないため、
+  失敗は実装担当へ渡して直させる。実装担当が Gradle を流している間は呼ばない（直列で進める）
 - **委任の指示に必ず入れる項目**:
   - 対象の `id` は1件だけで、仕様は `BACKLOG.md` の該当タスクであること
   - 禁止操作（guardrails 12.2）
