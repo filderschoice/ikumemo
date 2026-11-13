@@ -65,8 +65,7 @@
   状態: 未着手
   担当: ユーザー
   完了条件: 3 品を 1 回の発話で入れられる。止まるのが早すぎた・聞き取れなかった場面と認識された文字を記録している（BL-023 の素材にもなる）
-  依存:
-    - BL-136
+  依存: []
   根拠: 2026-11-13 の UX レビュー C5。周りの音と音声認識の止まり方は実機の環境でしか確かめられないため
 - id: BL-149
   区分: 人手検証
@@ -261,27 +260,6 @@
   根拠: >-
     2026-11-13 の UX レビュー A8（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     MonthGrid を触る BL-130 と、CalendarTopBar に設定のボタンを足す BL-143 の後に行う。BL-117（検索欄の音声入力）は検索の入口と search.md を触るため本タスクの後にした
-- id: BL-136
-  区分: UX改善
-  タスク内容: >-
-    話して追加の確認カードで、外したカードが外れていると一目で分かるようにする（UX レビュー A7）。
-    対象は mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt の ConfirmCard（198〜244 行目）と、ConfirmCards の「追加する」ボタン（181〜187 行目）、
-    mobile/src/main/res/values/strings.xml の voice_add_all（15 行目）。
-    いまの状態。× を押すとカードの背景が surfaceVariant に変わるだけでアイコンは同じ ×。もう一度 × で戻るが見た目からは分からない。メモにある物は最初から外れた状態で出る（DESIGN の R-01（音声））。
-    どう変えるか。外したカードは品名と数量に取り消し線を引き、文字を薄く（onSurfaceVariant）する。右のボタンは、入れているときは ×、外したときは「↩ 戻す」（アイコン＋文字、48dp 以上）に替える。
-    contentDescription（voice_exclude_card・voice_include_card）は今のまま。「追加する」ボタンに入れる件数を出す（例「3 つ追加する」。件数を引数に取る文字列を strings.xml に置く。0 件のときは今どおり押せない）
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest に、外したカードに「戻す」が出ること、追加ボタンの文字が入れる件数に合うことのテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*VoiceInputContentTest" --tests "*VoiceInputViewModelTest" が成功する。
-    音声入力のシートはスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/voice.md の「押すと直せて、× で外せます」と「「追加する」でメモに入ります」を新しい見た目に合わせ（外したカードは「戻す」で戻せる）、
-    python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の「F-01・PLAN §3.2」の行（確認カード）を合わせる
-  依存: []
-  根拠: 2026-11-13 の UX レビュー A7（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

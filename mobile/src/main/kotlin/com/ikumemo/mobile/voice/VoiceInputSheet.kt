@@ -8,7 +8,6 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,18 +16,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -37,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -167,107 +159,6 @@ private fun Listening(partialText: String) {
             text = stringResource(R.string.voice_partial, partialText),
             modifier = Modifier.testTag(VoiceTestTags.PARTIAL),
         )
-    }
-}
-
-@Composable
-private fun ConfirmCards(
-    cards: List<VoiceCard>,
-    onEvent: (VoiceInputEvent) -> Unit,
-    onTypeInstead: () -> Unit,
-) {
-    cards.forEach { card -> ConfirmCard(card, onEvent) }
-    // 文字が大きい設定でもはみ出さないよう、主ボタンは全幅で 1 段目に置く
-    Button(
-        onClick = { onEvent(VoiceInputEvent.AddAll) },
-        enabled = cards.any { it.included },
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(VoiceTestTags.ADD_ALL),
-    ) {
-        Text(stringResource(R.string.voice_add_all))
-    }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-        TextButton(onClick = onTypeInstead, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(stringResource(R.string.voice_type_instead))
-        }
-        OutlinedButton(onClick = { onEvent(VoiceInputEvent.Start) }, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(stringResource(R.string.voice_retry))
-        }
-    }
-}
-
-/** 確認カード。タップで直し、× で外す（外した物は × をもう一度押すと戻る）。 */
-@Composable
-private fun ConfirmCard(
-    card: VoiceCard,
-    onEvent: (VoiceInputEvent) -> Unit,
-) {
-    var editing by rememberSaveable(card.key) { mutableStateOf(false) }
-    val colors =
-        if (card.included) {
-            CardDefaults.cardColors()
-        } else {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        }
-    Card(colors = colors, modifier = Modifier.fillMaxWidth().testTag(VoiceTestTags.card(card.key))) {
-        if (editing) {
-            EditingCard(card, onDone = { name, quantity ->
-                onEvent(VoiceInputEvent.EditCard(card.key, name, quantity))
-                editing = false
-            })
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { editing = true }.padding(start = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(card.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                card.quantity?.let { Text(it, modifier = Modifier.padding(horizontal = 8.dp)) }
-                if (card.alreadyInMemo) {
-                    Text(
-                        stringResource(R.string.voice_already_in_memo),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                IconButton(onClick = { onEvent(VoiceInputEvent.ToggleCard(card.key)) }) {
-                    Icon(
-                        Icons.Rounded.Close,
-                        contentDescription =
-                            stringResource(
-                                if (card.included) R.string.voice_exclude_card else R.string.voice_include_card,
-                                card.name,
-                            ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun EditingCard(
-    card: VoiceCard,
-    onDone: (String, String) -> Unit,
-) {
-    var name by rememberSaveable(card.key) { mutableStateOf(card.name) }
-    var quantity by rememberSaveable(card.key) { mutableStateOf(card.quantity.orEmpty()) }
-    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text(stringResource(R.string.edit_name)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = quantity,
-            onValueChange = { quantity = it },
-            label = { Text(stringResource(R.string.edit_quantity)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Button(onClick = { onDone(name, quantity) }, modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp)) {
-            Text(stringResource(R.string.common_done))
-        }
     }
 }
 

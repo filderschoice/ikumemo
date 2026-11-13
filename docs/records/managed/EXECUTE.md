@@ -5,6 +5,36 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:26
+  summary: 話して追加の確認カードで、外したカードに取り消し線と「戻す」を出し、追加ボタンに入れる件数を出す
+  details:
+    変更内容: >-
+      BL-136 を実装した。外したカードは品名と数量に取り消し線を引いて onSurfaceVariant で薄くし、
+      右のボタンを × から「↩ 戻す」（AutoMirrored の Undo アイコンと文字、TextButton で 48dp 以上）に替えた。
+      読み上げ（voice_exclude_card・voice_include_card）は変えず、戻すボタンには semantics で同じ読み上げを付けた。
+      追加ボタンは入れる件数を voice_add_count「%1$d つ追加する」で出し、0 件のときは今までどおり voice_add_all「追加する」で押せない。
+      strings.xml に voice_add_count と voice_restore_card「戻す」を足した。
+      detekt の TooManyFunctions（1 ファイル 11 個）に掛かったため、確認カードと下のボタン（ConfirmCards・ConfirmCard・CardTexts・ToggleCardButton・EditingCard）を
+      voice/VoiceConfirmCards.kt へ移した。VoiceInputContentTest に外したカードの「戻す」と件数の付いた追加ボタンのテストを足した。
+      使い方 help/voice.md と docs/USER_GUIDE.md、DESIGN.md の F-01 の行を新しい見た目に合わせた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceConfirmCards.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/voice.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputContentTest" --tests "*VoiceInputViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目の軽い検証は detekt の TooManyFunctions で失敗し、ファイルを分けた 2 回目で ktlint・detekt・compile・指定の 2 テストクラス・
+      markdownlint・records・user-guide・secrets がすべて成功した（Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-136
 - date: 2026-11-13 10:14
   summary: ダイアログのボタンの言葉を、確定は「決める」、取り消しは「戻る」にそろえる
   details:

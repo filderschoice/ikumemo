@@ -58,7 +58,7 @@
 | F-53・R-22 | 期限が近い順の一覧（通知オフの帯の下、最近買った物より上。期限切れの有無によらず常にこの順）。期限切れは error 色＋「期限切れ」、今日・明日は文字で示す。「使い切った」「捨てた」で片付け、行を押すと決め直し | `reminder/ReminderScreen.kt` |
 | R-29 | 通知が許可されていなければ「通知がオフのため、お知らせが届きません」＋「通知をオンにする」（端末の通知の設定を開く） | `ReminderScreen.kt` の `NotificationsOffBanner` |
 | F-01・F-02・PLAN §4.4 | 音声テキストの分割・数量抽出・不要語除去・誤変換補正・N-best の選択 | `core/voice/VoiceTextParser.kt`、`QuantityParser.kt` |
-| F-01・PLAN §3.2 | 🎤 話して追加（ホーム下部、64dp）→ 聞いている間は途中の文字を表示 → 確認カード（タップで直す、× で外す）→「追加する」 | `voice/VoiceInputSheet.kt`、`VoiceInputViewModel.kt` |
+| F-01・PLAN §3.2 | 🎤 話して追加（ホーム下部、64dp）→ 聞いている間は途中の文字を表示 → 確認カード（タップで直す、× で外す。外したカードは品名・数量に取り消し線を引いて onSurfaceVariant で薄くし、右のボタンを「↩ 戻す」（アイコン＋文字、48dp 以上）に替える。読み上げは「〇〇を外す」「〇〇を入れる」）→「N つ追加する」（入れる件数を出す。0 件は「追加する」で押せない） | `voice/VoiceInputSheet.kt`、`VoiceInputViewModel.kt` |
 | R-30・R-31 | 日本語固定・オンデバイス優先。何も話さなければ 5 秒で止め「うまく聞き取れませんでした」＋もう一度話す／文字で入れる | `voice/SpeechEngine.kt`、`VoiceInputViewModel.kt` |
 | R-01（音声） | 確認カードでメモにある物に「メモにあります」の印を付け、既定で外す | `VoiceInputViewModel.showCards` |
 | PLAN §2.10・§5 | マイクの許可は初めて使う時に理由を添えて求める。拒否されたら端末の設定を開くボタンと文字入力の案内。機能の無い端末ではマイクを出さない | `voice/VoiceInputSheet.kt`、`ShoppingListScreen.kt` の `AddButtons` |
