@@ -133,24 +133,6 @@
     手順が CLAUDE.md の品質ゲート定義の箇条書きに 3 行で埋もれており、差分画像の置き場所・画像の読み方・記録し直しの判断が書かれていない。
     スクリーンショットテストは mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/MainScreensScreenshotTest.kt、正解画像は mobile/screenshots/{memo,calendar,reminder}。
     リポジトリのスキルは .claude/skills/ に 4 つ（autonomous-loop・dependabot-alert-triage・docs-consistency-review・pr-create）で、該当するものが無い
-- id: BL-123
-  区分: 品質ゲート
-  タスク内容: >-
-    rules/guardrails-unified.v1.md の 12 節（自律ループ実行モード統制）に、サブエージェントへの委任の統制を 12.7 として足す提案。
-    案は (1) 委任先も 12.1〜12.6 に従い、委任の指示でこれを緩めない、(2) コミットは 1 タスク 1 コミットを保ち、委任先が並行して同じ作業ツリーへコミットしない、
-    (3) 委任先が要確認を自己解決しない（結果として返し、オーケストレータが BACKLOG に残す）、(4) 委任先の起動・結果は実施記録または CHANGELOG で追える、
-    (5) 12.1 の「秘密情報スキャン」の具体的な手順の正本を CLAUDE.md（BL-119 で定める）とする参照を足す。
-    変更する場合は同ファイル 10 節に従い CHANGELOG.md を更新する
-  優先度: P3
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: オーナーが案の採否を決め、採用する場合はガバナンス担当の承認を得たうえで本文が更新され、markdownlint と validate-records が成功している
-  依存: []
-  根拠: >-
-    2026-11-13 にオーナーが、タスクに書いた 5 点の案で 12.7 を足すことを承認した。
-    オーナーへの質問は「ガードレール 12 節にサブエージェント委任の統制（12.7）を足してよいか、足すなら上の 5 点でよいか」。
-    同ファイル 10 節が重大変更に承認を求めるため要確認とした。現在の 12 節は単一エージェントの実行だけを想定し（rules/guardrails-unified.v1.md 12.1〜12.6）、
-    12.1 の秘密情報スキャンには具体的な手順がリポジトリのどこにも書かれていない（CLAUDE.md・CONTRIBUTING.md・.claude/skills/ を検索して確認）
 - id: BL-118
   区分: 人手検証
   タスク内容: >-
