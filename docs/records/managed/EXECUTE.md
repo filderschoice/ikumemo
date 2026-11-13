@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 11:24
+  summary: 記録の画面の品名検索の欄に、編集シートと同じマイクを付けて話した品名で探せるようにする
+  details:
+    変更内容: >-
+      BL-117 を実装した（オーナー承認 2026-11-13）。CalendarScreen.kt の SearchPane の検索欄の trailingIcon に FieldMic を付け、
+      欄のテストタグ CalendarTestTags.SEARCH_INPUT を聞き取りの欄の名前に使い、聞き取った文字は 1 行の欄として検索語を置き換えて QueryChanged を送る。
+      上部のバーには足さず欄の中に置いた（BL-137 で上部のバーの幅に余裕が少ないため）。権限・認識の仕組みは既存の F-04 の FieldDictationViewModel と同じで、
+      新しい権限や端末の外への送信経路は増えていない。音声認識が使えない端末では出さない（既存の FieldMic の挙動）。
+      Compose のテスト CalendarSearchMicTest を足し、マイクの結果が検索語に入ることと、認識が使えないときマイクが無いことを確かめた。
+      使い方 help/search.md にマイクの 1 行を足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-42 の行を更新した。
+      実際の音声認識での確認は人手検証 BL-118 に足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarSearchMicTest.kt
+      - mobile/src/main/assets/help/search.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarSearchMicTest" --tests "*CalendarContentTest" --tests "*FieldMicTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug・スクリーンショットの比較は流していない。MainScreensScreenshotTest の calendar は検索を閉じた月の表示で、マイクの窓口も渡さないため画像は変わらない）
+    関連ID:
+      - BL-117
 - date: 2026-11-13 11:19
   summary: 画面と掲載文の「つ」の件数表記で、数字の前の空白も外して「の2つ」にそろえる
   details:

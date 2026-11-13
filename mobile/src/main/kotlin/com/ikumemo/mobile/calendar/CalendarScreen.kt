@@ -61,6 +61,7 @@ import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.rememberGuideTargets
 import com.ikumemo.mobile.settings.SettingsButton
+import com.ikumemo.mobile.voice.FieldMic
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -273,6 +274,15 @@ private fun SearchPane(
                 value = state.query,
                 onValueChange = { onEvent(CalendarEvent.QueryChanged(it)) },
                 label = { Text(stringResource(R.string.calendar_search_hint)) },
+                // 話した品名でも探せる（F-42、BL-117）。編集シートの欄と同じマイクで、聞き取った文字で検索語を置き換える
+                trailingIcon = {
+                    FieldMic(
+                        field = CalendarTestTags.SEARCH_INPUT,
+                        singleLine = true,
+                        value = state.query,
+                        onValueChange = { onEvent(CalendarEvent.QueryChanged(it)) },
+                    )
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(16.dp).testTag(CalendarTestTags.SEARCH_INPUT),
             )
