@@ -127,7 +127,7 @@ private fun ArchiveDialog(
                 modifier = Modifier.testTag(ManageTestTags.ARCHIVE_CONFIRM),
             ) { Text(stringResource(R.string.stores_archive)) }
         },
-        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.reminder_settings_cancel)) } },
+        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.common_back)) } },
     )
 }
 
@@ -163,7 +163,7 @@ private fun MergeDialog(
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.reminder_settings_cancel)) } },
+        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.common_back)) } },
     )
 }
 

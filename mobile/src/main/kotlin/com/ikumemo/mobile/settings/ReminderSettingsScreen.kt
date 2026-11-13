@@ -100,11 +100,11 @@ private fun TimePickerDialog(
                 onClick = { onPicked(LocalTime.of(state.hour, state.minute)) },
                 modifier = Modifier.testTag(ReminderSettingsTestTags.TIME_DONE),
             ) {
-                Text(stringResource(R.string.common_done))
+                Text(stringResource(R.string.common_decide))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.reminder_settings_cancel)) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_back)) }
         },
     )
 }

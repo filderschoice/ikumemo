@@ -142,10 +142,10 @@ internal fun RecordDatePicker(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = { onPicked(pickerState.selectedDateMillis?.div(MILLIS_PER_DAY) ?: epochDay) }) {
-                Text(stringResource(R.string.common_done))
+                Text(stringResource(R.string.common_decide))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_back)) } },
     ) {
         DatePicker(state = pickerState)
     }

@@ -10,6 +10,7 @@
     <string name="memo_add_by_text">文字で追加</string>
     <string name="memo_add_by_voice">話して追加</string>
     <string name="common_done">できた</string>
+    <string name="common_decide">決める</string>
     <string name="voice_listening">聞いています</string>
     <string name="voice_partial">「%1$s」</string>
     <string name="voice_add_all">追加する</string>
@@ -249,7 +250,6 @@
     <string name="reminder_settings_on_due_date">期限の当日もお知らせ</string>
     <string name="reminder_settings_on_due_date_detail">前日に加えて、期限の日にもお知らせします</string>
     <string name="reminder_settings_pick_time">時刻を選ぶ</string>
-    <string name="reminder_settings_cancel">やめる</string>
     <string name="appearance_theme">テーマ</string>
     <string name="appearance_background">背景の写真</string>
     <string name="appearance_background_pick">写真を選ぶ</string>

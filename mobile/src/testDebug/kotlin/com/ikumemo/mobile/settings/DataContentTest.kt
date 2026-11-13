@@ -82,12 +82,23 @@ class DataContentTest {
         show()
 
         composeRule.onNodeWithTag(DataTestTags.ERASE).performScrollTo().performClick()
-        composeRule.onNodeWithText("やめる").performClick()
+        composeRule.onNodeWithText("戻る").performClick()
         composeRule.onNodeWithTag(DataTestTags.IMPORT).performScrollTo().performClick()
-        composeRule.onNodeWithText("やめる").performClick()
+        composeRule.onNodeWithText("戻る").performClick()
 
         assertEquals(emptyList<DataEvent>(), events.toList())
         assertEquals(0, pickedImport)
+    }
+
+    /** BL-133。確認ダイアログの取り消しは「戻る」（メモの「やめた」と紛らわしい「やめる」は使わない）。 */
+    @Test
+    fun confirmDialogCancelSaysBack() {
+        show()
+
+        composeRule.onNodeWithTag(DataTestTags.ERASE).performScrollTo().performClick()
+
+        composeRule.onNodeWithText("戻る").assertIsDisplayed()
+        composeRule.onNodeWithText("やめる").assertDoesNotExist()
     }
 
     @Test

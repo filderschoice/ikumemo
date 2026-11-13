@@ -282,37 +282,6 @@
     docs/records/managed/DESIGN.md の「F-01・PLAN §3.2」の行（確認カード）を合わせる
   依存: []
   根拠: 2026-11-13 の UX レビュー A7（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた
-- id: BL-133
-  区分: UX改善
-  タスク内容: >-
-    ダイアログのボタンの言葉をそろえる（UX レビュー A4。文言だけで動きは変えない）。パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/、strings.xml は mobile/src/main/res/values/strings.xml。
-    いまの状態（2026-11-13 時点の行番号）。日付・時刻の確定が common_done「できた」（kotlin/reminder/DueSheet.kt 79 行目、kotlin/calendar/RecordEditSheet.kt の RecordDatePicker 139 行目、
-    kotlin/settings/ReminderSettingsScreen.kt の TimePickerDialog 119 行目）、取り消しが common_close「閉じる」（DueSheet.kt 84 行目、RecordEditSheet.kt 142 行目）と
-    reminder_settings_cancel「やめる」（ReminderSettingsScreen.kt 123 行目、kotlin/settings/DataScreen.kt 188 行目、kotlin/settings/StoreManageScreen.kt 130・166 行目）でばらばら。
-    ダイアログの「やめる」はメモの「やめた」（買うのをやめる）と紛らわしい。
-    どう変えるか。ダイアログの確定ボタンは新しい文字列「決める」（例 common_decide）、取り消しはすべて common_back「戻る」にする（レビューの推奨。「やめた」との混同を避けるため）。
-    確定は右・取り消しは左の並び（Material の既定）を保つ。使われなくなった reminder_settings_cancel は消す。
-    対象外。音声の確認カードを直すときの「できた」（kotlin/voice/VoiceInputSheet.kt 269 行目。ダイアログではなくカードの編集の終わり）、
-    シートを閉じる「閉じる」（ItemSheets.kt・EditItemSheet.kt、BL-144 の後の記録の編集シート）、通知の許可の「今はしない」（BL-140 で扱う）。
-    記録の編集シートの「直す」はレビューでは「保存する」案だが、BL-144（閉じたら保存）で「閉じる」になるため触らない。
-    BL-134・BL-135・BL-143 の後は行の位置が変わっているので、実装時に common_done・common_close・reminder_settings_cancel で Grep して探し直す
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    上の対象のダイアログがすべて「決める」と「戻る」になっている。ボタンの文字で探している既存のテストがあれば直す（2026-11-13 時点では無い）。
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest に、確認ダイアログの取り消しが「戻る」であることのテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*ManageContentTest" --tests "*OperationContentTest" が成功する
-    （BL-143 でまとめた設定の画面のテストの名前が変わっていたら、その名前で流す）。
-    ダイアログはスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/ を「できた」「やめる」「閉じる」で Grep し、ダイアログのボタンを指す記述があれば直して python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す（2026-11-13 時点では該当なし）。
-    docs/records/managed/DESIGN.md の「UI/UX 方針」に、ダイアログの確定は「決める」・取り消しは「戻る」の決まりを 1 行足す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー A4（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
-    既定で決めた点。取り消しはレビューの推奨の「戻る」。音声カードの「できた」とシートの「閉じる」はダイアログではないため対象外。
-    レビューが挙げていない StoreManageScreen.kt の 2 つのダイアログも同じ「やめる」を使っているため対象に含めた。
-    同じダイアログを触る BL-134（データの確認）・BL-135（記録の編集シート）・BL-143（時刻のダイアログの移動）と、strings.xml を広く触る BL-141 の後に行う
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

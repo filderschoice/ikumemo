@@ -289,7 +289,7 @@ private fun ConfirmDialog(
                 modifier = Modifier.testTag(spec.confirmTag),
             ) { Text(stringResource(spec.confirm)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.reminder_settings_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_back)) } },
     )
 }
 

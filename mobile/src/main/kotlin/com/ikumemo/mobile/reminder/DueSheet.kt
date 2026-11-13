@@ -74,12 +74,12 @@ fun DueSheet(
                     pickerState.selectedDateMillis?.let {
                         onEvent(ReminderEvent.SetDue(target.recordId, LocalDate.ofEpochDay(it / MILLIS_PER_DAY)))
                     }
-                }) { Text(stringResource(R.string.common_done)) }
+                }) { Text(stringResource(R.string.common_decide)) }
             },
             dismissButton = {
                 TextButton(
                     onClick = { pickingDate = false },
-                ) { Text(stringResource(R.string.common_close)) }
+                ) { Text(stringResource(R.string.common_back)) }
             },
         ) {
             DatePicker(state = pickerState)

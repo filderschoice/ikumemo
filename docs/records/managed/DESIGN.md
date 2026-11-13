@@ -230,6 +230,9 @@
   「お知らせが来ないときは」・設定の「お知らせ」）は「お知らせ」のまま。テストの目印（`TopLevelTabTags`）と route の名前は変えていない
 - 画面の配置は `docs/design/WIREFRAME.md`（主要画面・シートの配置と、その場のガイドで照らす場所の目印）
 - 文言はすべて `strings.xml` に置く（日本語のみでも。PLAN §4.1）
+- ダイアログのボタンは、日付・時刻を選ぶ確定が「決める」（`common_decide`）、取り消しはすべて「戻る」（`common_back`）。
+  メモの「やめた」と紛らわしい「やめる」は使わない（BL-133）。操作の名前を確定に書く確認（「すべて消す」「読み込む」など）はそのまま。
+  確定は右・取り消しは左の Material の既定の並び
 - 各画面の `TopAppBar` は `windowInsets = WindowInsets(0)` とし、システムバーの余白は外側の `Scaffold`（下タブを持つ）の
   `innerPadding` で取る
 - UI テストとその場のガイドの目印は `testTag` で付け、名前は各画面の `TestTags` に集める

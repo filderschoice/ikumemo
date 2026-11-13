@@ -5,6 +5,36 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:14
+  summary: ダイアログのボタンの言葉を、確定は「決める」、取り消しは「戻る」にそろえる
+  details:
+    変更内容: >-
+      BL-133 を実装した。strings.xml に common_decide「決める」を足し、使われなくなった reminder_settings_cancel「やめる」を消した。
+      日付・時刻を選ぶダイアログ（reminder/DueSheet.kt の期限の日付、calendar/RecordEditSheet.kt の RecordDatePicker、
+      settings/ReminderSettingsScreen.kt の時刻）の確定を「できた」から「決める」に、取り消しを「閉じる」「やめる」から「戻る」（common_back）にした。
+      settings/DataScreen.kt の確認ダイアログと settings/StoreManageScreen.kt の 2 つのダイアログの取り消しも「戻る」にした。
+      確定に操作の名前が入るダイアログ（すべて消す・読み込む・使わない）の確定の文字と、ボタンの並び・動きは変えていない。
+      音声カードの「できた」とシートを閉じる「閉じる」は対象外のまま。使い方 help/ にダイアログのボタンを指す記述は無く変えていない。
+      DataContentTest の取り消しのテストを「戻る」で押すよう直し、取り消しが「戻る」であるテストを足した。DESIGN.md の UI/UX 方針に 1 行足した
+    変更ファイル:
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/DueSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/StoreManageScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*ManageContentTest" --tests "*OperationContentTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目の軽い検証で ktlint・detekt・compile・指定の 3 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-133
 - date: 2026-11-13 10:12
   summary: データの画面を見出しで 3 つに区切り、すべて消すを離して error 色にし、処理中の行と結果を分かるようにする
   details:
