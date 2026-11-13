@@ -86,20 +86,20 @@ class VoiceInputContentTest {
         engine.autoResults = listOf("牛乳2本とたまご")
         composeRule.runOnIdle { viewModel.onEvent(VoiceInputEvent.Start) }
         composeRule.awaitTag(VoiceTestTags.card(1))
-        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("2 つ追加する")
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("2つ追加する")
         composeRule.onNodeWithText("戻す").assertDoesNotExist()
 
         composeRule.onNodeWithContentDescription("牛乳を外す").performClick()
 
         composeRule.onNodeWithContentDescription("牛乳を入れる").assertTextContains("戻す")
-        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("1 つ追加する")
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("1つ追加する")
 
         composeRule.onNodeWithContentDescription("たまごを外す").performClick()
         composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("追加する").assertIsNotEnabled()
 
         composeRule.onNodeWithContentDescription("牛乳を入れる").performClick()
         composeRule.onNodeWithContentDescription("牛乳を外す").assertExists()
-        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("1 つ追加する").assertIsEnabled()
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("1つ追加する").assertIsEnabled()
     }
 
     @Test

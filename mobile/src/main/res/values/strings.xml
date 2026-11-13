@@ -14,7 +14,7 @@
     <string name="voice_listening">聞いています</string>
     <string name="voice_partial">「%1$s」</string>
     <string name="voice_add_all">追加する</string>
-    <string name="voice_add_count">%1$d つ追加する</string>
+    <string name="voice_add_count">%1$dつ追加する</string>
     <string name="voice_restore_card">戻す</string>
     <string name="voice_retry">もう一度話す</string>
     <string name="voice_type_instead">文字で入れる</string>
@@ -153,7 +153,7 @@
     <string name="onboarding_demo_spoken">「牛乳とたまご」</string>
     <string name="onboarding_demo_item1">牛乳</string>
     <string name="onboarding_demo_item2">たまご</string>
-    <string name="onboarding_voice_body">「牛乳とたまご」と話すと、2 つに分かれて入ります</string>
+    <string name="onboarding_voice_body">「牛乳とたまご」と話すと、2つに分かれて入ります</string>
     <string name="onboarding_swipe_title">買ったらスワイプ</string>
     <string name="onboarding_swipe_body">右へ動かすと「買った」、左へ動かすと「やめた」</string>
     <string name="onboarding_look_back_title">後から見返せる</string>
@@ -170,7 +170,7 @@
     <string name="data_progress_import">読み込んでいます…</string>
     <string name="data_progress_erase">消しています…</string>
     <string name="data_export_zip_title">データを書き出す（写真つき）</string>
-    <string name="data_export_zip_detail">メモ・買った記録・設定・写真を 1 つのファイル（ZIP）に書き出します。読み込めば元に戻せます</string>
+    <string name="data_export_zip_detail">メモ・買った記録・設定・写真を 1つのファイル（ZIP）に書き出します。読み込めば元に戻せます</string>
     <string name="data_export_json_title">データを書き出す（写真なし）</string>
     <string name="data_export_json_detail">写真を除いて、メモ・買った記録・設定を JSON ファイルに書き出します</string>
     <string name="data_export_csv_title">買った記録を表計算用に書き出す</string>

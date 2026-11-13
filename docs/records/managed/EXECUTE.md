@@ -5,6 +5,43 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:40
+  summary: 画面に出る「つ」の件数表記を空白なしの「3つ」にそろえる
+  details:
+    変更内容: >-
+      BL-154 を実装した（オーナー判断 2026-11-13。BL-136 で足した voice_add_count が「%1$d つ追加する」で、
+      ウィジェットの「%1$dつ」と空白の有無がそろっていなかったため、件数の表記を空白なしにそろえると決めた）。
+      strings.xml の voice_add_count を「%1$dつ追加する」に、onboarding_voice_body を「2つに分かれて」に、
+      data_export_zip_detail を「1つのファイル」に直した。BackupValidator の読み込み失敗の文言を「1つの記録に期限が複数あります」に直した。
+      使い方 help/ の voice.md（1つずつ・3つ追加する）、start.md（2つに分かれて）、index.md と widgets.md（2つのウィジェット）、
+      store.md（2つある）、theme.md（4つから）、undo.md（1つだけ）、usual.md（1つずつ）を直し、
+      make-user-guide.py で docs/USER_GUIDE.md を作り直した。VoiceInputContentTest の期待値を「2つ追加する」「1つ追加する」に直した。
+      Kotlin のコメント、「つ」以外の助数詞、ストア掲載文・リリースノートなど docs/ の文書は変えていない。
+      DESIGN.md の F-01 の行を「Nつ追加する」に直し、表記の決まりを足した
+    変更ファイル:
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupValidator.kt
+      - mobile/src/main/assets/help/index.md
+      - mobile/src/main/assets/help/start.md
+      - mobile/src/main/assets/help/store.md
+      - mobile/src/main/assets/help/theme.md
+      - mobile/src/main/assets/help/undo.md
+      - mobile/src/main/assets/help/usual.md
+      - mobile/src/main/assets/help/voice.md
+      - mobile/src/main/assets/help/widgets.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputContentTest" --tests "*BackupValidatorTest" --tests "*HelpContentTest"、
+      python scripts/make-user-guide.py、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す。
+      変えた文言は音声入力のシート・初めての案内・データの画面・使い方で、スクリーンショットテストの対象外）
+    関連ID:
+      - BL-154
 - date: 2026-11-13 10:37
   summary: 着せ替えの画面で文字の大きさを一番上に移し、テーマ・暗い画面・背景の写真の順に並べ替える
   details:
