@@ -15,6 +15,8 @@
 
 出力は、成功したゲートは 1 行、失敗したゲートは原因の分かる抜粋だけ（全文は build/quality-gates/ のログ）、
 最後にゲートごとの合否と所要時間の表。呼び出したエージェントの文脈を圧迫しないよう、出力を短く保つ。
+ktlint・detekt の失敗で、違反の出たファイルが作業ツリーに存在しないときは「キャッシュの古い結果の疑い」と出し、
+`./gradlew <失敗したタスク> --rerun` の対処を示す（ビルドキャッシュから消したファイルの違反が復元される事故への対策、BL-128）。
 
 使い方（Git Bash・PowerShell のどちらからでも同じ）:
 
@@ -77,6 +79,40 @@ GRADLE_INTERESTING = re.compile(
     r"Execution failed for task|Lint found|tests completed|^\s*> (?!Task |Run with|Get more help)"
 )
 GRADLE_NOISE = re.compile(r"^> Task (?!.* FAILED$)")
+
+# 違反の行に出る Kotlin のファイルのパス（絶対・相対。Windows のドライブ名も拾う）
+VIOLATION_PATH = re.compile(r"((?:[A-Za-z]:)?[^\s:'\"(]+\.kts?):\d+")
+# ビルドキャッシュ（org.gradle.caching=true）から古い結果が戻りうる、ソースを検査するゲート
+CACHED_CHECK_GATES = {"ktlint", "detekt"}
+
+
+def missing_violation_files(output: str) -> list[str]:
+    """Gradle の出力の違反の行に出たのに、作業ツリーに存在しないファイルを返す（リポジトリからの相対）。
+
+    ファイルを消した後もキャッシュ（FROM-CACHE）から違反入りの結果が復元される事故の検出に使う（BL-128）。
+    """
+    missing: list[str] = []
+    for raw in VIOLATION_PATH.findall(output):
+        path = pathlib.Path(raw)
+        full = path if path.is_absolute() else ROOT / path
+        if not full.exists():
+            try:
+                shown = full.resolve().relative_to(ROOT).as_posix()
+            except ValueError:
+                shown = raw
+            missing.append(shown)
+    return list(dict.fromkeys(missing))
+
+
+def stale_cache_note(gate: str, tasks: list[str], missing: list[str]) -> list[str]:
+    """存在しないファイルの違反で失敗したゲートに、キャッシュの古い結果の疑いと対処を示す行を返す。"""
+    if gate not in CACHED_CHECK_GATES or not tasks or not missing:
+        return []
+    shown = ", ".join(missing[:3]) + (f" ほか {len(missing) - 3} 件" if len(missing) > 3 else "")
+    return [
+        f"キャッシュの古い結果の疑い: 存在しないファイルの違反が出ている（{shown}）",
+        f"  対処: ./gradlew {' '.join(tasks)} --rerun で該当タスクだけ流し直す（ビルドキャッシュを使わずに検査し直す）",
+    ]
 
 
 def child_env() -> dict[str, str]:
@@ -175,13 +211,14 @@ def run_gradle(
     failed_tasks += re.findall(r"^> Task (\S+) FAILED$", output, re.M)
     failed_tasks = list(dict.fromkeys(failed_tasks))
     excerpt = gradle_excerpt(output)
+    missing = missing_violation_files(output)
     assigned: set[str] = set()
     for gate in selected:
         if gate == fallback:
             continue
         hits = [task for task in failed_tasks if gates[gate][1].search(task)]
         assigned.update(hits)
-        results[gate] = (not hits, elapsed, excerpt if hits else [])
+        results[gate] = (not hits, elapsed, stale_cache_note(gate, hits, missing) + excerpt if hits else [])
     rest = [task for task in failed_tasks if task not in assigned]
     unknown = not failed_tasks  # 失敗したのにタスク名が出ない（設定の誤り・プロセスの強制停止など）
     if fallback in selected:

@@ -89,26 +89,6 @@
   根拠: >-
     2026-11-13 の UX レビュー C2。下タブの戻る履歴の保存・復元（IkumemoApp.kt の navigateToTab の saveState・restoreState）の実際の動きは実機の操作で確かめるため。
     不具合と分かったら、手順を添えて不具合のタスクを起票する
-- id: BL-128
-  区分: 品質ゲート
-  タスク内容: >-
-    Gradle のビルドキャッシュ（gradle.properties の org.gradle.caching=true）に、ktlint の誤った結果が残る事故への対策を決めて入れる。
-    BL-119 の確認で core に一時的に置いて消した書式違反のファイル（ZzGateTmp.kt）の違反が、ファイルを消した後も
-    :core:runKtlintCheckOverMainSourceSet の FROM-CACHE で復元され、ktlint のゲートが失敗し続けた（BL-113 の実施中に発見）。
-    案は (1) scripts/quality-gates.py の失敗の表示で、違反の出たファイルが存在しないときに「キャッシュの古い結果の疑い」と出し、
-    ./gradlew <該当タスク> --rerun の対処を示す、(2) 自律ループの手順に「一時的なファイルで ktlint を試したら、消した後に該当タスクを --rerun で流す」を足す。
-    どちらにするかは実装時に決め、根拠を記録する
-  優先度: P3
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    選んだ対策が入り、存在しないファイルの違反がキャッシュから出たときに、原因と対処が利用者に分かる。python scripts/quality-gates.py が成功する
-  依存: []
-  根拠: >-
-    2026-11-13 の BL-113 で、quality-gates.py の ktlint が 2 回続けて存在しないファイル ZzGateTmp.kt の違反で失敗した。
-    core/build/intermediates/ktLint を消しても再現し、gradle.log で runKtlintCheckOverMainSourceSet が FROM-CACHE だったため、
-    入力が元に戻った時点のキャッシュの項目に違反入りの結果が保存されたと推測（ktlint の Gradle プラグインの増分処理が原因かは未確認）。
-    ./gradlew :core:runKtlintCheckOverMainSourceSet --rerun で解消した
 - id: BL-118
   区分: 人手検証
   タスク内容: >-
