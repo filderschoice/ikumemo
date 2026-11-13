@@ -89,30 +89,6 @@
   根拠: >-
     2026-11-13 の UX レビュー C2。下タブの戻る履歴の保存・復元（IkumemoApp.kt の navigateToTab の saveState・restoreState）の実際の動きは実機の操作で確かめるため。
     不具合と分かったら、手順を添えて不具合のタスクを起票する
-- id: BL-147
-  区分: UX改善
-  タスク内容: >-
-    文字で追加でも「牛乳 2本」を品名「牛乳」と数量「2本」に分ける（UX レビュー B7、オーナー承認済み）。
-    いまの状態。mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt の handleDataEvent（264〜267 行目）は AddByText の文字をそのまま
-    repository.addItem(event.name) に渡し（mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt の addItem、74〜99 行目。数量は品目の既定値だけ）、「牛乳 2本」が品名になる。
-    声では core の QuantityParser.split（core/src/main/kotlin/com/ikumemo/core/voice/QuantityParser.kt、NameAndQuantity を返す）で品名の後ろの数量を分けている（F-01）。
-    どう変えるか（オーナーが承認した案）。AddByText のときだけ QuantityParser.split を通して品名と数量に分け、addItem(name, quantity) に渡す。
-    区切り（「と」「、」）での複数件の分割はしない。「いつもの」チップと入力中の候補（AddProduct）は品名そのままなので通さない。
-    分けた品名が既にメモにあるときは今の R-01 のとおり追加せずに光らせる（既存の項目の数量は書き換えない）。数量だけの入力（例「2本」）で品名が空になるときは分けずにそのまま入れる
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest に、「牛乳 2本」で品名 牛乳・数量 2本 の項目ができること、
-    「牛乳」がメモにあれば追加されず光ること、数量だけの入力のふるまいのテストを足す。QuantityParser を変える必要があれば core/src/test/kotlin/com/ikumemo/core/voice/VoiceTextParserTest に足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*ShoppingListViewModelTest" --tests "*ShoppingRepositoryTest" --tests "*VoiceTextParserTest" が成功する。
-    画面の見た目は変わらないためスクリーンショットの記録し直しは不要。
-    使い方 mobile/src/main/assets/help/text.md に「「牛乳 2本」のように入れると、数も分かれて入ります」を足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の F-03 の行に数量の取り出しを足す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー B7（効果 中）。オーナーが 2026-11-13 に質問の案のとおりで承認した。
-    既存の項目の数量を書き換えないのは既定（R-01 の「同じ物は追加しない」を変えないため）。同じ文字で追加のシートと text.md を触る BL-131 の後に行う
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

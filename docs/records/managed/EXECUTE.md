@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 11:16
+  summary: 文字で追加でも「牛乳 2本」を品名 牛乳 と数量 2本 に分けて入れる
+  details:
+    変更内容: >-
+      BL-147 を実装した（UX レビュー B7、オーナー承認済みの案）。ShoppingListViewModel の handleDataEvent で、AddByText のときだけ
+      core の QuantityParser.split を通して品名と数量に分け、repository.addItem(name, quantity) に渡すようにした。
+      「いつもの」チップと入力中の候補（AddProduct）は品名そのままで変えていない。区切りでの複数件の分割はしない。
+      数量だけの入力（「2本」）は QuantityParser が品名を空にしない既存のふるまいにより、分けずにそのまま品名になる。
+      分けた品名がメモにあるときは R-01 のとおり追加せずに光らせ、既存の項目の数量は書き換えない（ShoppingRepository は変更なし）。
+      ShoppingListViewModelTest に、分けて入ること、メモにある品名は光って数量が変わらないこと、数量だけの入力はそのまま品名になることのテストを足した。
+      QuantityParser は変えていない。使い方 help/text.md に一文を足し、docs/USER_GUIDE.md を作り直した。DESIGN.md の F-03 に数量の取り出しを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/main/assets/help/text.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShoppingListViewModelTest" --tests "*ShoppingRepositoryTest"
+      --tests "*VoiceTextParserTest"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。画面の見た目は変わらないためスクリーンショットは対象外）
+    関連ID:
+      - BL-147
 - date: 2026-11-13 11:11
   summary: メモの項目の編集シートに「メモから外す（やめた）」を足し、スワイプしなくても「やめた」にできるようにする
   details:

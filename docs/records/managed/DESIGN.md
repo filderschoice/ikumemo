@@ -36,7 +36,7 @@
 | PLAN §1.2・§2.7 | アプリアイコン（吹き出し＋お買い物かご）、アダプティブアイコンとテーマアイコン（monochrome） | `mipmap-anydpi-v26/ic_launcher.xml`、`drawable/ic_launcher_foreground.xml` |
 | PLAN §4.3 | Room の 6 テーブル（お店・品目・メモ・お買い物・記録・お知らせ）と DAO、スキーマ JSON の Git 管理 | `data/db/`、`mobile/schemas/` |
 | R-02・PLAN §4.4 | 品名の正規化（NFKC・小文字化・空白除去 → 漢字を読みへ → カタカナをひらがなへ）と自作の読み辞書 | `core/text/ProductNameNormalizer.kt`、`ReadingDictionary.kt`、`DefaultReadings.kt` |
-| F-03 | 文字で追加（追加シート。開くと品名の欄にフォーカスしてキーボードを出す。追加後もシートを開いたままにして続けて入れられる） | `shoppinglist/ItemSheets.kt` の `AddItemSheet` |
+| F-03 | 文字で追加（追加シート。開くと品名の欄にフォーカスしてキーボードを出す。追加後もシートを開いたままにして続けて入れられる。入れた文字は `QuantityParser.split` で品名の後ろの数量を分け、「牛乳 2本」は品名 牛乳・数量 2本 にする。区切りでの複数件の分割はせず、数量だけの入力は分けずにそのまま品名にする。「いつもの」チップと入力中の候補は品名そのまま） | `shoppinglist/ItemSheets.kt` の `AddItemSheet`、`ShoppingListViewModel` の `AddByText` |
 | F-04 | 項目の編集シート（品名・数量・メモ・買うお店・写真。閉じると保存）。下に「閉じる」と、区切り線をはさんで別の行に「メモから外す（やめた）」（48dp 以上）。外すとシートを閉じてからスワイプと同じ「やめた」にし、シートで直した内容は保存しない（BL-146）。各欄のマイクは下の F-04・R-32 の行 | `shoppinglist/EditItemSheet.kt` |
 | F-07・R-15 | 写真は「撮る」（標準カメラ＋FileProvider）と「選ぶ」（Photo Picker）。`filesDir/photos/` へ長辺 1600px・Exif 無しの JPEG で保存し（元の写真が読めない・消えた・権限が切れた・保存に失敗したときは落とさず取り込まない）、「買った」では同じファイルを記録から参照。メモの行に写真ありの印 | `data/PhotoStore.kt`、`EditItemSheet.kt` |
 | R-14 | 使われなくなった写真の掃除。メモ・お買い物・記録のどれからも参照されていない写真を WorkManager で 1 日 1 回消す（端末を使っていない間・電池残量が少なくない時に限り、「元に戻す」を待つ写真を消さない。記録を消した後の元に戻す（F-16）も、写真のファイルは消さず参照が戻るだけのため同じ理由で足りる）。書いてから 1 日未満の写真は保存前の可能性があるため残す | `data/PhotoCleaner.kt`、`data/PhotoCleanupWorker.kt`、`PhotoDao` |

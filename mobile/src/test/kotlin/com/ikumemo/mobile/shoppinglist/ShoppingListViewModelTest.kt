@@ -76,6 +76,58 @@ class ShoppingListViewModelTest {
             }
         }
 
+    /** 文字で追加でも品名の後ろの数量を分ける（BL-147）。 */
+    @Test
+    fun addByTextSplitsQuantityFromName() =
+        runTest {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.loaded }
+                viewModel.onEvent(ShoppingListEvent.AddByText("牛乳 2本"))
+
+                val item = awaitUntil { it.items.size == 1 }.items.single()
+
+                assertEquals("牛乳", item.displayName)
+                assertEquals("2本", item.quantity)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    /** 分けた品名がメモにあれば追加せずに光らせ、既存の数量は書き換えない（R-01、BL-147）。 */
+    @Test
+    fun addByTextWithQuantityHighlightsExistingItem() =
+        runTest {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.loaded }
+                viewModel.onEvent(ShoppingListEvent.AddByText("牛乳"))
+                val existing = awaitUntil { it.items.size == 1 }.items.single()
+
+                viewModel.onEvent(ShoppingListEvent.AddByText("牛乳 2本"))
+                val state = awaitUntil { it.message != null && it.highlightedItemId != null }
+
+                assertEquals(1, state.items.size)
+                assertEquals(existing.id, state.highlightedItemId)
+                assertNull(state.items.single().quantity)
+                assertEquals(HomeMessage.AlreadyInMemo("牛乳"), state.message)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    /** 数量だけの入力は品名が空になるため、分けずにそのまま品名にする（BL-147）。 */
+    @Test
+    fun addByTextWithOnlyQuantityKeepsWholeTextAsName() =
+        runTest {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.loaded }
+                viewModel.onEvent(ShoppingListEvent.AddByText("2本"))
+
+                val item = awaitUntil { it.items.size == 1 }.items.single()
+
+                assertEquals("2本", item.displayName)
+                assertNull(item.quantity)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
     @Test
     fun addingSameProductHighlightsExistingItemAndShowsMessage() =
         runTest {
