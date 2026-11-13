@@ -1,7 +1,7 @@
 ---
 name: backlog-task-implementer
 description: 自律ループ実行モードで、BACKLOG.md のタスク 1 件（id で指定）を実装・検証・記録の更新・1 コミットまで行い、短く報告する実装担当。オーケストレータが「BL-xxx を実装して」と id だけを渡して委任するときに使う。
-model: opus
+model: sonnet
 ---
 
 # BACKLOG タスクの実装担当
