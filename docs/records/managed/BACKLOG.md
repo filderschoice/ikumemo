@@ -163,30 +163,6 @@
   根拠: >-
     2026-11-13 の UX レビュー B5（効果 中）。オーナーが 2026-11-13 に質問の案のとおりで承認した。
     データの画面を組み替える BL-134 の後に行う（同じ DataContent の並びを触るため）
-- id: BL-140
-  区分: UX改善
-  タスク内容: >-
-    初めて期限を決めた直後に出す、通知の許可を求める説明を具体的にする（UX レビュー A11）。
-    対象は mobile/src/main/kotlin/com/ikumemo/mobile/reminder/NotificationPermission.kt の Dialog（58〜75 行目）と、
-    mobile/src/main/res/values/strings.xml の 100〜102 行目（reminder_permission_rationale・reminder_permission_allow・reminder_permission_later）。
-    いまの状態。見出しなしで「期限が近づいたら、お知らせします。」と「お知らせを受け取る／今はしない」だけで、この後に端末の許可ダイアログが出ることも、いつ届くかも書いていない。
-    どう変えるか。見出し「通知を使います」、本文「期限の前の日の 9:00 に、スマートフォンの通知でお知らせします。次の画面で『許可』を押してください。」
-    （時刻は設定値。BL-143 で ReminderUiState に持たせた時刻を使う）。ボタンは「次へ」と「今はしない」。説明を出す条件（Android 13 以降・初めて期限を決めたとき・案内からは 2 回まで）は変えない
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    説明のダイアログを引数（時刻・押したときの処理）だけで描ける composable に分け、mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/NotificationRationaleTest（新設）で、
-    見出し・設定した時刻を含む本文・「次へ」を押すと許可を求める処理が呼ばれることを確かめる。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*NotificationRationaleTest" --tests "*ReminderViewModelTest" が成功する。
-    ダイアログはスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/ を「許可」「通知」で Grep し（2026-11-13 時点では due.md・not-arriving.md に通知の許可を求める流れの記述は無い）、
-    due.md に「初めて決めたときに、通知の許可を求めます」を足して python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の「PLAN §5・R-29」の行（説明の文言）を合わせる
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー A11（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
-    お知らせ画面の状態へ通知の時刻を持たせる BL-143 の後に行い、時刻の読み込みを二重に作らない
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

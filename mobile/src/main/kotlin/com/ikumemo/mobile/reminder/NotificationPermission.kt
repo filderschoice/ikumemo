@@ -18,12 +18,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.settings.formatReminderTime
+import java.time.LocalTime
 
 /** Android 13 以降で 2 回断られた後は、端末の設定のこのアプリの画面を開く（R-29）。 */
 private const val MAX_PERMISSION_REQUESTS = 2
 
 /**
- * 通知の許可の求め方（PLAN §5）。初めて期限を決めた時に「期限が近づいたら、おしらせします。」を添えて求める。
+ * 通知の許可の求め方（PLAN §5）。初めて期限を決めた時に [NotificationRationaleDialog] の説明を出してから求める。
  * 通知オフの案内の「通知をオンにする」では、2 回までは許可を求め、それより後は端末の設定を開く。
  */
 class NotificationPermission internal constructor(
@@ -59,20 +61,38 @@ class NotificationPermission internal constructor(
     fun Dialog() {
         var visible by showRationale
         if (!visible) return
-        AlertDialog(
-            onDismissRequest = { visible = false },
-            text = { Text(stringResource(R.string.reminder_permission_rationale)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    visible = false
-                    request()
-                }) { Text(stringResource(R.string.reminder_permission_allow)) }
+        NotificationRationaleDialog(
+            time = state.notifyTime,
+            onNext = {
+                visible = false
+                request()
             },
-            dismissButton = {
-                TextButton(onClick = { visible = false }) { Text(stringResource(R.string.reminder_permission_later)) }
-            },
+            onLater = { visible = false },
         )
     }
+}
+
+/**
+ * 通知の許可を求める前の説明（PLAN §5・BL-140）。見出し・お知らせが届く時刻・この後に端末の許可の画面が出ることを伝える。
+ * 「次へ」で [onNext]（端末の許可を求める）、「今はしない」と外側を押したときは [onLater]。
+ */
+@Composable
+fun NotificationRationaleDialog(
+    time: LocalTime,
+    onNext: () -> Unit,
+    onLater: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onLater,
+        title = { Text(stringResource(R.string.reminder_permission_title)) },
+        text = { Text(stringResource(R.string.reminder_permission_rationale, formatReminderTime(time))) },
+        confirmButton = {
+            TextButton(onClick = onNext) { Text(stringResource(R.string.reminder_permission_next)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onLater) { Text(stringResource(R.string.reminder_permission_later)) }
+        },
+    )
 }
 
 @Composable

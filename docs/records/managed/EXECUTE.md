@@ -5,6 +5,35 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:55
+  summary: 通知の許可を求める前の説明に見出しと届く時刻と次の画面の案内を出す
+  details:
+    変更内容: >-
+      BL-140 を実装した（UX レビュー A11）。NotificationPermission.kt の説明のダイアログを、時刻と押したときの処理だけを引数に取る
+      NotificationRationaleDialog に分け、見出し「通知を使います」、本文「期限の前の日の（時刻）に、スマートフォンの通知でお知らせします。
+      次の画面で『許可』を押してください。」、ボタン「次へ」と「今はしない」にした。時刻は BL-143 で ReminderUiState に持たせた notifyTime を
+      formatReminderTime（例 9:00）で出す。文言は strings.xml の reminder_permission_title・reminder_permission_rationale（時刻の引数付きに変更）・
+      reminder_permission_next（旧 reminder_permission_allow を置き換え）。説明を出す条件（Android 13 以降・初めて期限を決めたとき・案内からは 2 回まで）は変えていない。
+      使い方 help/due.md に初めて決めたときに通知の許可を求めることを足し、docs/USER_GUIDE.md を作り直した。
+      NotificationRationaleTest を新設し、見出し・設定した時刻を含む本文・「次へ」で許可を求める処理が呼ばれること・「今はしない」では呼ばれないことを確かめた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/NotificationPermission.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/due.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/NotificationRationaleTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*NotificationRationaleTest" --tests "*ReminderViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目は新設のテストの行の長さで ktlint が失敗し、行を分けた 2 回目で ktlint・detekt・compile・指定のテストクラス
+      （NotificationRationaleTest 3 件・ReminderViewModelTest 10 件）・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。ダイアログはスクリーンショットテストの対象外）
+    関連ID:
+      - BL-140
 - date: 2026-11-13 10:48
   summary: 設定の一覧に見出しの区切りと各行の 1 行の説明を付ける
   details:

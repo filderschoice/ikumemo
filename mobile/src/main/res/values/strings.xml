@@ -106,8 +106,9 @@
     <string name="reminder_discarded">捨てた</string>
     <string name="reminder_notifications_off">通知がオフのため、お知らせが届きません</string>
     <string name="reminder_enable_notifications">通知をオンにする</string>
-    <string name="reminder_permission_rationale">期限が近づいたら、お知らせします。</string>
-    <string name="reminder_permission_allow">お知らせを受け取る</string>
+    <string name="reminder_permission_title">通知を使います</string>
+    <string name="reminder_permission_rationale">期限の前の日の %1$s に、スマートフォンの通知でお知らせします。次の画面で『許可』を押してください。</string>
+    <string name="reminder_permission_next">次へ</string>
     <string name="reminder_permission_later">今はしない</string>
     <string name="notification_channel_due">期限のお知らせ</string>
     <string name="notification_channel_due_description">決めた期限の前の日と当日にお知らせします</string>
