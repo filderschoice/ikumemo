@@ -213,25 +213,6 @@
     2026-11-13 の UX レビュー A10（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     既定で決めた点。レビューの区切りは「困ったとき」に使い方を入れていたが、DESIGN の H-01 と BL-143（使い方は上に残す）に合わせ、使い方は見出し無しで一番上に残す（項目と行き先を変えないため安全）。
     項目を減らす BL-143 の後に行う
-- id: BL-138
-  区分: UX改善
-  タスク内容: >-
-    設定の「着せ替え」で、文字の大きさを一番上に移す（UX レビュー A9）。
-    対象は mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt の AppearanceContent（72〜120 行目）。
-    いまの並びは テーマ（81〜95 行目）→ 背景の写真（BackgroundSection、96 行目）→ 暗い画面（97〜107 行目）→ 文字の大きさ（108〜118 行目）で、
-    文字を大きくしたい人ほど小さい文字のままスクロールして一番下を探すことになる。
-    どう変えるか。文字の大きさ → テーマ → 暗い画面 → 背景の写真 の順にする（背景の写真は選ぶと膜の濃さ・ペンの色が増えるので最後）。各部品の中身と testTag は変えない
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest に、文字の大きさの選択肢がテーマの見本より上にある（表示位置の比較）テストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*AppearanceContentTest" が成功する。
-    着せ替えの画面はスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/ の text-size.md・theme.md・background.md・dark.md には並び順の記述が無い（2026-11-13 に確認）ため変えない。
-    docs/records/managed/DESIGN.md の「F-60・F-63・F-65」の行に並び順を足す
-  依存: []
-  根拠: 2026-11-13 の UX レビュー A9（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

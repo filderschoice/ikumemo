@@ -66,7 +66,7 @@ fun AppearanceScreen(
     }
 }
 
-/** きせかえ（F-60 プレビュー付きのカードでテーマを選ぶ、F-61 背景の写真、F-63 暗い画面、F-65 文字の大きさ）。 */
+/** きせかえ（F-65 文字の大きさ → F-60 プレビュー付きのカードでテーマを選ぶ → F-63 暗い画面 → F-61 背景の写真 の順）。 */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppearanceContent(
@@ -78,6 +78,19 @@ fun AppearanceContent(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // 文字を大きくしたい人がスクロールせずに見つけられるよう、文字の大きさを一番上に置く。
+        // 背景の写真は選ぶと膜の濃さ・ペンの色が増えるので最後に置く
+        SectionTitle(R.string.appearance_text_size)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextSizeSetting.entries.forEach { size ->
+                FilterChip(
+                    selected = size == appearance.textSize,
+                    onClick = { onEvent(AppearanceEvent.SelectTextSize(size)) },
+                    label = { Text(stringResource(size.label()), fontSize = (BASE_SAMPLE_SP * size.multiplier).sp) },
+                    modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.textSize(size)),
+                )
+            }
+        }
         SectionTitle(R.string.appearance_theme)
         // 言葉ではなく見た目で選べるよう、各テーマの色で小さな画面の見本を描く
         FlowRow(
@@ -93,7 +106,6 @@ fun AppearanceContent(
                 )
             }
         }
-        BackgroundSection(appearance = appearance, onEvent = onEvent)
         SectionTitle(R.string.appearance_dark_mode)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DarkMode.entries.forEach { mode ->
@@ -105,17 +117,7 @@ fun AppearanceContent(
                 )
             }
         }
-        SectionTitle(R.string.appearance_text_size)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextSizeSetting.entries.forEach { size ->
-                FilterChip(
-                    selected = size == appearance.textSize,
-                    onClick = { onEvent(AppearanceEvent.SelectTextSize(size)) },
-                    label = { Text(stringResource(size.label()), fontSize = (BASE_SAMPLE_SP * size.multiplier).sp) },
-                    modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.textSize(size)),
-                )
-            }
-        }
+        BackgroundSection(appearance = appearance, onEvent = onEvent)
     }
 }
 

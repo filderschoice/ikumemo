@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:37
+  summary: 着せ替えの画面で文字の大きさを一番上に移し、テーマ・暗い画面・背景の写真の順に並べ替える
+  details:
+    変更内容: >-
+      BL-138 を実装した。settings/AppearanceScreen.kt の AppearanceContent の並びを
+      テーマ → 背景の写真 → 暗い画面 → 文字の大きさ から、文字の大きさ → テーマ → 暗い画面 → 背景の写真 に変えた
+      （背景の写真は選ぶと膜の濃さ・ペンの色が増えるので最後）。各部品の中身と testTag は変えていない。
+      AppearanceContentTest に、文字の大きさ・テーマの見本・暗い画面・背景の写真の縦位置（positionInRoot）がこの順に並ぶテストを足した。
+      着せ替えの画面はスクリーンショットテストの対象外で、使い方 help/ には並び順の記述が無いため変えていない。
+      DESIGN.md の F-60・F-63・F-65 の行に並び順を足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*AppearanceContentTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-138
 - date: 2026-11-13 10:32
   summary: 記録の画面で買い物の点を大きくし、別の月から今日へ戻る「今日」と文字付きの「探す」を出す
   details:
