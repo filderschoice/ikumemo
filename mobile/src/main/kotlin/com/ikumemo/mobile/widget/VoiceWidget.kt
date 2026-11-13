@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.speech.SpeechRecognizer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
@@ -48,9 +50,12 @@ class VoiceWidget : GlanceAppWidget() {
         context: Context,
         id: GlanceId,
     ) {
-        val colors = WidgetColors.load(context)
+        val firstColors = WidgetColors.load(context)
         val available = SpeechRecognizer.isRecognitionAvailable(context)
-        provideContent { VoiceWidgetContent(colors, available, launchIntent(context, available)) }
+        provideContent {
+            val colors by WidgetColors.observe(context).collectAsState(firstColors)
+            VoiceWidgetContent(colors, available, launchIntent(context, available))
+        }
     }
 
     companion object {
@@ -92,7 +97,7 @@ private fun VoiceWidgetContent(
         GlanceModifier
             .fillMaxSize()
             .background(colors.primary)
-            .cornerRadius(16.dp)
+            .cornerRadius(colors.corners.medium.dp)
             .clickable(actionStartActivity(intent))
             .semantics { contentDescription = description }
     val text = LocalContext.current.getString(label)

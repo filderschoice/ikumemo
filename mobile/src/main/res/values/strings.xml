@@ -239,6 +239,12 @@
     <string name="appearance_background">背景の写真</string>
     <string name="appearance_background_pick">写真を選ぶ</string>
     <string name="appearance_background_remove">外す</string>
+    <string name="appearance_ink">文字の色（ペンの色）</string>
+    <string name="appearance_ink_auto">おまかせ</string>
+    <string name="appearance_ink_black">くろ</string>
+    <string name="appearance_ink_blue">あお</string>
+    <string name="appearance_ink_red">あか</string>
+    <string name="appearance_ink_white">しろ</string>
     <string name="appearance_scrim">写真の上の膜の濃さ（濃いほど文字が読みやすい）</string>
     <string name="appearance_dark_mode">暗い画面</string>
     <string name="appearance_dark_system">端末に合わせる</string>
@@ -266,6 +272,7 @@
     <string name="widget_memo_due_soon">🔔期限が近い %1$d件</string>
     <string name="widget_memo_store">🏪 %1$s で買う</string>
     <string name="widget_memo_more">ほか%1$d件</string>
+    <string name="widget_memo_refresh">メモ一覧を更新</string>
     <string name="widget_memo_empty">メモは空です</string>
     <string name="widget_memo_bullet">・%1$s</string>
     <string name="widget_memo_preview_count">🛒メモ 5件</string>

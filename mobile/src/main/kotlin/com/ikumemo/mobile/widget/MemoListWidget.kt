@@ -1,17 +1,28 @@
 package com.ikumemo.mobile.widget
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -23,17 +34,23 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.width
+import androidx.glance.semantics.contentDescription
+import androidx.glance.semantics.semantics
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import com.ikumemo.mobile.IkumemoApplication
 import com.ikumemo.mobile.MainActivity
 import com.ikumemo.mobile.R
+import kotlinx.coroutines.delay
 
 /**
  * メモ一覧ウィジェット（W-02、4×2〜4×4、表示専用）。高さ 2 マスでは先頭の品名を横に数件、3 マス以上では
@@ -47,9 +64,16 @@ class MemoListWidget : GlanceAppWidget() {
         id: GlanceId,
     ) {
         val container = (context.applicationContext as IkumemoApplication).container
-        val colors = WidgetColors.load(context)
-        val state = MemoWidgetState.load(container)
-        provideContent { MemoListContent(state, colors) }
+        // 描き直しの要求で provideGlance は呼び直されないことがある（表示中のセッションが再利用される）。
+        // 内容は最初に 1 回読むだけでなく、表示している間じゅう流れてくる最新の値を使う
+        val firstColors = WidgetColors.load(context)
+        val firstState = MemoWidgetState.load(container)
+        provideContent {
+            val colors by WidgetColors.observe(context).collectAsState(firstColors)
+            val state by MemoWidgetState.observe(container).collectAsState(firstState)
+            val refreshing by WidgetRefreshState.refreshing.collectAsState()
+            MemoListContent(state, colors, refreshing)
+        }
     }
 
     companion object {
@@ -70,6 +94,7 @@ class MemoListWidget : GlanceAppWidget() {
 fun MemoListContent(
     state: MemoWidgetState,
     colors: WidgetColors,
+    refreshing: Boolean = false,
 ) {
     val context = LocalContext.current
     val size = LocalSize.current
@@ -79,12 +104,14 @@ fun MemoListContent(
         modifier =
             GlanceModifier
                 .fillMaxSize()
-                .background(colors.surface)
-                .cornerRadius(16.dp)
+                .background(colors.background)
+                .cornerRadius(colors.corners.large.dp)
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.OPEN_MEMO))),
     ) {
-        MemoHeader(state, colors)
+        MemoHeader(state, colors, refreshing)
+        // 見出しの下の太めの線（メモ帳の上端）
+        Rule(colors.primary, HEADER_RULE)
         when {
             state.items.isEmpty() -> EmptyMemo(colors)
             large -> MemoColumn(state, colors, wide)
@@ -98,6 +125,7 @@ fun MemoListContent(
 private fun MemoHeader(
     state: MemoWidgetState,
     colors: WidgetColors,
+    refreshing: Boolean,
 ) {
     val context = LocalContext.current
     Row(
@@ -106,13 +134,13 @@ private fun MemoHeader(
     ) {
         Text(
             context.getString(R.string.widget_memo_title),
-            style = TextStyle(color = colors.primary, fontWeight = FontWeight.Bold),
+            style = TextStyle(color = colors.onBackground, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
         Spacer(GlanceModifier.width(8.dp))
         Text(
             context.getString(R.string.widget_memo_count, state.items.size),
-            style = TextStyle(color = colors.onSurface),
+            style = TextStyle(color = colors.onBackground),
             maxLines = 1,
         )
         if (state.dueSoonCount > 0) {
@@ -130,6 +158,58 @@ private fun MemoHeader(
                     maxLines = 1,
                 )
             }
+        }
+        Spacer(GlanceModifier.defaultWeight())
+        RefreshButton(colors, refreshing)
+    }
+}
+
+/** 更新ボタン。メモを足した直後に反映されないときのため、押すとその場で描き直す。 */
+@Composable
+private fun RefreshButton(
+    colors: WidgetColors,
+    refreshing: Boolean,
+) {
+    val description = LocalContext.current.getString(R.string.widget_memo_refresh)
+    Box(
+        modifier =
+            GlanceModifier
+                .size(TAP_HEIGHT)
+                .clickable(actionRunCallback<RefreshMemoAction>())
+                .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (refreshing) {
+            // 描き直している間は、矢印の代わりに回る表示を出す
+            CircularProgressIndicator(modifier = GlanceModifier.size(REFRESH_ICON), color = colors.primary)
+        } else {
+            Image(
+                ImageProvider(R.drawable.ic_widget_refresh),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(colors.primary),
+                modifier = GlanceModifier.size(REFRESH_ICON),
+            )
+        }
+    }
+}
+
+/** 更新ボタンが押された。ウィジェット全体を描き直す（アプリが止まっていても動く）。 */
+class RefreshMemoAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        // 押した直後に回る表示を出し、描き直しが終わっても一瞬は見えるよう最低限の時間は回す
+        WidgetRefreshState.set(true)
+        try {
+            MemoListWidget().update(context, glanceId)
+            val started = SystemClock.elapsedRealtime()
+            (context.applicationContext as IkumemoApplication).container.widgetUpdater.refresh()
+            val rest = MIN_SPIN_MILLIS - (SystemClock.elapsedRealtime() - started)
+            if (rest > 0) delay(rest)
+        } finally {
+            WidgetRefreshState.set(false)
         }
     }
 }
@@ -158,7 +238,7 @@ private fun MemoRow(
     Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             names,
-            style = TextStyle(color = colors.onSurface),
+            style = TextStyle(color = colors.onBackground),
             maxLines = 1,
             modifier = GlanceModifier.defaultWeight(),
         )
@@ -189,11 +269,25 @@ private fun MemoColumn(
             modifier = GlanceModifier.padding(bottom = 4.dp),
         )
     }
-    LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-        items(state.items, itemId = { it.id }) { item ->
-            MemoLine(item, colors, wide)
+    // 左の余白の縦線と、行ごとの横罫線（メモ帳風）
+    Row(modifier = GlanceModifier.fillMaxSize()) {
+        Box(modifier = GlanceModifier.width(MARGIN_RULE).fillMaxHeight().background(colors.rule)) {}
+        LazyColumn(modifier = GlanceModifier.fillMaxSize().padding(start = 6.dp)) {
+            items(state.items, itemId = { it.id }) { item ->
+                // 1 項目につき根は 1 つにする（行と罫線をまとめる）
+                Column(modifier = GlanceModifier.fillMaxWidth()) { MemoLine(item, colors, wide) }
+            }
         }
     }
+}
+
+/** 横線 1 本（[thickness] の高さ）。 */
+@Composable
+private fun Rule(
+    color: ColorProvider,
+    thickness: Dp = LINE_RULE,
+) {
+    Box(modifier = GlanceModifier.fillMaxWidth().height(thickness).background(color)) {}
 }
 
 @Composable
@@ -209,7 +303,7 @@ private fun MemoLine(
             .fillMaxWidth()
             .height(TAP_HEIGHT)
             .clickable(actionStartActivity(MainActivity.itemIntent(context, item.id)))
-    val nameStyle = TextStyle(color = colors.onSurface)
+    val nameStyle = TextStyle(color = colors.onBackground)
     val quantityStyle = TextStyle(color = colors.onSurfaceVariant)
     if (wide || item.quantity == null) {
         Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -223,12 +317,23 @@ private fun MemoLine(
             Text(item.quantity, style = quantityStyle, maxLines = 1, modifier = GlanceModifier.padding(start = 12.dp))
         }
     }
+    Rule(colors.rule)
 }
 
 private fun MemoWidgetItem.label(): String = quantity?.let { "$name $it" } ?: name
 
 /** タップできる部分の高さ（48dp 以上、PLAN §2.11）。 */
 private val TAP_HEIGHT = 48.dp
+
+private val REFRESH_ICON = 24.dp
+
+/** 更新ボタンの回る表示を出す最低限の時間（ミリ秒）。描き直しが一瞬で終わっても回ったと分かるように。 */
+private const val MIN_SPIN_MILLIS = 800L
+
+/** メモ帳の線の太さ（見出しの下・行の下・左の余白）。 */
+private val HEADER_RULE = 2.dp
+private val LINE_RULE = 1.dp
+private val MARGIN_RULE = 2.dp
 
 private const val NAME_SEPARATOR = "　"
 

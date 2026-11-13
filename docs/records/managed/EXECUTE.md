@@ -5,6 +5,137 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-10-25 22:29
+  summary: ウィジェットの色と角の丸みを本体のテーマに合わせる
+  details:
+    変更内容: >-
+      本体の画面は background と onBackground、テーマごとの角の丸み（CornerSet）で描いているのに、ウィジェットは surface と固定の 16dp だった。
+      WidgetColors に background・onBackground と corners（テーマの角の丸み）を足し、メモ一覧は background と onBackground、角は large、見出しの
+      「いくメモ」は本体のタイトルと同じ文字色（onBackground）にした。1×1 の角は medium。色の値そのものは本体のパレットと同じものを
+      ライト・ダークとも使っている。背景の写真とペンの色はウィジェットには使わない（既存の方針）
+    変更ファイル:
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/VoiceWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 既存のウィジェットのテストが通る。実機での見た目の比較は BL-106 に含めて確認する
+    関連ID:
+      - BL-112
+- date: 2026-10-25 22:24
+  summary: ウィジェットの更新中に回る表示を出す。1×1 の「話して追加」で足したメモが 4×4 に反映されない不具合を直す
+  details:
+    変更内容: >-
+      原因は Glance のセッションの再利用だった。メモ一覧ウィジェットは provideGlance でメモと色を 1 回だけ読んでいたため、表示中のセッションが
+      生きている間は updateAll や更新ボタンを押しても内容が古いままだった（反映の時機がまちまちだった理由でもある）。provideContent の中で
+      MemoWidgetState.observe・WidgetColors.observe（新設）を collectAsState して、最新の値で描き直すようにした。1×1 の色も同様。
+      更新ボタンは押すと矢印を回る表示（CircularProgressIndicator）に替え、WidgetRefreshState（新設）で状態を持ち、描き直しが一瞬で終わっても
+      0.8 秒は回す
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/VoiceWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetRefreshState.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - MemoListWidgetTest に更新中の表示の 1 件を追加。Glance のセッションの挙動は単体テストで再現できないため、
+      実機での反映の確認は人手検証（BL-111）
+    関連ID:
+      - BL-110
+      - BL-111
+- date: 2026-10-25 21:08
+  summary: 背景の写真の上の文字が見えないときのために、ペンの色（おまかせ・くろ・あお・あか・しろ）を選べるようにする
+  details:
+    変更内容: >-
+      きせかえの「背景の写真」に「文字の色（ペンの色）」を足した。選ぶと写真の上に直接置く文字（onBackground と LocalContentColor）をその色にし、
+      色に合わせて膜の色も変える（くろ・あお・あかは明るい膜、しろは暗い膜。文字との比は 4.5:1 以上）。暗い写真でテーマの黒い文字が沈む問題は、
+      しろを選べば解消する。背景の写真が無いときと おまかせ のときは今までどおり。保存キーは appearance_ink で、データの書き出し・読み込みの設定にも
+      入れた（古いファイルは おまかせ に戻る）。メモの行・バー・下タブなどテーマの面の上の文字は変えない。
+      detekt の指摘（メンバー名が型名と同じ）は名前を変えて解消した（設定は変えない）。使い方・DESIGN・WIREFRAME に反映した
+    変更ファイル:
+      - docs/USER_GUIDE.md
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/assets/help/background.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/BackgroundScrim.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/InkColor.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/InkColorTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - 追加は InkColorTest 3 件（各ペンの色と膜の比が 4.5:1 以上、おまかせは色を変えない、未知の保存値は おまかせ）と
+      AppearanceViewModelTest 1 件（ペンの色の保存）。FlowRow の実験的 API の注釈を足した。スクリーンショットテストの対象画面（メモ・カレンダー・
+      おしらせ）は変わらないため流していない。実機での全画面の見え方は人手検証（BL-109）
+    関連ID:
+      - BL-108
+      - BL-109
+- date: 2026-10-25 20:57
+  summary: メモ一覧ウィジェットをメモ帳風にする（見出しの下の線・行ごとの罫線・左の余白の縦線）
+  details:
+    変更内容: >-
+      裏紙のような平らな表示に、メモ帳の線を足した。見出しの下にテーマ色の 2dp の線、大きい表示の各行の下にうすい 1dp の横罫線（onSurfaceVariant の
+      透明度 0.35、WidgetColors.rule）、一覧の左に 2dp の余白の縦線。色はテーマと暗い画面に追従する。1 項目の根を 1 つにするため行と罫線を Column にまとめた。
+      レイアウトの指定は PLAN・設計書に無かったため、この形を既定として選んだ（DESIGN に記録）
+    変更ファイル:
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 既存の MemoListWidgetTest（文言・タップ先）が通る。線の見え方は実機での確認が要る（BL-106 に含めて確認する）
+    関連ID:
+      - BL-107
+- date: 2026-10-25 18:35
+  summary: メモ一覧ウィジェットの見出しに更新ボタンを追加（メモを足した直後に反映されないときに、押してその場で描き直せる）
+  details:
+    変更内容: >-
+      メモ一覧ウィジェット（MemoListWidget）の見出しの右端に、48dp の更新ボタン（Material の refresh 形、テーマ色）を足した。押すと RefreshMemoAction
+      （Glance の ActionCallback）が WidgetUpdater.refresh を呼び、メモ一覧と 1×1 の両方を描き直す。空のメモでも、どの大きさでも出す。
+      読み上げ用に「メモ一覧を更新」の説明を付けた。使い方の「2 つのウィジェット」と DESIGN の W-02 に反映した
+    変更ファイル:
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/assets/help/widgets.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/res/drawable/ic_widget_refresh.xml
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+    検証コマンド: >-
+      ./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug、
+      npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/validate-records.py、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - MemoListWidgetTest に更新ボタンの有無（小・大・空）の 1 件を追加。途中で ktlint の import 順を ktlintFormat で直し、
+      glance の hasRunCallbackClickAction が internal だったため説明文での照合に変えた。幅が狭いときの見出しの収まりと実機の描き直しは
+      人手検証（BL-106）
+    関連ID:
+      - BL-105
+      - BL-106
 - date: 2026-10-25 20:10
   summary: データの書き出し・読み込み（F-72）。ZIP（写真つき）・JSON・CSV（記録だけ）で書き出し、ZIP と JSON を読み込んで置き換える
   details:

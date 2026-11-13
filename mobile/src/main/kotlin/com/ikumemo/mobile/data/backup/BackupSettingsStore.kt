@@ -7,6 +7,7 @@ import com.ikumemo.mobile.data.OperationPrefs
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
 import kotlinx.coroutines.flow.first
@@ -31,6 +32,7 @@ class BackupSettingsStore(
             darkMode = appearance.darkMode.storageKey,
             textSize = appearance.textSize.storageKey,
             scrimLevel = appearance.scrimLevel,
+            ink = appearance.ink.storageKey,
             backgroundImage = appearance.backgroundImage,
             showBoughtButton = operation.showBoughtButton,
             vibration = operation.vibration,
@@ -45,6 +47,7 @@ class BackupSettingsStore(
         appearancePrefs.setDarkMode(DarkMode.fromStorageKey(settings.darkMode))
         appearancePrefs.setTextSize(TextSizeSetting.fromStorageKey(settings.textSize))
         appearancePrefs.setScrimLevel(BackgroundScrim.clamp(settings.scrimLevel ?: BackgroundScrim.DEFAULT))
+        appearancePrefs.setInk(InkColor.fromStorageKey(settings.ink))
         appearancePrefs.setBackgroundImage(settings.backgroundImage)
         operationPrefs.setShowBoughtButton(settings.showBoughtButton ?: true)
         operationPrefs.setVibration(settings.vibration ?: true)

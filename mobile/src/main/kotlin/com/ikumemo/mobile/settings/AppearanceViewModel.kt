@@ -7,6 +7,7 @@ import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.data.AppearancePrefs
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,6 +40,11 @@ sealed interface AppearanceEvent {
     data class SetScrimLevel(
         val level: Float,
     ) : AppearanceEvent
+
+    /** 背景の写真の上の文字の色（ペンの色）。 */
+    data class SelectInk(
+        val ink: InkColor,
+    ) : AppearanceEvent
 }
 
 /**
@@ -61,6 +67,7 @@ class AppearanceViewModel(
                 is AppearanceEvent.PickBackground -> backgroundStore.import(event.source)?.let { replaceBackground(it) }
                 AppearanceEvent.RemoveBackground -> replaceBackground(null)
                 is AppearanceEvent.SetScrimLevel -> prefs.setScrimLevel(event.level)
+                is AppearanceEvent.SelectInk -> prefs.setInk(event.ink)
             }
         }
     }

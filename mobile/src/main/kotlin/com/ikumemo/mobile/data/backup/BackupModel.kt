@@ -105,6 +105,7 @@ data class BackupSettings(
     val darkMode: String? = null,
     val textSize: String? = null,
     val scrimLevel: Float? = null,
+    val ink: String? = null,
     val backgroundImage: String? = null,
     val showBoughtButton: Boolean? = null,
     val vibration: Boolean? = null,

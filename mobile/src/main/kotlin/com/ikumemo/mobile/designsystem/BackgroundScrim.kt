@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
@@ -37,12 +38,14 @@ object BackgroundScrim {
 /**
  * 背景画像（`filesDir` からの相対パス [image]）と膜を画面いっぱいに描く。画面端までの表示（PLAN §4.2）のため、
  * システムバーの下まで回り込ませる。読めない画像なら膜だけになり、テーマの背景色が透けて見える。
+ * [scrimColor] はペンの色（[InkColor]）に合わせた膜の色で、null ならテーマの背景色。
  */
 @Composable
 fun AppBackground(
     image: String,
     scrimLevel: Float,
     darkTheme: Boolean,
+    scrimColor: Color? = null,
 ) {
     val context = LocalContext.current
     val file = remember(image) { File(context.filesDir, image) }
@@ -57,7 +60,11 @@ fun AppBackground(
         Box(
             Modifier
                 .fillMaxSize()
-                .background(colors.background.copy(alpha = BackgroundScrim.effectiveAlpha(scrimLevel, darkTheme))),
+                .background(
+                    (scrimColor ?: colors.background).copy(
+                        alpha = BackgroundScrim.effectiveAlpha(scrimLevel, darkTheme),
+                    ),
+                ),
         )
     }
 }

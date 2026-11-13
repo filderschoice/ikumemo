@@ -6,6 +6,7 @@ import androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
 import androidx.glance.appwidget.testing.unit.hasStartActivityClickAction
 import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
 import androidx.glance.testing.unit.hasAnyDescendant
+import androidx.glance.testing.unit.hasContentDescriptionEqualTo
 import androidx.glance.testing.unit.hasText
 import androidx.glance.testing.unit.hasTextEqualTo
 import androidx.test.core.app.ApplicationProvider
@@ -93,5 +94,27 @@ class MemoListWidgetTest {
             onNode(hasTextEqualTo("🛒メモ 0件")).assertExists()
             onAllNodes(hasText("期限が近い")).assertCountEquals(0)
             onNode(hasStartActivityClickAction(MainActivity.intent(context, MainActivity.OPEN_MEMO))).assertExists()
+        }
+
+    @Test
+    fun refreshButtonIsShownInEverySizeEvenWhenEmpty() {
+        listOf(MemoListWidget.SMALL, MemoListWidget.LARGE).forEach { size ->
+            render(fiveItems, size) {
+                onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+            }
+        }
+        render(MemoWidgetState(), MemoListWidget.LARGE) {
+            onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+        }
+    }
+
+    @Test
+    fun refreshingKeepsTheButtonAreaAndTheList() =
+        runGlanceAppWidgetUnitTest {
+            setContext(context)
+            setAppWidgetSize(MemoListWidget.LARGE)
+            provideComposable { MemoListContent(fiveItems, colors, refreshing = true) }
+            onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+            onNode(hasTextEqualTo("・洗剤")).assertExists()
         }
 }
