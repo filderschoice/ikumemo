@@ -5,6 +5,36 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:01
+  summary: 期限を決めるシートの候補のチップに、今日から数えた日付を曜日付きで添える
+  details:
+    変更内容: >-
+      BL-132 を実装した。reminder/DueSheet.kt の候補（3日後・1週間後・2週間後・1か月後）のチップを private の DueChoiceChip に分け、
+      上の行に従来の文字、下の行に日付（strings.xml の新しい reminder_due_choice_date「%1$d月%2$d日（%3$s）」、labelSmall）を出す。
+      日付の値は純粋な関数 DueChoice.dateParts（DueDateParts の月・日・曜日。曜日は Locale.JAPANESE の短い名前でカレンダーの dayTitle と同じ作り、
+      1 か月後の月末の丸めは DueChoice.from に従う）で作る。「日付を選ぶ」のチップは 1 行のまま、チップの高さは 48dp 以上を保つ。
+      使い方の help/due.md に日付も出ることを足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-50 の行を更新した。
+      あわせて BL-131 の実機の確かめ（キーボードが出るか、ショートカット・ウィジェットから開いたとき）を BL-153 として人手検証で起票し、BL-151 の依存から BL-132 を外した。
+      シートはスクリーンショットテストの対象外のため記録し直していない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/DueSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/due.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/DueChoiceTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/DueSheetTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DueSheetTest" --tests "*DueChoiceTest" --tests "*ReminderViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 3 回目の軽い検証で ktlint・detekt・compile・指定の 3 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は行の長さで ktlint・detekt、2 回目は DueSheet が長くなって LongMethod の detekt 違反になったため、チップを DueChoiceChip に分けた。
+      Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-132
 - date: 2026-11-13 09:49
   summary: メモの「文字で追加」とカレンダーの「買った物を記録する」のシートを開いたら、品名の欄にフォーカスしてキーボードを出す
   details:

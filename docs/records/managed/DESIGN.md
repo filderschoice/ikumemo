@@ -54,7 +54,7 @@
 | F-41 | 日の詳細（品名・数量・お店・メモ・写真のサムネイル、写真は押すと拡大）。買い物が無い日は「この日のお買い物はありません」 | `calendar/CalendarScreen.kt` |
 | F-42（文字のみ） | 品名検索（正規化名か表示名に含む記録を新しい順に最大 200 件）、結果から該当日へ移る。検索欄の音声入力は未実装 | `RecordRepository.search`、`CalendarViewModel` |
 | PLAN §3 | 下タブ 3 つ（メモ・記録・期限。アイコン＋文字ラベル。上部のバーの題名も同じ。記録はカレンダーで買った物を見返す画面、期限は買った物の期限の一覧） | `IkumemoApp.kt`、`calendar/`、`reminder/` |
-| F-50 | 期限の画面の「期限が近い順」の下に最近買った物（今日を含む 7 日以内・期限未設定）と「期限を決める」（3日後／1週間後／2週間後／1か月後／日付を選ぶ）。最近買った物は最初の 3 件だけ出し、残りは「ほか N 件を見る」で全部出す（開いた状態は `rememberSaveable` だけで保存しない）。各行の「期限なし」でその記録を一覧から外し（記録は消さない）、「期限なしにしました：品名 ／ 元に戻す」を 5 秒出す。外した id は `ReminderPrefs` に置く。品目ごとに覚えて次から出さない仕組みは無い。記録画面からの設定は未実装 | `reminder/ReminderScreen.kt`、`RecentSection.kt`、`DueSheet.kt`、`ReminderViewModel.kt`、`data/ReminderRepository.kt`、`data/ReminderPrefs.kt` |
+| F-50 | 期限の画面の「期限が近い順」の下に最近買った物（今日を含む 7 日以内・期限未設定）と「期限を決める」（3日後／1週間後／2週間後／1か月後／日付を選ぶ）。4 つの候補のチップは 2 行で、下の行に今日から数えた日付を曜日付きで出す（`reminder_due_choice_date`「11月20日（金）」。曜日は端末の言語によらず日本語、値は純粋な関数 `DueChoice.dateParts`。「日付を選ぶ」は 1 行、チップの高さは 48dp 以上）。最近買った物は最初の 3 件だけ出し、残りは「ほか N 件を見る」で全部出す（開いた状態は `rememberSaveable` だけで保存しない）。各行の「期限なし」でその記録を一覧から外し（記録は消さない）、「期限なしにしました：品名 ／ 元に戻す」を 5 秒出す。外した id は `ReminderPrefs` に置く。品目ごとに覚えて次から出さない仕組みは無い。記録画面からの設定は未実装 | `reminder/ReminderScreen.kt`、`RecentSection.kt`、`DueSheet.kt`、`ReminderViewModel.kt`、`data/ReminderRepository.kt`、`data/ReminderPrefs.kt` |
 | F-53・R-22 | 期限が近い順の一覧（通知オフの帯の下、最近買った物より上。期限切れの有無によらず常にこの順）。期限切れは error 色＋「期限切れ」、今日・明日は文字で示す。「使い切った」「捨てた」で片付け、行を押すと決め直し | `reminder/ReminderScreen.kt` |
 | R-29 | 通知が許可されていなければ「通知がオフのため、お知らせが届きません」＋「通知をオンにする」（端末の通知の設定を開く） | `ReminderScreen.kt` の `NotificationsOffBanner` |
 | F-01・F-02・PLAN §4.4 | 音声テキストの分割・数量抽出・不要語除去・誤変換補正・N-best の選択 | `core/voice/VoiceTextParser.kt`、`QuantityParser.kt` |

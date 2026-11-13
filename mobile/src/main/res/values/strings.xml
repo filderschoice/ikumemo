@@ -91,6 +91,7 @@
     <string name="reminder_due_1week">1週間後</string>
     <string name="reminder_due_2weeks">2週間後</string>
     <string name="reminder_due_1month">1か月後</string>
+    <string name="reminder_due_choice_date">%1$d月%2$d日（%3$s）</string>
     <string name="reminder_due_pick">日付を選ぶ</string>
     <string name="reminder_due_on">期限 %1$d月%2$d日</string>
     <string name="reminder_due_tomorrow">期限 %1$d月%2$d日（明日）</string>
