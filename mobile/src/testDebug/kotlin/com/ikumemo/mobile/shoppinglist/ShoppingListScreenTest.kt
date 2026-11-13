@@ -2,6 +2,7 @@ package com.ikumemo.mobile.shoppinglist
 
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -75,6 +76,16 @@ class ShoppingListScreenTest {
         composeRule.onNodeWithTag(TestTags.ADD_SHEET_SUBMIT).performSemanticsAction(SemanticsActions.OnClick)
         composeRule.awaitCondition { items().any { it.displayName == name } }
         composeRule.onNodeWithText("閉じる").performSemanticsAction(SemanticsActions.OnClick)
+    }
+
+    /** 文字で追加のシートを開くと、押さなくても品名の欄にフォーカスが当たる（BL-131）。 */
+    @Test
+    fun addSheetFocusesInputOnOpen() {
+        composeRule.onNodeWithTag(TestTags.ADD_BY_TEXT).performClick()
+        composeRule.awaitTag(TestTags.ADD_SHEET_INPUT)
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TestTags.ADD_SHEET_INPUT).assertIsFocused()
     }
 
     @Test

@@ -100,8 +100,7 @@
     画面の見た目は変わらないためスクリーンショットの記録し直しは不要。
     使い方 mobile/src/main/assets/help/text.md に「「牛乳 2本」のように入れると、数も分かれて入ります」を足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-03 の行に数量の取り出しを足す
-  依存:
-    - BL-131
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー B7（効果 中）。オーナーが 2026-11-13 に質問の案のとおりで承認した。
     既存の項目の数量を書き換えないのは既定（R-01 の「同じ物は追加しない」を変えないため）。同じ文字で追加のシートと text.md を触る BL-131 の後に行う
@@ -350,29 +349,6 @@
     docs/records/managed/DESIGN.md の F-50 の行の候補の説明に日付を添えることを足す
   依存: []
   根拠: 2026-11-13 の UX レビュー A3（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた
-- id: BL-131
-  区分: UX改善
-  タスク内容: >-
-    メモの「文字で追加」シートとカレンダーの「買った物を記録する」シートを開いたら、品名の入力欄にフォーカスを当ててキーボードを出す（UX レビュー A2）。
-    パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/。
-    いまの状態。kotlin/shoppinglist/ItemSheets.kt の AddItemSheet（53〜61 行目の OutlinedTextField、testTag は TestTags.ADD_SHEET_INPUT）と、
-    kotlin/calendar/AddRecordSheet.kt の 72 行目（EditField、testTag は CalendarTestTags.ADD_RECORD_NAME。EditField は kotlin/shoppinglist/EditItemSheet.kt 104〜121 行目で共用）は、
-    どちらもフォーカスを当てていない（FocusRequester を使っているのは kotlin/guide/GuideOverlay.kt だけ）。開いた後に入力欄を押さないとキーボードが出ない。
-    どう変えるか。シートが開いたら FocusRequester.requestFocus() で品名の欄にフォーカスを当て、キーボードを出す。ショートカット・ウィジェットの「文字で追加」から開いたときも同じ。
-    EditField に引数を足す場合、記録の編集シートとメモの編集シート（自動でフォーカスしない）の動きは変えない
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    2 つのシートを開くと品名の欄がフォーカスされている。
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest に文字で追加のシートを開くと ADD_SHEET_INPUT が assertIsFocused になるテストを、
-    AddRecordSheet を直接描くテスト（mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/AddRecordSheetTest を新設）に ADD_RECORD_NAME が assertIsFocused になるテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*ShoppingListScreenTest" --tests "*AddRecordSheetTest" が成功する。
-    シートはスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方の mobile/src/main/assets/help/text.md と add-later.md には入力欄を押す手順が書かれていない（2026-11-13 に確認）ため変えない。
-    docs/records/managed/DESIGN.md の F-03 と F-17 の行に、開くと品名の欄にフォーカスしてキーボードを出すことを足す
-  依存: []
-  根拠: 2026-11-13 の UX レビュー A2（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。追加のたびに 1 タップ減る
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

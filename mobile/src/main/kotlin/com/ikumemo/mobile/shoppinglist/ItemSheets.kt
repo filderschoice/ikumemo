@@ -21,7 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -41,6 +45,7 @@ fun AddItemSheet(
 ) {
     val text = suggestions.query
     val submit = { if (text.isNotBlank()) onEvent(ShoppingListEvent.AddByText(text)) }
+    val focus = rememberFocusOnOpen()
     ModalBottomSheet(
         onDismissRequest = { onEvent(ShoppingListEvent.CloseSheet) },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -57,7 +62,7 @@ fun AddItemSheet(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { submit() }),
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.ADD_SHEET_INPUT),
+                modifier = Modifier.fillMaxWidth().focusRequester(focus).testTag(TestTags.ADD_SHEET_INPUT),
             )
             ProductChips(suggestions.candidates, TestTags::candidate, onEvent)
             if (suggestions.usual.isNotEmpty()) {
@@ -81,6 +86,18 @@ fun AddItemSheet(
             }
         }
     }
+}
+
+/**
+ * 追加用のシート（F-03 の文字で追加、F-17 のあとから記録）を開いたら品名の欄へフォーカスを当て、キーボードを出す（BL-131）。
+ * 返した FocusRequester を品名の欄の Modifier.focusRequester へ渡す。編集のシート（F-04・F-16）では使わない。
+ * 欄がまだ置かれていないなどで当てられなかったときは何もしない（押せば従来どおり入力できる）。
+ */
+@Composable
+internal fun rememberFocusOnOpen(): FocusRequester {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(focus) { runCatching { focus.requestFocus() } }
+    return focus
 }
 
 @OptIn(ExperimentalLayoutApi::class)

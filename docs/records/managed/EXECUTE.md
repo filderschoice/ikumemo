@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 09:49
+  summary: メモの「文字で追加」とカレンダーの「買った物を記録する」のシートを開いたら、品名の欄にフォーカスしてキーボードを出す
+  details:
+    変更内容: >-
+      BL-131 を実装した。shoppinglist/ItemSheets.kt に rememberFocusOnOpen（FocusRequester を作り、LaunchedEffect で requestFocus し、失敗は無視する）を足し、
+      AddItemSheet の入力欄（ADD_SHEET_INPUT）に focusRequester を付けた。ショートカット・ウィジェットから開いたときも同じシートのため同じく効く。
+      calendar/AddRecordSheet.kt は品名の欄を private の NameField（EditField と同じ見た目で横にマイク）に分け、同じくフォーカスを当てる。
+      共用の EditField は引数を足すと detekt の LongParameterList に当たるため変えず、メモの編集シートと記録の編集シートは従来どおり自動でフォーカスしない。
+      使い方の text.md と add-later.md は入力欄を押す手順が無いため変えていない。DESIGN.md の F-03 と F-17 の行を更新した。
+      シートはスクリーンショットテストの対象外のため記録し直していない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ItemSheets.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/AddRecordSheet.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/AddRecordSheetTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShoppingListScreenTest" --tests "*AddRecordSheetTest" --tests "*RecordEditSheetTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定の 3 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は EditField に引数を足して LongParameterList、AddRecordSheet が長くなって LongMethod の detekt 違反になったため、品名の欄を NameField に分けた。
+      Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-131
 - date: 2026-11-13 05:39
   summary: カレンダーの記録を消した後に「元に戻す」を出し、記録と付いていたお知らせを同じ id で戻せるようにする
   details:
