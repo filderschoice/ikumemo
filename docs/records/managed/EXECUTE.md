@@ -5,6 +5,37 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 11:01
+  summary: データの書き出しは写真も含む 1 行を表に出し、写真なしと表計算用を「ほかの形式で書き出す」の折りたたみへ入れる
+  details:
+    変更内容: >-
+      BL-145 を実装した（UX レビュー B5、オーナー承認済みの案）。DataScreen.kt の「書き出す」の区切りを ExportSection に分け、
+      主の行「データを書き出す（写真も含む）」の下に OtherExportToggle（「ほかの形式で書き出す」、矢印の向きで開閉を示し、
+      読み上げ用に「開いています」「閉じています」の状態を付ける）を置き、開いたときだけ写真なし・表計算用の 2 行を出す。
+      開いた状態は remember で持ち保存しない。写真なし・表計算用の書き出しの処理中は、進み具合が隠れないよう閉じていても 2 行を出す。
+      説明から ZIP・JSON・CSV の語を外し「いくメモで読み込めるファイル」「表計算ソフト（Excel など）で開けるファイル」と書き、
+      data_import_detail も「いくメモで書き出したファイル（表計算用は除く）」に直した。書き出す中身・ファイル名・ExportKind は変えていない。
+      使い方 help/data-export.md・device-change.md を新しい行の名前に合わせ、docs/USER_GUIDE.md を作り直した。
+      DataContentTest に、最初は写真も含む行だけが見えること・開くと 2 行が出て押すと onExport が呼ばれること・もう一度押すと閉じること・
+      説明に形式名が出ないことのテストを足し、既存の書き出しのテストは開いてから押すよう直した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/data-export.md
+      - mobile/src/main/assets/help/device-change.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*DataViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。設定の画面はスクリーンショットテストの対象外）
+    関連ID:
+      - BL-145
 - date: 2026-11-13 10:55
   summary: 通知の許可を求める前の説明に見出しと届く時刻と次の画面の案内を出す
   details:

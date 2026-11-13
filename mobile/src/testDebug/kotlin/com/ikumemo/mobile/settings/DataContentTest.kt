@@ -46,10 +46,53 @@ class DataContentTest {
         show()
 
         composeRule.onNodeWithTag(DataTestTags.EXPORT_ZIP).performScrollTo().performClick()
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_OTHER).performScrollTo().performClick()
         composeRule.onNodeWithTag(DataTestTags.EXPORT_JSON).performScrollTo().performClick()
         composeRule.onNodeWithTag(DataTestTags.EXPORT_CSV).performScrollTo().performClick()
 
         assertEquals(listOf(ExportKind.ZIP, ExportKind.JSON, ExportKind.CSV), exports.toList())
+    }
+
+    /** BL-145。最初は写真も含む書き出しだけが見え、「ほかの形式で書き出す」を押すと写真なしと表計算用が出る。 */
+    @Test
+    fun otherExportsAreFoldedAtFirst() {
+        show()
+
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_ZIP).assertExists()
+        composeRule.onNodeWithText("データを書き出す（写真も含む）").assertExists()
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_JSON).assertDoesNotExist()
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_CSV).assertDoesNotExist()
+
+        composeRule.onNodeWithText("ほかの形式で書き出す").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_JSON).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_CSV).performScrollTo().performClick()
+        assertEquals(listOf(ExportKind.CSV), exports.toList())
+        assertTrue(top(DataTestTags.EXPORT_ZIP) < top(DataTestTags.EXPORT_OTHER))
+        assertTrue(top(DataTestTags.EXPORT_CSV) < top(DataTestTags.HEADING_IMPORT))
+    }
+
+    /** BL-145。もう一度押すと閉じる。 */
+    @Test
+    fun otherExportsCloseAgain() {
+        show()
+
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_OTHER).performScrollTo().performClick()
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_OTHER).performScrollTo().performClick()
+
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_JSON).assertDoesNotExist()
+    }
+
+    /** BL-145。説明には ZIP・JSON・CSV の語を出さない。 */
+    @Test
+    fun detailsAvoidFileFormatNames() {
+        show()
+        composeRule.onNodeWithTag(DataTestTags.EXPORT_OTHER).performScrollTo().performClick()
+
+        listOf("ZIP", "JSON", "CSV").forEach {
+            composeRule.onNodeWithText(it, substring = true).assertDoesNotExist()
+        }
+        composeRule.onNodeWithText("表計算ソフト（Excel など）で開けるファイル", substring = true).assertExists()
     }
 
     @Test
@@ -109,7 +152,7 @@ class DataContentTest {
         composeRule.onNodeWithText("このファイルは読み込めません", substring = true).assertIsDisplayed()
     }
 
-    /** BL-134。見出しは「書き出す」「読み込む」「消す」の順で、写真つきの書き出しが一番上、すべて消すは一番下。 */
+    /** BL-134。見出しは「書き出す」「読み込む」「消す」の順で、写真も含む書き出しが一番上、すべて消すは一番下。 */
     @Test
     fun sectionsAreInOrder() {
         show()

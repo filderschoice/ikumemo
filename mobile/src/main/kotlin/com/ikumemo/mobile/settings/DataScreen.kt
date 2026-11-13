@@ -15,22 +15,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -96,10 +104,7 @@ fun DataContent(
     var dialog by rememberSaveable { mutableStateOf<DataDialog?>(null) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         state.result?.let { ResultText(it) }
-        SectionHeading(R.string.data_section_export, DataTestTags.HEADING_EXPORT)
-        DataRow(EXPORT_ZIP_ROW, state) { onExport(ExportKind.ZIP) }
-        DataRow(EXPORT_JSON_ROW, state) { onExport(ExportKind.JSON) }
-        DataRow(EXPORT_CSV_ROW, state) { onExport(ExportKind.CSV) }
+        ExportSection(state, onExport)
         SectionHeading(R.string.data_section_import, DataTestTags.HEADING_IMPORT)
         DataRow(IMPORT_ROW, state) { dialog = DataDialog.IMPORT }
         Spacer(Modifier.height(ERASE_GAP))
@@ -117,6 +122,60 @@ fun DataContent(
 }
 
 private val ERASE_GAP = 32.dp
+
+/** 写真なし・表計算用の書き出し。処理中はその行の進み具合が隠れないよう、閉じていても出す。 */
+private val OTHER_EXPORT_TASKS = setOf(DataTask.EXPORT_JSON, DataTask.EXPORT_CSV)
+
+/**
+ * 「書き出す」の区切り（BL-145）。表に出すのは写真も含む書き出し 1 つで、写真なしと表計算用は
+ * 「ほかの形式で書き出す」を押すと開く折りたたみの中に出す。開いた状態は保存しない（画面を開き直すと閉じる）。
+ */
+@Composable
+private fun ExportSection(
+    state: DataUiState,
+    onExport: (ExportKind) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val open = expanded || state.running in OTHER_EXPORT_TASKS
+    SectionHeading(R.string.data_section_export, DataTestTags.HEADING_EXPORT)
+    DataRow(EXPORT_ZIP_ROW, state) { onExport(ExportKind.ZIP) }
+    OtherExportToggle(open) { expanded = !open }
+    if (open) {
+        DataRow(EXPORT_JSON_ROW, state) { onExport(ExportKind.JSON) }
+        DataRow(EXPORT_CSV_ROW, state) { onExport(ExportKind.CSV) }
+    }
+}
+
+@Composable
+private fun OtherExportToggle(
+    open: Boolean,
+    onToggle: () -> Unit,
+) {
+    val stateText = stringResource(if (open) R.string.data_export_other_open else R.string.data_export_other_closed)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.Button, onClick = onToggle)
+            .semantics { stateDescription = stateText }
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .testTag(DataTestTags.EXPORT_OTHER),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.data_export_other),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(
+            if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+    }
+    HorizontalDivider()
+}
 
 @Composable
 private fun ResultText(result: DataResult) {
@@ -307,6 +366,7 @@ object DataTestTags {
     const val EXPORT_ZIP = "data_export_zip"
     const val EXPORT_JSON = "data_export_json"
     const val EXPORT_CSV = "data_export_csv"
+    const val EXPORT_OTHER = "data_export_other"
     const val IMPORT = "data_import"
     const val IMPORT_CONFIRM = "data_import_confirm"
     const val ERASE = "data_erase"
