@@ -55,6 +55,10 @@ description: 自律ループ実行モード（Loop Engineering）の実行手順
 - **ゲート実行担当の定義**: ループの最後や止める前のフル検証は、`.claude/agents/quality-gate-runner.md`
   （subagent_type `quality-gate-runner`、`haiku`）に任せると、全ゲートの成否の表と失敗の要約だけが返る。修正はしないため、
   失敗は実装担当へ渡して直させる。実装担当が Gradle を流している間は呼ばない（直列で進める）
+- **点検担当の定義**: 実装担当の完了後・コミット前（範囲に「未コミット」を指定）、または委任先がコミットした後
+  （既定の直近 1 コミット）に `.claude/agents/change-reviewer.md`
+  （subagent_type `change-reviewer`、`sonnet`、編集しない）へ範囲と `id` を渡すと、完了条件・記録の書き分け・暗黙の仕様変更・
+  アプリの作法・秘密情報・テストの観点の指摘が「重大／要修正／提案」の 3 段で返る。直すときは実装担当へ渡し、別のコミットにする
 - **委任の指示に必ず入れる項目**:
   - 対象の `id` は1件だけで、仕様は `BACKLOG.md` の該当タスクであること
   - 禁止操作（guardrails 12.2）

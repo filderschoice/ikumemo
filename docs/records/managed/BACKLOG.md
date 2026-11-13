@@ -10,14 +10,18 @@
   タスク内容: >-
     BL-125 で作ったサブエージェント定義 .claude/agents/quality-gate-runner.md を、定義を読み込んだ新しいセッションのオーケストレータから 1 回呼び、
     全ゲートの成否が表で返ること、失敗があればゲート名・ファイルと行・要旨（各 3 行以内）だけが返りログ全文が返らないことを確かめる。
-    ループの最後のフル検証をこの担当で流せば兼ねられる。気づいた点は定義と CHANGELOG.md へ反映する
+    ループの最後のフル検証をこの担当で流せば兼ねられる。気づいた点は定義と CHANGELOG.md へ反映する。
+    あわせて BL-126 で作った .claude/agents/change-reviewer.md を、直近のコミット（例 ba45e98）を対象に 1 回呼び、
+    指摘が「重大／要修正／提案」の 3 段でファイルパスと行番号付きで返ること、ファイルを編集しないことを確かめる
   優先度: P2
   状態: 未着手
   担当: AIエージェント
-  完了条件: quality-gate-runner を 1 回呼んで全ゲートの成否の表が返ったことを確かめ、結果を CHANGELOG.md に書いている
+  完了条件: >-
+    quality-gate-runner を 1 回呼んで全ゲートの成否の表が返ったこと、change-reviewer を 1 回呼んで指摘が 3 段の形式で返ったことを確かめ、
+    結果の要約を CHANGELOG.md に書いている
   依存: []
   根拠: >-
-    サブエージェントの定義はセッションの開始時に読み込まれるため、BL-125 を実装したセッションでは呼べず、完了条件の呼び出しの確認を持ち越した
+    サブエージェントの定義はセッションの開始時に読み込まれるため、BL-125・BL-126 を実装したセッションでは呼べず、完了条件の呼び出しの確認を持ち越した
 - id: BL-151
   区分: 人手検証
   タスク内容: >-
@@ -413,27 +417,6 @@
     手順が CLAUDE.md の品質ゲート定義の箇条書きに 3 行で埋もれており、差分画像の置き場所・画像の読み方・記録し直しの判断が書かれていない。
     スクリーンショットテストは mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/MainScreensScreenshotTest.kt、正解画像は mobile/screenshots/{memo,calendar,reminder}。
     リポジトリのスキルは .claude/skills/ に 4 つ（autonomous-loop・dependabot-alert-triage・docs-consistency-review・pr-create）で、該当するものが無い
-- id: BL-126
-  区分: 品質ゲート
-  タスク内容: >-
-    変更の点検を受け持つサブエージェント定義 .claude/agents/change-reviewer.md を新設する。
-    入力は「作業ブランチの直近 1 コミット（または指定範囲）の差分と、対象の BACKLOG の id」。読むのは git diff・該当 BACKLOG 項目・DESIGN.md の関係する節だけ。
-    点検の観点は (1) BACKLOG の完了条件を満たしているか、(2) DESIGN.md・EXECUTE.md・CHANGELOG.md の書き分け（.github/copilot-instructions.md「記録の書き分け」）、
-    (3) 暗黙の仕様変更が無いか、(4) 文字列の直書き・contentDescription の抜け・タッチ領域 48dp 未満、(5) 秘密情報・個人情報の混入、(6) テストが変更に対応しているか。
-    結果は「重大／要修正／提案」の 3 段で、ファイルパスと行番号を付けて返す。ファイルは編集しない（tools は Read・Grep・Glob・Bash のみ。Bash は git diff・git log・git show に限ると本文に書く）。
-    frontmatter に model sonnet を指定する（読み取り中心で判断を含むため）。
-    autonomous-loop の委任の節（BL-121 で追加）に、実装担当の完了後・コミット前に呼べることを 1 行追記する
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    .claude/agents/change-reviewer.md があり、frontmatter（name・description・tools・model）が Claude Code のサブエージェント定義の形式に沿っている。
-    直近のコミット（例 ba45e98）を対象に 1 回呼んで、指摘が 3 段の形式で返ることを確かめ、結果の要約を CHANGELOG.md に書いている。
-    markdownlint が Summary 0 issues、python scripts/validate-records.py が成功
-  依存: []
-  根拠: >-
-    .claude/agents/ が存在せず、サブエージェント定義が 1 つも無い。点検は現在オーケストレータが毎回プロンプトで指示しており、観点が回ごとにぶれる。
-    観点 (4) はアプリ側の既存の方針（DESIGN.md「PLAN §8 アクセシビリティ」の行、AccessibilityTest）に合わせたもの
 - id: BL-123
   区分: 品質ゲート
   タスク内容: >-
