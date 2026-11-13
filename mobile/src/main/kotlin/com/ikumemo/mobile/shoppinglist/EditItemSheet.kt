@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -57,7 +58,7 @@ import kotlinx.coroutines.launch
 
 /**
  * 項目の編集シート（F-04）。品名・数量・メモ・買うお店・写真（F-07）。閉じたときに内容を保存する
- * （確認ダイアログは出さない、PLAN §1.3-4）。
+ * （確認ダイアログは出さない、PLAN §1.3-4）。[onRemove] は「メモから外す（やめた）」で、直した内容は保存しない（BL-146）。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +67,7 @@ fun EditItemSheet(
     stores: List<StoreEntity>,
     photoStore: PhotoStore,
     onSave: (ItemEdit) -> Unit,
+    onRemove: () -> Unit,
 ) {
     var name by rememberSaveable(item.id) { mutableStateOf(item.displayName) }
     var quantity by rememberSaveable(item.id) { mutableStateOf(item.quantity.orEmpty()) }
@@ -92,12 +94,29 @@ fun EditItemSheet(
             EditField(note, { note = it }, R.string.edit_note, TestTags.EDIT_NOTE, singleLine = false)
             PlannedStore(stores = stores, selectedId = storeId, onSelect = { storeId = it })
             PhotoSection(photo = photo, photoStore = photoStore, onPhotoChange = { photo = it })
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Button(onClick = save, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EDIT_CLOSE)) {
-                    Text(stringResource(R.string.common_close))
-                }
-            }
+            EditSheetActions(onClose = save, onRemove = onRemove)
         }
+    }
+}
+
+/**
+ * 編集シートの下のボタン。「閉じる」（保存して閉じる）と、離して置いた「メモから外す（やめた）」（BL-146）。
+ * 外すときはシートで直した内容を保存しない。
+ */
+@Composable
+private fun EditSheetActions(
+    onClose: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Button(onClick = onClose, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EDIT_CLOSE)) {
+            Text(stringResource(R.string.common_close))
+        }
+    }
+    // 「閉じる」の押し間違いで外さないよう、区切り線をはさんで別の行に置く
+    HorizontalDivider(Modifier.padding(top = 12.dp))
+    TextButton(onClick = onRemove, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EDIT_REMOVE)) {
+        Text(stringResource(R.string.edit_remove_from_memo))
     }
 }
 

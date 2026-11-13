@@ -7,6 +7,7 @@ import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.ItemEdit
 import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.StoreRepository
+import com.ikumemo.mobile.data.UndoableAction
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.testing.MainDispatcherRule
 import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
@@ -18,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -144,6 +146,30 @@ class ShoppingListViewModelTest {
                 val edited = state.items.single()
                 assertEquals("低脂肪乳", edited.displayName)
                 assertNull(edited.note)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    /** 編集シートの「メモから外す」（BL-146）。シートを閉じてから「やめた」にし、元に戻すの申し出を出す。 */
+    @Test
+    fun removingEditedItemClosesSheetAndOffersUndo() =
+        runTest {
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                awaitUntil { it.loaded }
+                viewModel.onEvent(ShoppingListEvent.AddByText("洗剤"))
+                val item = awaitUntil { it.items.size == 1 }.items.single()
+                viewModel.onEvent(ShoppingListEvent.OpenEditor(item.id))
+                awaitUntil { it.sheet != null }
+
+                viewModel.onEvent(ShoppingListEvent.CloseSheet)
+                viewModel.onEvent(ShoppingListEvent.Dismiss(item.id))
+
+                // 「元に戻す」の申し出と DB の変更（メモの一覧）は別々に届くため、両方がそろうまで待つ
+                val state = awaitUntil { it.undo != null && it.items.isEmpty() }
+                assertNull(state.sheet)
+                val action = state.undo?.action
+                assertTrue(action is UndoableAction.Dismissed)
+                assertEquals(item.id, (action as UndoableAction.Dismissed).item.id)
                 cancelAndIgnoreRemainingEvents()
             }
         }

@@ -113,31 +113,6 @@
   根拠: >-
     2026-11-13 の UX レビュー B7（効果 中）。オーナーが 2026-11-13 に質問の案のとおりで承認した。
     既存の項目の数量を書き換えないのは既定（R-01 の「同じ物は追加しない」を変えないため）。同じ文字で追加のシートと text.md を触る BL-131 の後に行う
-- id: BL-146
-  区分: 機能追加
-  タスク内容: >-
-    メモの項目の編集シートに「メモから外す（やめた）」ボタンを足し、スワイプしなくても「やめた」にできるようにする（UX レビュー B6、オーナー承認済み）。
-    パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/。
-    いまの状態。「買った」は行の ○ でもできるが、「やめた」は左へのスワイプ（と TalkBack の操作の一覧）だけ。kotlin/shoppinglist/EditItemSheet.kt の下（95〜99 行目）は「閉じる」ボタンだけ。
-    kotlin/shoppinglist/ShoppingListViewModel.kt では ShoppingListEvent.Dismiss（274 行目）が writeUndoable で「やめた：品名 ／ 元に戻す」を出す。
-    編集シートは kotlin/shoppinglist/ShoppingListScreen.kt の 138〜144 行目付近（HomeSheet.Edit）で開いている。
-    どう変えるか（オーナーが承認した案）。編集シートの下に「メモから外す（やめた）」の TextButton（48dp 以上、文言は strings.xml）を、「閉じる」と同じ行に並べず離して置く。
-    押すとシートを閉じ、スワイプと同じ Dismiss を送って「やめた：品名 ／ 元に戻す」を出す。シートで直した内容は保存しない（元に戻したときはシートを開く前の内容に戻る）。
-    EditItemSheet の引数に外す処理を足し、呼び出し側で編集中の状態を閉じてから Dismiss を送る
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest に、編集シートの「メモから外す」を押すとシートが閉じて Dismiss のイベントが出ることのテストを、
-    mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest に、編集中の項目を外すと元に戻すの申し出が出てシートが閉じるテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*ShoppingListScreenTest" --tests "*ShoppingListViewModelTest" --tests "*AccessibilityTest" が成功する。
-    シートはスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/edit.md と swipe.md に「直すシートの「メモから外す」でも「やめた」にできます」を足し、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の F-04、F-10・F-11・D-4・R-05、「PLAN §8 アクセシビリティ」の行を合わせる
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー B6（効果 中）。オーナーが 2026-11-13 に質問の案のとおりで承認した。
-    直した内容を保存しないのは既定（外す物に保存は要らず、元に戻すの結果が予想どおりになるため。品目と記録は変わらないので安全）
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

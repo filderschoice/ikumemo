@@ -119,6 +119,18 @@ fun ShoppingListScreen(
         onOpenSettings = navigation.onOpenSettings,
         onOpenHelp = navigation.onOpenHelp,
     )
+    HomeSheets(state, addSuggestions, voiceViewModel, photoStore, onEvent)
+}
+
+/** メモ画面のシート（話して追加・お店・文字で追加・項目の編集）。 */
+@Composable
+private fun HomeSheets(
+    state: ShoppingListUiState,
+    addSuggestions: AddSuggestions,
+    voiceViewModel: VoiceInputViewModel,
+    photoStore: PhotoStore,
+    onEvent: (ShoppingListEvent) -> Unit,
+) {
     when (val sheet = state.sheet) {
         HomeSheet.Voice ->
             VoiceInputSheet(
@@ -142,6 +154,11 @@ fun ShoppingListScreen(
                     stores = state.stores,
                     photoStore = photoStore,
                     onSave = { onEvent(ShoppingListEvent.SaveEdit(item.id, it)) },
+                    // 編集中の状態を閉じてから、スワイプと同じ「やめた」にする（直した内容は保存しない、BL-146）
+                    onRemove = {
+                        onEvent(ShoppingListEvent.CloseSheet)
+                        onEvent(ShoppingListEvent.Dismiss(item.id))
+                    },
                 )
             }
         null -> Unit
@@ -413,6 +430,9 @@ object TestTags {
     const val EDIT_QUANTITY = "edit_quantity"
     const val EDIT_NOTE = "edit_note"
     const val EDIT_CLOSE = "edit_close"
+
+    /** 編集シートの「メモから外す（やめた）」（BL-146）。 */
+    const val EDIT_REMOVE = "edit_remove"
     const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
     const val SETTINGS = "settings"

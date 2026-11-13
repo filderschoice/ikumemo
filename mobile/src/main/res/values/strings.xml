@@ -58,6 +58,7 @@
     <string name="edit_photo_pick">選ぶ</string>
     <string name="edit_photo_remove">写真を外す</string>
     <string name="edit_photo_description">付けた写真</string>
+    <string name="edit_remove_from_memo">メモから外す（やめた）</string>
     <string name="memo_has_photo">写真あり</string>
     <string name="calendar_month">%1$d年%2$d月</string>
     <string name="calendar_previous_month">前の月</string>

@@ -5,6 +5,39 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 11:11
+  summary: メモの項目の編集シートに「メモから外す（やめた）」を足し、スワイプしなくても「やめた」にできるようにする
+  details:
+    変更内容: >-
+      BL-146 を実装した（UX レビュー B6、オーナー承認済みの案）。EditItemSheet.kt に引数 onRemove を足し、下のボタンを EditSheetActions に分けて、
+      「閉じる」の行の下に区切り線をはさんで「メモから外す（やめた）」の TextButton（48dp 以上、文言は strings.xml の edit_remove_from_memo、
+      目印 TestTags.EDIT_REMOVE）を置いた。ShoppingListScreen.kt はシートの切り替えを HomeSheets に分け、外すときは CloseSheet を送ってから
+      スワイプと同じ Dismiss を送る。シートで直した内容は保存しない（ModalBottomSheet の onDismissRequest を通らないため保存の処理は動かない）。
+      ShoppingListScreenTest に外すとシートが閉じて「やめた：洗剤」が出て、元に戻すと直しかけた数量が残らないことのテストを、
+      ShoppingListViewModelTest に編集中の項目を外すとシートが閉じて元に戻すの申し出（Dismissed）が出るテストを足した。
+      FieldMicTest の EditItemSheet の呼び出しに onRemove を足した。使い方 help/edit.md・swipe.md に一文を足し、docs/USER_GUIDE.md を作り直した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/EditItemSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/edit.md
+      - mobile/src/main/assets/help/swipe.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/FieldMicTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShoppingListScreenTest" --tests "*ShoppingListViewModelTest"
+      --tests "*AccessibilityTest" --tests "*FieldMicTest"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目は追加した ViewModel のテストが失敗した（元に戻すの申し出とメモの一覧の更新が別々に届くのを待っていなかった）。
+      両方がそろうまで待つよう直した 2 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。編集シートはスクリーンショットテストの対象外）
+    関連ID:
+      - BL-146
 - date: 2026-11-13 11:01
   summary: データの書き出しは写真も含む 1 行を表に出し、写真なしと表計算用を「ほかの形式で書き出す」の折りたたみへ入れる
   details:

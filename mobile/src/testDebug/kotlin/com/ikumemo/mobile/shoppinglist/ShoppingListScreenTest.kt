@@ -115,6 +115,27 @@ class ShoppingListScreenTest {
         check(records().isEmpty())
     }
 
+    /** 編集シートの「メモから外す」でシートが閉じて「やめた」になり、直した内容は保存しない（BL-146）。 */
+    @Test
+    fun removeFromEditSheetDismissesWithoutSaving() {
+        val id = runBlocking { (repository.addItem("洗剤") as AddItemResult.Added).itemId }
+        composeRule.awaitTag(TestTags.item(id))
+        composeRule.onNodeWithTag(TestTags.item(id)).performClick()
+        composeRule.awaitTag(TestTags.EDIT_REMOVE)
+        composeRule.onNodeWithTag(TestTags.EDIT_QUANTITY).performTextInput("2本")
+
+        composeRule.onNodeWithTag(TestTags.EDIT_REMOVE).performSemanticsAction(SemanticsActions.OnClick)
+
+        composeRule.awaitCondition { items().isEmpty() }
+        composeRule.onNodeWithText("やめた：洗剤").assertIsDisplayed()
+        composeRule.onNodeWithTag(TestTags.EDIT_REMOVE).assertDoesNotExist()
+        check(records().isEmpty())
+
+        composeRule.onNodeWithText("元に戻す").performClick()
+        composeRule.awaitCondition { items().size == 1 }
+        check(items().single().quantity == null) { "外す前に直した数量は保存しない" }
+    }
+
     @Test
     fun tapCircleMarksBought() {
         val id = runBlocking { (repository.addItem("たまご") as AddItemResult.Added).itemId }
