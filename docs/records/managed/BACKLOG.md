@@ -50,7 +50,6 @@
   担当: ユーザー
   完了条件: はみ出し・重なりが無い。あれば画面名・端末・文字の設定を記録している
   依存:
-    - BL-139
     - BL-145
   根拠: >-
     2026-11-13 の UX レビュー C6。スクリーンショットテストは幅 360dp と文字の 3 段階だけで、端末の文字サイズ最大との組み合わせは実機でしか確かめられないため。
@@ -188,31 +187,6 @@
   根拠: >-
     2026-11-13 の UX レビュー A11（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     お知らせ画面の状態へ通知の時刻を持たせる BL-143 の後に行い、時刻の読み込みを二重に作らない
-- id: BL-139
-  区分: UX改善
-  タスク内容: >-
-    設定の一覧に見出しの区切りと各行の 1 行の説明を付ける（UX レビュー A10。項目と行き先は BL-143 の結果のまま変えない）。
-    対象は mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt の SettingsItem（58〜74 行目）と SettingsScreen（76〜100 行目）、mobile/src/main/res/values/strings.xml。
-    いまの状態。項目が説明なしで平たく並び（2026-11-13 時点で 10 項目、BL-143 の後は 8 項目）、「操作」「データ」などは名前から中身が想像しにくい。
-    どう変えるか。一番上の「使い方」は見出しを付けずにそのまま一番上に置く（H-01）。残りを見出しで区切る。
-    「見た目と操作」に 着せ替え（テーマ・文字の大きさ・背景の写真）・操作とお知らせ（○ ボタン・振動・お知らせの時刻）・ホーム画面に置く、
-    「登録したもの」に お店の管理・よく買う物の管理・データ（書き出し・読み込み）、「このアプリ」に このアプリについて（ご意見・ご要望を含む）。
-    各行の下に括弧内の内容を 1 行の説明として出す（onSurfaceVariant の bodyMedium、SettingsSwitchRow と同じ作り。文言は strings.xml）。見出しは semantics の heading を付ける
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AboutContentTest の SettingsScreen を描くテスト（BL-143 で直したもの）か新しい SettingsScreenTest に、
-    見出しと説明が出ること、各行を押すと今までどおりの SettingsItem が開くことのテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*AboutContentTest"（SettingsScreenTest を作ったらそれも）が成功する。
-    設定の画面はスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/ を「設定の」で Grep し、項目の場所の説明が新しい区切りと食い違う記述があれば直して python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の「PLAN §3（一部）」の行（設定の項目の並び）に見出しと説明を足す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー A10（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
-    既定で決めた点。レビューの区切りは「困ったとき」に使い方を入れていたが、DESIGN の H-01 と BL-143（使い方は上に残す）に合わせ、使い方は見出し無しで一番上に残す（項目と行き先を変えないため安全）。
-    項目を減らす BL-143 の後に行う
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-

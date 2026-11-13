@@ -135,6 +135,16 @@
     <string name="settings_stores">お店の管理</string>
     <string name="settings_products">よく買う物の管理</string>
     <string name="settings_home_screen">ホーム画面に置く</string>
+    <string name="settings_section_look">見た目と操作</string>
+    <string name="settings_section_registered">登録したもの</string>
+    <string name="settings_section_app">このアプリ</string>
+    <string name="settings_appearance_detail">テーマ・文字の大きさ・背景の写真</string>
+    <string name="settings_operation_detail">○ ボタン・振動・お知らせの時刻</string>
+    <string name="settings_home_screen_detail">話して追加のボタン・メモ一覧</string>
+    <string name="settings_stores_detail">お店をまとめる・使わないお店を外す</string>
+    <string name="settings_products_detail">「いつもの」や入力中の候補に出す物を選ぶ</string>
+    <string name="settings_data_detail">書き出し・読み込み</string>
+    <string name="settings_about_detail">版・ライセンス・ご意見・ご要望</string>
     <string name="onboarding_skip">飛ばす</string>
     <string name="guide_ok">分かった</string>
     <string name="guide_disable_all">ガイドを出さない</string>

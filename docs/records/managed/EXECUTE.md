@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:48
+  summary: 設定の一覧に見出しの区切りと各行の 1 行の説明を付ける
+  details:
+    変更内容: >-
+      BL-139 を実装した（UX レビュー A10）。SettingsScreen.kt に区切りの SettingsSection を足し、
+      使い方は見出し無しで一番上（H-01）、「見た目と操作」に着せ替え・操作とお知らせ・ホーム画面に置く、
+      「登録したもの」にお店の管理・よく買う物の管理・データ、「このアプリ」にこのアプリについてを並べた。
+      見出しは titleSmall の primary 色で semantics の heading を付けた。SettingsItem に説明の detail を足し、
+      各行の下に onSurfaceVariant の bodyMedium で出す（SettingsSwitchRow と同じ作り、使い方の行は説明なし）。
+      項目・行き先・SettingsItem の並び（enum）とテストタグは変えていない（画面での並びはホーム画面に置くが着せ替えの組へ上がる）。
+      文言は strings.xml の settings_section_* と settings_*_detail。使い方 help/ の「設定の」の記述は項目の名前だけで食い違いが無く、直していない。
+      SettingsScreenTest を新設し、区切りが全項目を 1 回ずつ含むこと、見出し（heading）と説明が出ること、各行が今までどおりの項目を開くことを確かめた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/SettingsScreenTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SettingsScreenTest" --tests "*AboutContentTest" --tests "*HelpScreenTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す。設定の画面はスクリーンショットテストの対象外）
+    関連ID:
+      - BL-139
 - date: 2026-11-13 10:40
   summary: 画面に出る「つ」の件数表記を空白なしの「3つ」にそろえる
   details:
