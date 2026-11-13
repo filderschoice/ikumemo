@@ -14,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,8 @@ import com.ikumemo.mobile.data.db.StoreEntity
 import com.ikumemo.mobile.shoppinglist.EditField
 import com.ikumemo.mobile.shoppinglist.PhotoSection
 import com.ikumemo.mobile.shoppinglist.PlannedStore
+import com.ikumemo.mobile.shoppinglist.rememberFocusOnOpen
+import com.ikumemo.mobile.voice.FieldMic
 import java.time.LocalDate
 
 /**
@@ -69,7 +73,7 @@ fun AddRecordSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(stringResource(R.string.calendar_add_record), style = MaterialTheme.typography.titleLarge)
-            EditField(name, { name = it }, R.string.edit_name, CalendarTestTags.ADD_RECORD_NAME, singleLine = true)
+            NameField(name) { name = it }
             val picked = LocalDate.ofEpochDay(day)
             OutlinedButton(onClick = { pickingDate = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.calendar_record_date, picked.year, picked.monthValue, picked.dayOfMonth))
@@ -103,4 +107,25 @@ fun AddRecordSheet(
             onDismiss = { pickingDate = false },
         )
     }
+}
+
+/**
+ * 品名の欄。EditField と同じ見た目（横にマイク）で、シートを開いたらフォーカスしてキーボードを出す（BL-131）。
+ * 記録の編集シート（F-16）は EditField のままで、自動ではフォーカスしない。
+ */
+@Composable
+private fun NameField(
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    val focus = rememberFocusOnOpen()
+    val tag = CalendarTestTags.ADD_RECORD_NAME
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(stringResource(R.string.edit_name)) },
+        singleLine = true,
+        trailingIcon = { FieldMic(field = tag, singleLine = true, value = value, onValueChange = onValueChange) },
+        modifier = Modifier.fillMaxWidth().focusRequester(focus).testTag(tag),
+    )
 }

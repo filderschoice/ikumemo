@@ -10,6 +10,7 @@ import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.util.UUID
 import kotlin.math.max
@@ -29,19 +30,33 @@ class PhotoStore(
     private val appContext = context.applicationContext
     private val photosDir get() = File(appContext.filesDir, dirName).apply { mkdirs() }
 
-    /** 写真を取り込み、保存した相対パスを返す。読めない画像なら null。 */
+    /**
+     * 写真を取り込み、保存した相対パスを返す。読めない画像なら null。
+     * 元の写真が消えた・権限が切れた・保存に失敗したときも、アプリを落とさず null を返す（BL-113）。
+     */
     suspend fun import(source: Uri): String? =
         withContext(Dispatchers.IO) {
             val resolver = appContext.contentResolver
-            val orientation =
-                resolver.openInputStream(source)?.use(::readOrientation) ?: ExifInterface.ORIENTATION_NORMAL
-            val bounds = resolver.openInputStream(source)?.use(::readBounds) ?: return@withContext null
-            val sample = PhotoSizing.sampleSize(bounds.first, bounds.second, MAX_LONG_SIDE)
-            val decoded =
-                resolver.openInputStream(source)?.use {
-                    BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
-                } ?: return@withContext null
-            save(PhotoSizing.scaleAndRotate(decoded, orientation, MAX_LONG_SIDE))
+            try {
+                val orientation =
+                    resolver.openInputStream(source)?.use(::readOrientation) ?: ExifInterface.ORIENTATION_NORMAL
+                val sample =
+                    resolver.openInputStream(source)?.use(::readBounds)?.let { (width, height) ->
+                        PhotoSizing.sampleSize(width, height, MAX_LONG_SIDE)
+                    }
+                val decoded =
+                    sample?.let { size ->
+                        val options = BitmapFactory.Options().apply { inSampleSize = size }
+                        resolver.openInputStream(source)?.use { BitmapFactory.decodeStream(it, null, options) }
+                    }
+                decoded?.let { save(PhotoSizing.scaleAndRotate(it, orientation, MAX_LONG_SIDE)) }
+            } catch (_: IOException) {
+                null
+            } catch (_: SecurityException) {
+                null
+            } catch (_: IllegalStateException) {
+                null
+            }
         }
 
     fun fileOf(relativePath: String): File = File(appContext.filesDir, relativePath)

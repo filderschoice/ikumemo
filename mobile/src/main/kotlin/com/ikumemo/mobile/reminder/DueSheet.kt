@@ -28,10 +28,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 
 private const val MILLIS_PER_DAY = 86_400_000L
 
-/** 期限を決めるシート（F-50）。「3日後 / 1週間後 / 2週間後 / 1か月後 / 日付を選ぶ」。 */
+/** 期限を決めるシート（F-50）。「3日後 / 1週間後 / 2週間後 / 1か月後 / 日付を選ぶ」。候補は下の行に日付（曜日付き）を出す。 */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DueSheet(
@@ -51,11 +53,7 @@ fun DueSheet(
             Text(stringResource(R.string.reminder_due_title, target.name), style = MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 DueChoice.entries.forEach { choice ->
-                    AssistChip(
-                        onClick = { onEvent(ReminderEvent.SetDue(target.recordId, choice.from(today))) },
-                        label = { Text(stringResource(choice.label())) },
-                        modifier = Modifier.heightIn(min = 48.dp).testTag(ReminderTestTags.choice(choice)),
-                    )
+                    DueChoiceChip(choice, today) { onEvent(ReminderEvent.SetDue(target.recordId, choice.from(today))) }
                 }
                 AssistChip(
                     onClick = { pickingDate = true },
@@ -76,17 +74,54 @@ fun DueSheet(
                     pickerState.selectedDateMillis?.let {
                         onEvent(ReminderEvent.SetDue(target.recordId, LocalDate.ofEpochDay(it / MILLIS_PER_DAY)))
                     }
-                }) { Text(stringResource(R.string.common_done)) }
+                }) { Text(stringResource(R.string.common_decide)) }
             },
             dismissButton = {
                 TextButton(
                     onClick = { pickingDate = false },
-                ) { Text(stringResource(R.string.common_close)) }
+                ) { Text(stringResource(R.string.common_back)) }
             },
         ) {
             DatePicker(state = pickerState)
         }
     }
+}
+
+/** 候補のチップ。上の行に「1週間後」など、下の行に日付（曜日付き）を出す（BL-132）。 */
+@Composable
+private fun DueChoiceChip(
+    choice: DueChoice,
+    today: LocalDate,
+    onClick: () -> Unit,
+) {
+    val date = choice.dateParts(today)
+    AssistChip(
+        onClick = onClick,
+        label = {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                Text(stringResource(choice.label()))
+                Text(
+                    stringResource(R.string.reminder_due_choice_date, date.month, date.day, date.weekday),
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        },
+        modifier = Modifier.heightIn(min = 48.dp).testTag(ReminderTestTags.choice(choice)),
+    )
+}
+
+/** 候補のチップの 2 行目に出す日付の値（BL-132）。曜日は端末の言語によらず日本語（カレンダーの日の見出しと同じ）。 */
+data class DueDateParts(
+    val month: Int,
+    val day: Int,
+    val weekday: String,
+)
+
+/** 今日から数えたこの候補の日付を、月・日・曜日に分ける。月をまたぐ・月末の丸めは [DueChoice.from] に従う。 */
+fun DueChoice.dateParts(today: LocalDate): DueDateParts {
+    val date = from(today)
+    val weekday = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.JAPANESE)
+    return DueDateParts(date.monthValue, date.dayOfMonth, weekday)
 }
 
 private fun DueChoice.label(): Int =

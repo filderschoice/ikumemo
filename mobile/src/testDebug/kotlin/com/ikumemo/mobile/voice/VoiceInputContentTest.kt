@@ -2,7 +2,12 @@ package com.ikumemo.mobile.voice
 
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -73,6 +78,28 @@ class VoiceInputContentTest {
 
         composeRule.awaitCondition { viewModel.state.value == VoiceInputState.Added(2) }
         check(runBlocking { repository.observeItems().first() }.map { it.displayName } == listOf("牛乳", "たまご"))
+    }
+
+    /** BL-136。外したカードは「戻す」に替わって戻せ、追加ボタンの文字は入れる件数に合う。 */
+    @Test
+    fun excludedCardShowsRestoreAndAddButtonCountsIncluded() {
+        engine.autoResults = listOf("牛乳2本とたまご")
+        composeRule.runOnIdle { viewModel.onEvent(VoiceInputEvent.Start) }
+        composeRule.awaitTag(VoiceTestTags.card(1))
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("2つ追加する")
+        composeRule.onNodeWithText("戻す").assertDoesNotExist()
+
+        composeRule.onNodeWithContentDescription("牛乳を外す").performClick()
+
+        composeRule.onNodeWithContentDescription("牛乳を入れる").assertTextContains("戻す")
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("1つ追加する")
+
+        composeRule.onNodeWithContentDescription("たまごを外す").performClick()
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("追加する").assertIsNotEnabled()
+
+        composeRule.onNodeWithContentDescription("牛乳を入れる").performClick()
+        composeRule.onNodeWithContentDescription("牛乳を外す").assertExists()
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_ALL).assertTextEquals("1つ追加する").assertIsEnabled()
     }
 
     @Test

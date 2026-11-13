@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Mic
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -58,6 +57,7 @@ import com.ikumemo.mobile.guide.SwipeNudge
 import com.ikumemo.mobile.guide.guideTarget
 import com.ikumemo.mobile.guide.rememberGuideTargets
 import com.ikumemo.mobile.help.HelpPages
+import com.ikumemo.mobile.settings.SettingsButton
 import com.ikumemo.mobile.voice.VoiceInputSheet
 import com.ikumemo.mobile.voice.VoiceInputViewModel
 import kotlinx.coroutines.delay
@@ -119,6 +119,18 @@ fun ShoppingListScreen(
         onOpenSettings = navigation.onOpenSettings,
         onOpenHelp = navigation.onOpenHelp,
     )
+    HomeSheets(state, addSuggestions, voiceViewModel, photoStore, onEvent)
+}
+
+/** メモ画面のシート（話して追加・お店・文字で追加・項目の編集）。 */
+@Composable
+private fun HomeSheets(
+    state: ShoppingListUiState,
+    addSuggestions: AddSuggestions,
+    voiceViewModel: VoiceInputViewModel,
+    photoStore: PhotoStore,
+    onEvent: (ShoppingListEvent) -> Unit,
+) {
     when (val sheet = state.sheet) {
         HomeSheet.Voice ->
             VoiceInputSheet(
@@ -142,6 +154,11 @@ fun ShoppingListScreen(
                     stores = state.stores,
                     photoStore = photoStore,
                     onSave = { onEvent(ShoppingListEvent.SaveEdit(item.id, it)) },
+                    // 編集中の状態を閉じてから、スワイプと同じ「やめた」にする（直した内容は保存しない、BL-146）
+                    onRemove = {
+                        onEvent(ShoppingListEvent.CloseSheet)
+                        onEvent(ShoppingListEvent.Dismiss(item.id))
+                    },
                 )
             }
         null -> Unit
@@ -174,7 +191,7 @@ fun ShoppingListContent(
             Column(Modifier.fillMaxSize()) {
                 TopAppBar(
                     title = { Text(stringResource(R.string.memo_title)) },
-                    actions = { SettingsButton(onOpenSettings) },
+                    actions = { SettingsButton(onOpenSettings, TestTags.SETTINGS) },
                     windowInsets = WindowInsets(0),
                 )
                 StoreChip(
@@ -317,15 +334,6 @@ private fun UndoEffect(
     }
 }
 
-/** 右上の ⚙ せってい。アイコンだけにせず文字を添える（PLAN §2.7）。 */
-@Composable
-private fun SettingsButton(onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.SETTINGS)) {
-        Icon(Icons.Rounded.Settings, contentDescription = null)
-        Text(stringResource(R.string.settings_title), modifier = Modifier.padding(start = 4.dp))
-    }
-}
-
 /** メモが空のときの案内。「使い方を見る」で話して入れるページへ（H-03）。 */
 @Composable
 private fun EmptyMemo(
@@ -422,6 +430,9 @@ object TestTags {
     const val EDIT_QUANTITY = "edit_quantity"
     const val EDIT_NOTE = "edit_note"
     const val EDIT_CLOSE = "edit_close"
+
+    /** 編集シートの「メモから外す（やめた）」（BL-146）。 */
+    const val EDIT_REMOVE = "edit_remove"
     const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
     const val SETTINGS = "settings"

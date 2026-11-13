@@ -12,6 +12,7 @@ import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,4 +46,25 @@ class AppearanceContentTest {
             events.toList(),
         )
     }
+
+    @Test
+    fun textSizeComesFirstAndBackgroundLast() {
+        composeRule.setContent {
+            IkumemoTheme {
+                AppearanceContent(appearance = Appearance(), onEvent = {})
+            }
+        }
+
+        // 画面外の部品も含めて並びを比べるため、切り取られない positionInRoot の縦位置を使う
+        val textSize = topOf(AppearanceTestTags.textSize(TextSizeSetting.NORMAL))
+        val theme = topOf(AppearanceTestTags.theme(ThemePreset.entries.first()))
+        val darkMode = topOf(AppearanceTestTags.darkMode(DarkMode.entries.first()))
+        val background = topOf(AppearanceTestTags.BACKGROUND_PICK)
+
+        assertTrue("文字の大きさがテーマの見本より上", textSize < theme)
+        assertTrue("テーマの見本が暗い画面より上", theme < darkMode)
+        assertTrue("暗い画面が背景の写真より上", darkMode < background)
+    }
+
+    private fun topOf(tag: String): Float = composeRule.onNodeWithTag(tag).fetchSemanticsNode().positionInRoot.y
 }

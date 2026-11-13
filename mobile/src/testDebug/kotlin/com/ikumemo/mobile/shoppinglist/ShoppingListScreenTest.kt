@@ -2,6 +2,7 @@ package com.ikumemo.mobile.shoppinglist
 
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -77,6 +78,16 @@ class ShoppingListScreenTest {
         composeRule.onNodeWithText("閉じる").performSemanticsAction(SemanticsActions.OnClick)
     }
 
+    /** 文字で追加のシートを開くと、押さなくても品名の欄にフォーカスが当たる（BL-131）。 */
+    @Test
+    fun addSheetFocusesInputOnOpen() {
+        composeRule.onNodeWithTag(TestTags.ADD_BY_TEXT).performClick()
+        composeRule.awaitTag(TestTags.ADD_SHEET_INPUT)
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TestTags.ADD_SHEET_INPUT).assertIsFocused()
+    }
+
     @Test
     fun addSwipeRightToRecordThenUndo() {
         addByText("牛乳")
@@ -102,6 +113,27 @@ class ShoppingListScreenTest {
         composeRule.awaitCondition { items().isEmpty() }
         composeRule.onNodeWithText("やめた：洗剤").assertIsDisplayed()
         check(records().isEmpty())
+    }
+
+    /** 編集シートの「メモから外す」でシートが閉じて「やめた」になり、直した内容は保存しない（BL-146）。 */
+    @Test
+    fun removeFromEditSheetDismissesWithoutSaving() {
+        val id = runBlocking { (repository.addItem("洗剤") as AddItemResult.Added).itemId }
+        composeRule.awaitTag(TestTags.item(id))
+        composeRule.onNodeWithTag(TestTags.item(id)).performClick()
+        composeRule.awaitTag(TestTags.EDIT_REMOVE)
+        composeRule.onNodeWithTag(TestTags.EDIT_QUANTITY).performTextInput("2本")
+
+        composeRule.onNodeWithTag(TestTags.EDIT_REMOVE).performSemanticsAction(SemanticsActions.OnClick)
+
+        composeRule.awaitCondition { items().isEmpty() }
+        composeRule.onNodeWithText("やめた：洗剤").assertIsDisplayed()
+        composeRule.onNodeWithTag(TestTags.EDIT_REMOVE).assertDoesNotExist()
+        check(records().isEmpty())
+
+        composeRule.onNodeWithText("元に戻す").performClick()
+        composeRule.awaitCondition { items().size == 1 }
+        check(items().single().quantity == null) { "外す前に直した数量は保存しない" }
     }
 
     @Test

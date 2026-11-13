@@ -20,16 +20,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 
-/** このアプリについて（PLAN §3）。版・名前の由来・ライセンス・プライバシーポリシー・GitHub・ストアのページ。 */
+/**
+ * このアプリについて（PLAN §3）。版・名前の由来・ご意見・ご要望・ライセンス・プライバシーポリシー・GitHub・ストアのページ。
+ * ご意見・ご要望は BL-143 で設定の一覧からここへ移した。
+ */
 @Composable
 fun AboutScreen(
     onBack: () -> Unit,
     onOpenLicenses: () -> Unit,
+    onOpenFeedback: () -> Unit,
 ) {
     val context = LocalContext.current
     val version = remember { context.appVersionName() }
     SettingsScaffold(title = R.string.settings_about, onBack = onBack) {
-        AboutContent(version = version, onOpenLicenses = onOpenLicenses, onOpenLink = context::openExternal)
+        AboutContent(
+            version = version,
+            onOpenLicenses = onOpenLicenses,
+            onOpenLink = context::openExternal,
+            onOpenFeedback = onOpenFeedback,
+        )
     }
 }
 
@@ -38,6 +47,7 @@ fun AboutContent(
     version: String,
     onOpenLicenses: () -> Unit,
     onOpenLink: (ExternalLink) -> Unit,
+    onOpenFeedback: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Column(Modifier.padding(16.dp)) {
@@ -54,6 +64,7 @@ fun AboutContent(
             )
         }
         HorizontalDivider()
+        LinkRow(R.string.settings_feedback, AboutTestTags.FEEDBACK, onOpenFeedback)
         LinkRow(R.string.about_licenses, AboutTestTags.LICENSES, onOpenLicenses)
         LinkRow(R.string.about_privacy_policy, AboutTestTags.link(ExternalLink.PRIVACY_POLICY)) {
             onOpenLink(ExternalLink.PRIVACY_POLICY)
@@ -86,6 +97,7 @@ fun LinkRow(
 
 object AboutTestTags {
     const val LICENSES = "about_licenses"
+    const val FEEDBACK = "about_feedback"
 
     fun link(link: ExternalLink) = "about_link_${link.name.lowercase()}"
 }

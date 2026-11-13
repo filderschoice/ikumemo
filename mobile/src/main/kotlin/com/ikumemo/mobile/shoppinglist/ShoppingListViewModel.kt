@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikumemo.core.suggest.ProductSummary
 import com.ikumemo.core.suggest.Suggestions
+import com.ikumemo.core.voice.QuantityParser
 import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.ItemEdit
@@ -263,7 +264,9 @@ class ShoppingListViewModel(
         when (event) {
             is ShoppingListEvent.AddByText -> {
                 addQuery.value = ""
-                write { handle(repository.addItem(event.name)) }
+                // 「牛乳 2本」は品名と数量に分ける（F-03）。数量だけの入力は分けずにそのまま入る
+                val split = QuantityParser.split(event.name)
+                write { handle(repository.addItem(split.name, split.quantity)) }
             }
             is ShoppingListEvent.AddProduct -> {
                 addQuery.value = ""

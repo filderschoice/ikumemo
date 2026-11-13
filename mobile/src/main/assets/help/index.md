@@ -22,12 +22,12 @@
 
 ## 見返す
 
-- [カレンダー](calendar.md)
+- [記録](calendar.md)
 - [探す](search.md)
 - [後から記録する](add-later.md)
 - [記録を直す・消す](edit-record.md)
 
-## お知らせ
+## 期限とお知らせ
 
 - [期限を決める](due.md)
 - [お知らせが来たら](notified.md)
@@ -35,7 +35,7 @@
 
 ## ホーム画面に置く
 
-- [2 つのウィジェット](widgets.md)
+- [2つのウィジェット](widgets.md)
 - [置き方・大きさの変え方](resize.md)
 - [アイコン長押しのショートカット](shortcuts.md)
 

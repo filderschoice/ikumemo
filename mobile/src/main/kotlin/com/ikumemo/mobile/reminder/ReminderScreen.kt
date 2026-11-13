@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,13 +25,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,19 +49,31 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
-import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ReminderRow
-import com.ikumemo.mobile.guide.GuideId
+import com.ikumemo.mobile.designsystem.ReadablePanel
+import com.ikumemo.mobile.designsystem.panelEdge
 import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
-import com.ikumemo.mobile.guide.guideTarget
 import com.ikumemo.mobile.guide.rememberGuideTargets
 import com.ikumemo.mobile.help.HelpPages
+import com.ikumemo.mobile.settings.SettingsButton
+import com.ikumemo.mobile.settings.formatReminderTime
 import java.time.LocalDate
+import java.time.LocalTime
+
+/**
+ * 期限の画面から開く先。[onOpenHelp] は使い方のページ（H-03）、[onOpenSettings] は上部のバーの ⚙ 設定、
+ * [onOpenReminderSettings] は一覧の上の「お知らせの時刻」から開く「操作とお知らせ」（BL-143）。
+ */
+data class ReminderNavigation(
+    val onOpenHelp: (String) -> Unit = {},
+    val onOpenSettings: () -> Unit = {},
+    val onOpenReminderSettings: () -> Unit = {},
+)
 
 @Composable
 fun ReminderScreen(
-    onOpenHelp: (String) -> Unit = {},
+    navigation: ReminderNavigation = ReminderNavigation(),
     showGuide: Boolean = true,
     viewModel: ReminderViewModel = viewModel(factory = AppViewModelFactory.Factory),
 ) {
@@ -79,7 +96,7 @@ fun ReminderScreen(
         state = state,
         onEvent = onEvent,
         onEnableNotifications = permission::enable,
-        onOpenHelp = onOpenHelp,
+        navigation = navigation,
         showGuide = showGuide,
     )
     state.dueTarget?.let { DueSheet(target = it, today = state.today, onEvent = onEvent) }
@@ -92,16 +109,26 @@ fun ReminderContent(
     state: ReminderUiState,
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
-    onOpenHelp: (String) -> Unit = {},
+    navigation: ReminderNavigation = ReminderNavigation(),
     showGuide: Boolean = true,
 ) {
     val guideTargets = rememberGuideTargets()
+    val snackbarHostState = remember { SnackbarHostState() }
+    NoDueUndoEffect(state.undo, snackbarHostState, onEvent)
     CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
-                TopAppBar(title = { Text(stringResource(R.string.tab_reminder)) }, windowInsets = WindowInsets(0))
-                ReminderList(state, onEvent, onEnableNotifications, onOpenHelp)
+                TopAppBar(
+                    title = { Text(stringResource(R.string.tab_reminder)) },
+                    actions = { SettingsButton(navigation.onOpenSettings, ReminderTestTags.SETTINGS) },
+                    windowInsets = WindowInsets(0),
+                )
+                ReminderList(state, onEvent, onEnableNotifications, navigation)
             }
+            SnackbarHost(
+                snackbarHostState,
+                Modifier.align(Alignment.BottomCenter).testTag(ReminderTestTags.SNACKBAR),
+            )
             // 通知から開いた直後は出さない（表示済みにもしないので、次に開いたときに出る、R-52）
             state.guide?.takeIf { showGuide }?.let { guide ->
                 GuideOverlay(
@@ -119,40 +146,43 @@ private fun ReminderList(
     state: ReminderUiState,
     onEvent: (ReminderEvent) -> Unit,
     onEnableNotifications: () -> Unit,
-    onOpenHelp: (String) -> Unit,
+    navigation: ReminderNavigation,
 ) {
     val targets = LocalGuideTargets.current
+    // 「ほか N 件を見る」で開いた状態。画面を回しても保つが、保存はしない（BL-142）
+    var recentExpanded by rememberSaveable { mutableStateOf(false) }
+    // 並びは期限切れの有無によらず 期限が近い順 → 最近買った物（BL-142）。
+    // 背景の写真があるときは、セクションの見出しを写真の上に残し、各セクションの行に面を敷く（BL-130）
     LazyColumn(Modifier.fillMaxSize()) {
         if (!state.notificationsEnabled) {
             item { NotificationsOffBanner(onEnableNotifications) }
         }
-        item { SectionTitle(R.string.reminder_recent) }
-        if (state.loaded && state.recent.isEmpty()) {
-            item { Hint(R.string.reminder_recent_empty) }
-        }
-        itemsIndexed(state.recent, key = { _, record -> "recent_${record.id}" }) { index, record ->
-            // G-08 は一番上の「期限を決める」を照らす
-            val target = if (index == 0) Modifier.guideTarget(GuideId.G08_DUE_DATE, targets) else Modifier
-            Box(target) {
-                RecentRow(record) { onEvent(ReminderEvent.OpenDue(DueTarget(record.id, record.displayName))) }
-            }
-            HorizontalDivider()
-        }
+        // お知らせの時刻を 1 タップで変えられるように（BL-143）
+        item { ReminderTimeButton(state.notifyTime, navigation.onOpenReminderSettings) }
         item { SectionTitle(R.string.reminder_pending) }
         if (state.loaded && state.pending.isEmpty()) {
-            item { Hint(R.string.reminder_pending_empty) }
+            item { ReadablePanel { Hint(R.string.reminder_pending_empty) } }
         }
-        items(state.pending, key = { "pending_${it.reminder.id}" }) { row ->
-            PendingRow(row, state.today, onEvent)
-            HorizontalDivider()
+        itemsIndexed(state.pending, key = { _, row -> "pending_${row.reminder.id}" }) { index, row ->
+            ReadablePanel(panelEdge(index, state.pending.size)) {
+                PendingRow(row, state.today, onEvent)
+                HorizontalDivider()
+            }
         }
+        item { SectionTitle(R.string.reminder_recent) }
+        if (state.loaded && state.recent.isEmpty()) {
+            item { ReadablePanel { Hint(R.string.reminder_recent_empty) } }
+        }
+        recentRows(state.recent, recentExpanded, { recentExpanded = true }, onEvent, targets)
         // 困ったときの入口（H-03）
         item {
-            TextButton(
-                onClick = { onOpenHelp(HelpPages.NOT_ARRIVING) },
-                modifier = Modifier.padding(8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.NOT_ARRIVING),
-            ) {
-                Text(stringResource(R.string.help_not_arriving))
+            ReadablePanel {
+                TextButton(
+                    onClick = { navigation.onOpenHelp(HelpPages.NOT_ARRIVING) },
+                    modifier = Modifier.padding(8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.NOT_ARRIVING),
+                ) {
+                    Text(stringResource(R.string.help_not_arriving))
+                }
             }
         }
     }
@@ -184,6 +214,26 @@ private fun NotificationsOffBanner(onEnable: () -> Unit) {
     }
 }
 
+/** 「🕘 お知らせの時刻 9:00」。押すと「操作とお知らせ」を開く（BL-143）。背景の写真の上でも読めるよう面を敷く。 */
+@Composable
+private fun ReminderTimeButton(
+    time: LocalTime,
+    onClick: () -> Unit,
+) {
+    ReadablePanel {
+        TextButton(
+            onClick = onClick,
+            modifier = Modifier.padding(horizontal = 8.dp).heightIn(min = 48.dp).testTag(ReminderTestTags.TIME),
+        ) {
+            Icon(Icons.Rounded.Schedule, contentDescription = null)
+            Text(
+                stringResource(R.string.reminder_time_button, formatReminderTime(time)),
+                modifier = Modifier.padding(start = 4.dp),
+            )
+        }
+    }
+}
+
 @Composable
 private fun SectionTitle(text: Int) {
     Text(stringResource(text), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
@@ -196,37 +246,6 @@ private fun Hint(text: Int) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
     )
-}
-
-/** 最近買った物の 1 行。「期限を決める」（G-08 で照らす場所）。 */
-@Composable
-private fun RecentRow(
-    record: PurchaseRecordEntity,
-    onSetDue: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(record.displayName, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                stringResource(
-                    R.string.reminder_bought_on,
-                    record.purchasedDate.monthValue,
-                    record.purchasedDate.dayOfMonth,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        OutlinedButton(
-            onClick = onSetDue,
-            modifier = Modifier.heightIn(min = 48.dp).testTag(ReminderTestTags.setDue(record.id)),
-        ) {
-            Text(stringResource(R.string.reminder_set_due))
-        }
-    }
 }
 
 /** 期限が近い順の 1 行。期限切れは目立つ色＋「期限切れ」の文字（F-53・R-22）。押すと期限を決め直せる。 */
@@ -242,7 +261,8 @@ private fun PendingRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable {
+                // 読み上げで「ダブルタップで期限を決め直す」と伝える（BL-115）
+                .clickable(onClickLabel = stringResource(R.string.reminder_redo_due)) {
                     onEvent(ReminderEvent.OpenDue(DueTarget(row.reminder.purchaseRecordId, row.displayName, due)))
                 }.padding(horizontal = 16.dp, vertical = 8.dp)
                 .testTag(ReminderTestTags.pending(row.reminder.id)),
@@ -294,8 +314,14 @@ fun Context.openNotificationSettings() {
 object ReminderTestTags {
     const val NOTIFICATIONS_OFF = "reminder_notifications_off"
     const val NOT_ARRIVING = "reminder_not_arriving"
+    const val RECENT_MORE = "reminder_recent_more"
+    const val SNACKBAR = "reminder_snackbar"
+    const val SETTINGS = "reminder_settings"
+    const val TIME = "reminder_time"
 
     fun setDue(recordId: Long) = "reminder_set_due_$recordId"
+
+    fun noDue(recordId: Long) = "reminder_no_due_$recordId"
 
     fun pending(reminderId: Long) = "reminder_pending_$reminderId"
 

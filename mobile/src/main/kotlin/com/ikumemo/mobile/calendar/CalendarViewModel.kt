@@ -2,6 +2,7 @@ package com.ikumemo.mobile.calendar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikumemo.mobile.data.DeletedRecord
 import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.NewRecord
 import com.ikumemo.mobile.data.RecordEdit
@@ -52,12 +53,23 @@ data class CalendarUiState(
     val stores: List<StoreEntity> = emptyList(),
     /** いま出すその場のガイド（G-07）。 */
     val guide: GuideId? = null,
+    /** 記録を消した後の「元に戻す」（F-16）。 */
+    val undo: RecordUndoOffer? = null,
+)
+
+/** 記録を消した後の「元に戻す」の表示。[serial] は続けて消したときも表示し直すための通し番号。 */
+data class RecordUndoOffer(
+    val serial: Long,
+    val deleted: DeletedRecord,
 )
 
 sealed interface CalendarEvent {
     data object PreviousMonth : CalendarEvent
 
     data object NextMonth : CalendarEvent
+
+    /** 別の月を見ているときに「今日」を押した。今月へ戻り、今日を選ぶ（BL-137）。 */
+    data object GoToToday : CalendarEvent
 
     data class SelectDate(
         val date: LocalDate,
@@ -80,8 +92,7 @@ sealed interface CalendarEvent {
         val recordId: Long,
     ) : CalendarEvent
 
-    data object CloseEditor : CalendarEvent
-
+    /** 記録の編集シートを閉じたときに送る（閉じると保存、F-16）。 */
     data class SaveRecord(
         val recordId: Long,
         val edit: RecordEdit,
@@ -89,6 +100,16 @@ sealed interface CalendarEvent {
 
     data class DeleteRecord(
         val recordId: Long,
+    ) : CalendarEvent
+
+    /** 消した記録を元に戻す（F-16）。 */
+    data class UndoDelete(
+        val serial: Long,
+    ) : CalendarEvent
+
+    /** 「元に戻す」の表示が時間切れで消えた。 */
+    data class UndoExpired(
+        val serial: Long,
     ) : CalendarEvent
 
     /** 選んだ日に、メモに入れていなかった物を記録する（F-17）。 */
@@ -116,6 +137,7 @@ private data class CalendarLocal(
     val query: String = "",
     val editingId: Long? = null,
     val adding: Boolean = false,
+    val undo: RecordUndoOffer? = null,
 )
 
 /** カレンダー（F-40 月表示、F-41 日の詳細、F-42 検索、F-16 記録の修正・削除、F-17 あとから記録）。日曜始まり。 */
@@ -130,6 +152,7 @@ class CalendarViewModel(
 
     private val today get() = LocalDate.now(clock)
     private val local = MutableStateFlow(CalendarLocal(YearMonth.from(today), today))
+    private var undoSerial = 0L
 
     private val monthRecords =
         local
@@ -177,6 +200,7 @@ class CalendarViewModel(
                         guideState,
                         GuideScene(sheetOpen = state.searchOpen || state.editingId != null || state.adding),
                     ),
+                undo = state.undo,
             )
         }.stateIn(
             viewModelScope,
@@ -188,6 +212,7 @@ class CalendarViewModel(
         when (event) {
             CalendarEvent.PreviousMonth -> showMonth(local.value.month.minusMonths(1))
             CalendarEvent.NextMonth -> showMonth(local.value.month.plusMonths(1))
+            CalendarEvent.GoToToday -> showMonth(YearMonth.from(today))
             is CalendarEvent.SelectDate -> {
                 // R-51: 自分で日付を押して中身を見たら、G-07 は要らない
                 guides.markShown(GuideId.G07_CALENDAR_DAY)
@@ -213,9 +238,11 @@ class CalendarViewModel(
     private fun onRecordEvent(event: CalendarEvent) {
         when (event) {
             is CalendarEvent.EditRecord -> local.update { it.copy(editingId = event.recordId) }
-            CalendarEvent.CloseEditor -> local.update { it.copy(editingId = null) }
             is CalendarEvent.SaveRecord -> saveRecord(event)
             is CalendarEvent.DeleteRecord -> deleteRecord(event.recordId)
+            is CalendarEvent.UndoDelete -> undoDelete(event.serial)
+            is CalendarEvent.UndoExpired ->
+                local.update { if (it.undo?.serial == event.serial) it.copy(undo = null) else it }
             CalendarEvent.OpenAddRecord -> local.update { it.copy(adding = true) }
             CalendarEvent.CloseAddRecord -> local.update { it.copy(adding = false) }
             is CalendarEvent.AddRecord -> addRecord(event.record)
@@ -260,10 +287,26 @@ class CalendarViewModel(
         }
     }
 
+    /** 確認は出さずに消し、「元に戻す」で救う（PLAN §1.3-4）。 */
     private fun deleteRecord(recordId: Long) {
         viewModelScope.launch {
-            records.deleteRecord(recordId)
-            local.update { it.copy(editingId = null) }
+            val offer =
+                records.deleteRecord(recordId)?.let {
+                    undoSerial += 1
+                    RecordUndoOffer(undoSerial, it)
+                }
+            local.update { it.copy(editingId = null, undo = offer ?: it.undo) }
+        }
+    }
+
+    /** 表示中の「元に戻す」を実行する。戻せるのは最新の 1 件だけ。戻した記録の日を表示する。 */
+    private fun undoDelete(serial: Long) {
+        val offer = local.value.undo?.takeIf { it.serial == serial } ?: return
+        local.update { it.copy(undo = null) }
+        viewModelScope.launch {
+            if (!records.restoreRecord(offer.deleted)) return@launch
+            val date = offer.deleted.record.purchasedDate
+            local.update { it.copy(month = YearMonth.from(date), selectedDate = date) }
         }
     }
 

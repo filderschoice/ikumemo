@@ -3,26 +3,42 @@ package com.ikumemo.mobile.settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,6 +90,10 @@ fun DataScreen(
 
 private enum class DataDialog { IMPORT, ERASE }
 
+/**
+ * 結果の知らせを一番上に出し、見出し「書き出す」「読み込む」「消す」で区切る（BL-134）。
+ * 「データをすべて消す」は間を空けて離し、文字を error 色にする。処理中は押した行に進み具合を出す。
+ */
 @Composable
 fun DataContent(
     state: DataUiState,
@@ -82,30 +102,15 @@ fun DataContent(
     onPickImportFile: () -> Unit,
 ) {
     var dialog by rememberSaveable { mutableStateOf<DataDialog?>(null) }
-    val enabled = !state.busy
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        DataRow(R.string.data_export_zip_title, R.string.data_export_zip_detail, enabled, DataTestTags.EXPORT_ZIP) {
-            onExport(ExportKind.ZIP)
-        }
-        DataRow(R.string.data_export_json_title, R.string.data_export_json_detail, enabled, DataTestTags.EXPORT_JSON) {
-            onExport(ExportKind.JSON)
-        }
-        DataRow(R.string.data_export_csv_title, R.string.data_export_csv_detail, enabled, DataTestTags.EXPORT_CSV) {
-            onExport(ExportKind.CSV)
-        }
-        DataRow(R.string.data_import_title, R.string.data_import_detail, enabled, DataTestTags.IMPORT) {
-            dialog = DataDialog.IMPORT
-        }
-        DataRow(R.string.data_erase_title, R.string.data_erase_detail, enabled, DataTestTags.ERASE) {
-            dialog = DataDialog.ERASE
-        }
-        state.result?.let {
-            Text(
-                stringResource(resultText(it)),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(16.dp).testTag(DataTestTags.RESULT),
-            )
-        }
+        state.result?.let { ResultText(it) }
+        ExportSection(state, onExport)
+        SectionHeading(R.string.data_section_import, DataTestTags.HEADING_IMPORT)
+        DataRow(IMPORT_ROW, state) { dialog = DataDialog.IMPORT }
+        Spacer(Modifier.height(ERASE_GAP))
+        HorizontalDivider()
+        SectionHeading(R.string.data_section_erase, DataTestTags.HEADING_ERASE)
+        DataRow(ERASE_ROW, state) { dialog = DataDialog.ERASE }
     }
     when (dialog) {
         DataDialog.IMPORT ->
@@ -116,38 +121,188 @@ fun DataContent(
     }
 }
 
+private val ERASE_GAP = 32.dp
+
+/** 写真なし・表計算用の書き出し。処理中はその行の進み具合が隠れないよう、閉じていても出す。 */
+private val OTHER_EXPORT_TASKS = setOf(DataTask.EXPORT_JSON, DataTask.EXPORT_CSV)
+
+/**
+ * 「書き出す」の区切り（BL-145）。表に出すのは写真も含む書き出し 1 つで、写真なしと表計算用は
+ * 「ほかの形式で書き出す」を押すと開く折りたたみの中に出す。開いた状態は保存しない（画面を開き直すと閉じる）。
+ */
+@Composable
+private fun ExportSection(
+    state: DataUiState,
+    onExport: (ExportKind) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val open = expanded || state.running in OTHER_EXPORT_TASKS
+    SectionHeading(R.string.data_section_export, DataTestTags.HEADING_EXPORT)
+    DataRow(EXPORT_ZIP_ROW, state) { onExport(ExportKind.ZIP) }
+    OtherExportToggle(open) { expanded = !open }
+    if (open) {
+        DataRow(EXPORT_JSON_ROW, state) { onExport(ExportKind.JSON) }
+        DataRow(EXPORT_CSV_ROW, state) { onExport(ExportKind.CSV) }
+    }
+}
+
+@Composable
+private fun OtherExportToggle(
+    open: Boolean,
+    onToggle: () -> Unit,
+) {
+    val stateText = stringResource(if (open) R.string.data_export_other_open else R.string.data_export_other_closed)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.Button, onClick = onToggle)
+            .semantics { stateDescription = stateText }
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .testTag(DataTestTags.EXPORT_OTHER),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.data_export_other),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(
+            if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+    }
+    HorizontalDivider()
+}
+
+@Composable
+private fun ResultText(result: DataResult) {
+    Text(
+        stringResource(resultText(result)),
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier.padding(16.dp).testTag(DataTestTags.RESULT),
+    )
+}
+
+@Composable
+private fun SectionHeading(
+    text: Int,
+    tag: String,
+) {
+    Text(
+        stringResource(text),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp).testTag(tag),
+    )
+}
+
+/** データ画面の 1 行。[danger] は取り消せない操作（文字を error 色にする）。 */
+private class DataRowSpec(
+    val title: Int,
+    val detail: Int,
+    val tag: String,
+    val task: DataTask,
+    val progress: Int,
+    val danger: Boolean = false,
+)
+
+private val EXPORT_ZIP_ROW =
+    DataRowSpec(
+        R.string.data_export_zip_title,
+        R.string.data_export_zip_detail,
+        DataTestTags.EXPORT_ZIP,
+        DataTask.EXPORT_ZIP,
+        R.string.data_progress_export,
+    )
+
+private val EXPORT_JSON_ROW =
+    DataRowSpec(
+        R.string.data_export_json_title,
+        R.string.data_export_json_detail,
+        DataTestTags.EXPORT_JSON,
+        DataTask.EXPORT_JSON,
+        R.string.data_progress_export,
+    )
+
+private val EXPORT_CSV_ROW =
+    DataRowSpec(
+        R.string.data_export_csv_title,
+        R.string.data_export_csv_detail,
+        DataTestTags.EXPORT_CSV,
+        DataTask.EXPORT_CSV,
+        R.string.data_progress_export,
+    )
+
+private val IMPORT_ROW =
+    DataRowSpec(
+        R.string.data_import_title,
+        R.string.data_import_detail,
+        DataTestTags.IMPORT,
+        DataTask.IMPORT,
+        R.string.data_progress_import,
+    )
+
+private val ERASE_ROW =
+    DataRowSpec(
+        R.string.data_erase_title,
+        R.string.data_erase_detail,
+        DataTestTags.ERASE,
+        DataTask.ERASE,
+        R.string.data_progress_erase,
+        danger = true,
+    )
+
 @Composable
 private fun DataRow(
-    title: Int,
-    detail: Int,
-    enabled: Boolean,
-    tag: String,
+    spec: DataRowSpec,
+    state: DataUiState,
     onClick: () -> Unit,
 ) {
     Column(
         Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .clickable(enabled = enabled, onClick = onClick)
+            .clickable(enabled = !state.busy, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp)
-            .testTag(tag),
+            .testTag(spec.tag),
     ) {
-        Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
         Text(
-            stringResource(detail),
+            stringResource(spec.title),
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (spec.danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            stringResource(spec.detail),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (state.running == spec.task) Progress(spec.progress)
     }
     HorizontalDivider()
 }
 
-/** 確認ダイアログの文言とボタンのタグ。 */
+@Composable
+private fun Progress(text: Int) {
+    Row(
+        Modifier.padding(top = 8.dp).testTag(DataTestTags.PROGRESS),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+        Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+/** 確認ダイアログの文言とボタンのタグ。[danger] は確定ボタンを error 色にする（取り消せない操作）。 */
 private class ConfirmSpec(
     val title: Int,
     val detail: Int,
     val confirm: Int,
     val confirmTag: String,
+    val danger: Boolean = false,
 )
 
 private val IMPORT_CONFIRM =
@@ -164,6 +319,7 @@ private val ERASE_CONFIRM =
         R.string.data_erase_confirm_detail,
         R.string.data_erase_confirm,
         DataTestTags.ERASE_CONFIRM,
+        danger = true,
     )
 
 @Composable
@@ -172,6 +328,12 @@ private fun ConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
+    val confirmColors =
+        if (spec.danger) {
+            ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+        } else {
+            ButtonDefaults.textButtonColors()
+        }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(spec.title)) },
@@ -182,10 +344,11 @@ private fun ConfirmDialog(
                     onDismiss()
                     onConfirm()
                 },
+                colors = confirmColors,
                 modifier = Modifier.testTag(spec.confirmTag),
             ) { Text(stringResource(spec.confirm)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.reminder_settings_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_back)) } },
     )
 }
 
@@ -203,9 +366,14 @@ object DataTestTags {
     const val EXPORT_ZIP = "data_export_zip"
     const val EXPORT_JSON = "data_export_json"
     const val EXPORT_CSV = "data_export_csv"
+    const val EXPORT_OTHER = "data_export_other"
     const val IMPORT = "data_import"
     const val IMPORT_CONFIRM = "data_import_confirm"
     const val ERASE = "data_erase"
     const val ERASE_CONFIRM = "data_erase_confirm"
     const val RESULT = "data_result"
+    const val PROGRESS = "data_progress"
+    const val HEADING_EXPORT = "data_heading_export"
+    const val HEADING_IMPORT = "data_heading_import"
+    const val HEADING_ERASE = "data_heading_erase"
 }

@@ -5,6 +5,954 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 11:24
+  summary: 記録の画面の品名検索の欄に、編集シートと同じマイクを付けて話した品名で探せるようにする
+  details:
+    変更内容: >-
+      BL-117 を実装した（オーナー承認 2026-11-13）。CalendarScreen.kt の SearchPane の検索欄の trailingIcon に FieldMic を付け、
+      欄のテストタグ CalendarTestTags.SEARCH_INPUT を聞き取りの欄の名前に使い、聞き取った文字は 1 行の欄として検索語を置き換えて QueryChanged を送る。
+      上部のバーには足さず欄の中に置いた（BL-137 で上部のバーの幅に余裕が少ないため）。権限・認識の仕組みは既存の F-04 の FieldDictationViewModel と同じで、
+      新しい権限や端末の外への送信経路は増えていない。音声認識が使えない端末では出さない（既存の FieldMic の挙動）。
+      Compose のテスト CalendarSearchMicTest を足し、マイクの結果が検索語に入ることと、認識が使えないときマイクが無いことを確かめた。
+      使い方 help/search.md にマイクの 1 行を足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-42 の行を更新した。
+      実際の音声認識での確認は人手検証 BL-118 に足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarSearchMicTest.kt
+      - mobile/src/main/assets/help/search.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarSearchMicTest" --tests "*CalendarContentTest" --tests "*FieldMicTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug・スクリーンショットの比較は流していない。MainScreensScreenshotTest の calendar は検索を閉じた月の表示で、マイクの窓口も渡さないため画像は変わらない）
+    関連ID:
+      - BL-117
+- date: 2026-11-13 11:19
+  summary: 画面と掲載文の「つ」の件数表記で、数字の前の空白も外して「の2つ」にそろえる
+  details:
+    変更内容: >-
+      BL-155 を実装した（オーナー判断 2026-11-13、BACKLOG には起票せず今回のコミットで完了扱い）。BL-154 で数字と「つ」の間の空白を外したのに続き、
+      半角数字と「つ」の件数表記の直前にある半角空白を外した。使い方 help/theme.md（を4つから）、undo.md（いちばん新しい1つ）、
+      usual.md（押すたびに1つずつ）、store.md（登録が2つある）と、docs/store/STORE_LISTING.md（の2つのウィジェット）を直し、
+      python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直した。strings.xml と画面に出る Kotlin の文言（BackupValidator.kt を含む）には
+      該当が無く変えていない。行頭・見出しの記号・表の区切りの直後で元から空白が無いもの（# 2つのウィジェット、- 4つのテーマ、表の 4つのテーマ）はそのまま。
+      「つ」以外の助数詞（牛乳 2 本 など）、時刻、コードのコメント、RELEASE_NOTES・CLOSED_TEST・PLAN は範囲外で変えていない。
+      文言を期待値に持つテストは無かった。DESIGN.md の F-01 の表記の決まりに、数字の前にも空白を入れないことを書き足した
+    変更ファイル:
+      - mobile/src/main/assets/help/theme.md
+      - mobile/src/main/assets/help/undo.md
+      - mobile/src/main/assets/help/usual.md
+      - mobile/src/main/assets/help/store.md
+      - docs/USER_GUIDE.md
+      - docs/store/STORE_LISTING.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*HelpContentTest" --tests "*HelpScreenTest"、python scripts/validate-records.py、
+      python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。画面のコードは変えておらずスクリーンショットは対象外）
+    関連ID:
+      - BL-155
+- date: 2026-11-13 11:16
+  summary: 文字で追加でも「牛乳 2本」を品名 牛乳 と数量 2本 に分けて入れる
+  details:
+    変更内容: >-
+      BL-147 を実装した（UX レビュー B7、オーナー承認済みの案）。ShoppingListViewModel の handleDataEvent で、AddByText のときだけ
+      core の QuantityParser.split を通して品名と数量に分け、repository.addItem(name, quantity) に渡すようにした。
+      「いつもの」チップと入力中の候補（AddProduct）は品名そのままで変えていない。区切りでの複数件の分割はしない。
+      数量だけの入力（「2本」）は QuantityParser が品名を空にしない既存のふるまいにより、分けずにそのまま品名になる。
+      分けた品名がメモにあるときは R-01 のとおり追加せずに光らせ、既存の項目の数量は書き換えない（ShoppingRepository は変更なし）。
+      ShoppingListViewModelTest に、分けて入ること、メモにある品名は光って数量が変わらないこと、数量だけの入力はそのまま品名になることのテストを足した。
+      QuantityParser は変えていない。使い方 help/text.md に一文を足し、docs/USER_GUIDE.md を作り直した。DESIGN.md の F-03 に数量の取り出しを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/main/assets/help/text.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShoppingListViewModelTest" --tests "*ShoppingRepositoryTest"
+      --tests "*VoiceTextParserTest"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。画面の見た目は変わらないためスクリーンショットは対象外）
+    関連ID:
+      - BL-147
+- date: 2026-11-13 11:11
+  summary: メモの項目の編集シートに「メモから外す（やめた）」を足し、スワイプしなくても「やめた」にできるようにする
+  details:
+    変更内容: >-
+      BL-146 を実装した（UX レビュー B6、オーナー承認済みの案）。EditItemSheet.kt に引数 onRemove を足し、下のボタンを EditSheetActions に分けて、
+      「閉じる」の行の下に区切り線をはさんで「メモから外す（やめた）」の TextButton（48dp 以上、文言は strings.xml の edit_remove_from_memo、
+      目印 TestTags.EDIT_REMOVE）を置いた。ShoppingListScreen.kt はシートの切り替えを HomeSheets に分け、外すときは CloseSheet を送ってから
+      スワイプと同じ Dismiss を送る。シートで直した内容は保存しない（ModalBottomSheet の onDismissRequest を通らないため保存の処理は動かない）。
+      ShoppingListScreenTest に外すとシートが閉じて「やめた：洗剤」が出て、元に戻すと直しかけた数量が残らないことのテストを、
+      ShoppingListViewModelTest に編集中の項目を外すとシートが閉じて元に戻すの申し出（Dismissed）が出るテストを足した。
+      FieldMicTest の EditItemSheet の呼び出しに onRemove を足した。使い方 help/edit.md・swipe.md に一文を足し、docs/USER_GUIDE.md を作り直した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/EditItemSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/edit.md
+      - mobile/src/main/assets/help/swipe.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/FieldMicTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShoppingListScreenTest" --tests "*ShoppingListViewModelTest"
+      --tests "*AccessibilityTest" --tests "*FieldMicTest"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目は追加した ViewModel のテストが失敗した（元に戻すの申し出とメモの一覧の更新が別々に届くのを待っていなかった）。
+      両方がそろうまで待つよう直した 2 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。編集シートはスクリーンショットテストの対象外）
+    関連ID:
+      - BL-146
+- date: 2026-11-13 11:01
+  summary: データの書き出しは写真も含む 1 行を表に出し、写真なしと表計算用を「ほかの形式で書き出す」の折りたたみへ入れる
+  details:
+    変更内容: >-
+      BL-145 を実装した（UX レビュー B5、オーナー承認済みの案）。DataScreen.kt の「書き出す」の区切りを ExportSection に分け、
+      主の行「データを書き出す（写真も含む）」の下に OtherExportToggle（「ほかの形式で書き出す」、矢印の向きで開閉を示し、
+      読み上げ用に「開いています」「閉じています」の状態を付ける）を置き、開いたときだけ写真なし・表計算用の 2 行を出す。
+      開いた状態は remember で持ち保存しない。写真なし・表計算用の書き出しの処理中は、進み具合が隠れないよう閉じていても 2 行を出す。
+      説明から ZIP・JSON・CSV の語を外し「いくメモで読み込めるファイル」「表計算ソフト（Excel など）で開けるファイル」と書き、
+      data_import_detail も「いくメモで書き出したファイル（表計算用は除く）」に直した。書き出す中身・ファイル名・ExportKind は変えていない。
+      使い方 help/data-export.md・device-change.md を新しい行の名前に合わせ、docs/USER_GUIDE.md を作り直した。
+      DataContentTest に、最初は写真も含む行だけが見えること・開くと 2 行が出て押すと onExport が呼ばれること・もう一度押すと閉じること・
+      説明に形式名が出ないことのテストを足し、既存の書き出しのテストは開いてから押すよう直した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/data-export.md
+      - mobile/src/main/assets/help/device-change.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*DataViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。設定の画面はスクリーンショットテストの対象外）
+    関連ID:
+      - BL-145
+- date: 2026-11-13 10:55
+  summary: 通知の許可を求める前の説明に見出しと届く時刻と次の画面の案内を出す
+  details:
+    変更内容: >-
+      BL-140 を実装した（UX レビュー A11）。NotificationPermission.kt の説明のダイアログを、時刻と押したときの処理だけを引数に取る
+      NotificationRationaleDialog に分け、見出し「通知を使います」、本文「期限の前の日の（時刻）に、スマートフォンの通知でお知らせします。
+      次の画面で『許可』を押してください。」、ボタン「次へ」と「今はしない」にした。時刻は BL-143 で ReminderUiState に持たせた notifyTime を
+      formatReminderTime（例 9:00）で出す。文言は strings.xml の reminder_permission_title・reminder_permission_rationale（時刻の引数付きに変更）・
+      reminder_permission_next（旧 reminder_permission_allow を置き換え）。説明を出す条件（Android 13 以降・初めて期限を決めたとき・案内からは 2 回まで）は変えていない。
+      使い方 help/due.md に初めて決めたときに通知の許可を求めることを足し、docs/USER_GUIDE.md を作り直した。
+      NotificationRationaleTest を新設し、見出し・設定した時刻を含む本文・「次へ」で許可を求める処理が呼ばれること・「今はしない」では呼ばれないことを確かめた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/NotificationPermission.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/due.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/NotificationRationaleTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*NotificationRationaleTest" --tests "*ReminderViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目は新設のテストの行の長さで ktlint が失敗し、行を分けた 2 回目で ktlint・detekt・compile・指定のテストクラス
+      （NotificationRationaleTest 3 件・ReminderViewModelTest 10 件）・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。ダイアログはスクリーンショットテストの対象外）
+    関連ID:
+      - BL-140
+- date: 2026-11-13 10:48
+  summary: 設定の一覧に見出しの区切りと各行の 1 行の説明を付ける
+  details:
+    変更内容: >-
+      BL-139 を実装した（UX レビュー A10）。SettingsScreen.kt に区切りの SettingsSection を足し、
+      使い方は見出し無しで一番上（H-01）、「見た目と操作」に着せ替え・操作とお知らせ・ホーム画面に置く、
+      「登録したもの」にお店の管理・よく買う物の管理・データ、「このアプリ」にこのアプリについてを並べた。
+      見出しは titleSmall の primary 色で semantics の heading を付けた。SettingsItem に説明の detail を足し、
+      各行の下に onSurfaceVariant の bodyMedium で出す（SettingsSwitchRow と同じ作り、使い方の行は説明なし）。
+      項目・行き先・SettingsItem の並び（enum）とテストタグは変えていない（画面での並びはホーム画面に置くが着せ替えの組へ上がる）。
+      文言は strings.xml の settings_section_* と settings_*_detail。使い方 help/ の「設定の」の記述は項目の名前だけで食い違いが無く、直していない。
+      SettingsScreenTest を新設し、区切りが全項目を 1 回ずつ含むこと、見出し（heading）と説明が出ること、各行が今までどおりの項目を開くことを確かめた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/SettingsScreenTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SettingsScreenTest" --tests "*AboutContentTest" --tests "*HelpScreenTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す。設定の画面はスクリーンショットテストの対象外）
+    関連ID:
+      - BL-139
+- date: 2026-11-13 10:40
+  summary: 画面に出る「つ」の件数表記を空白なしの「3つ」にそろえる
+  details:
+    変更内容: >-
+      BL-154 を実装した（オーナー判断 2026-11-13。BL-136 で足した voice_add_count が「%1$d つ追加する」で、
+      ウィジェットの「%1$dつ」と空白の有無がそろっていなかったため、件数の表記を空白なしにそろえると決めた）。
+      strings.xml の voice_add_count を「%1$dつ追加する」に、onboarding_voice_body を「2つに分かれて」に、
+      data_export_zip_detail を「1つのファイル」に直した。BackupValidator の読み込み失敗の文言を「1つの記録に期限が複数あります」に直した。
+      使い方 help/ の voice.md（1つずつ・3つ追加する）、start.md（2つに分かれて）、index.md と widgets.md（2つのウィジェット）、
+      store.md（2つある）、theme.md（4つから）、undo.md（1つだけ）、usual.md（1つずつ）を直し、
+      make-user-guide.py で docs/USER_GUIDE.md を作り直した。VoiceInputContentTest の期待値を「2つ追加する」「1つ追加する」に直した。
+      Kotlin のコメント、「つ」以外の助数詞、ストア掲載文・リリースノートなど docs/ の文書は変えていない。
+      DESIGN.md の F-01 の行を「Nつ追加する」に直し、表記の決まりを足した
+    変更ファイル:
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupValidator.kt
+      - mobile/src/main/assets/help/index.md
+      - mobile/src/main/assets/help/start.md
+      - mobile/src/main/assets/help/store.md
+      - mobile/src/main/assets/help/theme.md
+      - mobile/src/main/assets/help/undo.md
+      - mobile/src/main/assets/help/usual.md
+      - mobile/src/main/assets/help/voice.md
+      - mobile/src/main/assets/help/widgets.md
+      - docs/USER_GUIDE.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputContentTest" --tests "*BackupValidatorTest" --tests "*HelpContentTest"、
+      python scripts/make-user-guide.py、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す。
+      変えた文言は音声入力のシート・初めての案内・データの画面・使い方で、スクリーンショットテストの対象外）
+    関連ID:
+      - BL-154
+- date: 2026-11-13 10:37
+  summary: 着せ替えの画面で文字の大きさを一番上に移し、テーマ・暗い画面・背景の写真の順に並べ替える
+  details:
+    変更内容: >-
+      BL-138 を実装した。settings/AppearanceScreen.kt の AppearanceContent の並びを
+      テーマ → 背景の写真 → 暗い画面 → 文字の大きさ から、文字の大きさ → テーマ → 暗い画面 → 背景の写真 に変えた
+      （背景の写真は選ぶと膜の濃さ・ペンの色が増えるので最後）。各部品の中身と testTag は変えていない。
+      AppearanceContentTest に、文字の大きさ・テーマの見本・暗い画面・背景の写真の縦位置（positionInRoot）がこの順に並ぶテストを足した。
+      着せ替えの画面はスクリーンショットテストの対象外で、使い方 help/ には並び順の記述が無いため変えていない。
+      DESIGN.md の F-60・F-63・F-65 の行に並び順を足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*AppearanceContentTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-138
+- date: 2026-11-13 10:32
+  summary: 記録の画面で買い物の点を大きくし、別の月から今日へ戻る「今日」と文字付きの「探す」を出す
+  details:
+    変更内容: >-
+      BL-137 を実装した。calendar/MonthGrid.kt の DayCell で買い物の点を 6dp から 8dp にし、日付の数字との間を 2dp 空けた（マスの最小 48dp は変えない）。
+      MonthHeader に省略可能な onToday を足し、渡したときだけ見出しと ▶ の間に「今日」（TextButton、48dp 以上、テストタグ calendar_today）を出す。
+      CalendarScreen.kt の MonthPane は今月以外を見ているときだけ onToday を渡し、押すと新しい CalendarEvent.GoToToday を送る。
+      CalendarViewModel は GoToToday で showMonth（今月なら今日を選ぶ）を呼ぶ。
+      上部のバーの「探す」をアイコンだけの IconButton からアイコン＋文字の TextButton（SearchToggleButton）にし、検索中は「✕ やめる」、
+      読み上げは今までどおり「探す」「探すのをやめる」を semantics で付けた。文字が大きくても題名と 2 つのボタンが重ならないよう、題名は 1 行で溢れたら省く。
+      strings.xml に calendar_today「今日」と calendar_search_stop「やめる」を足した。
+      CalendarContentTest に今月では「今日」が出ない・別の月では出て押すと GoToToday が出る・探すの文字と検索中の「やめる」のテストを、
+      CalendarViewModelTest に GoToToday で今月の今日が選ばれるテストを足した。
+      使い方 help/calendar.md に「今日」、help/search.md に「やめる」を足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-40・F-42 の行を合わせた。
+      スクリーンショットの calendar の記録し直しはオーケストレータが区切りで行う
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/calendar.md
+      - mobile/src/main/assets/help/search.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*CalendarViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定の 2 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug・スクリーンショットテストは流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-137
+- date: 2026-11-13 10:26
+  summary: 話して追加の確認カードで、外したカードに取り消し線と「戻す」を出し、追加ボタンに入れる件数を出す
+  details:
+    変更内容: >-
+      BL-136 を実装した。外したカードは品名と数量に取り消し線を引いて onSurfaceVariant で薄くし、
+      右のボタンを × から「↩ 戻す」（AutoMirrored の Undo アイコンと文字、TextButton で 48dp 以上）に替えた。
+      読み上げ（voice_exclude_card・voice_include_card）は変えず、戻すボタンには semantics で同じ読み上げを付けた。
+      追加ボタンは入れる件数を voice_add_count「%1$d つ追加する」で出し、0 件のときは今までどおり voice_add_all「追加する」で押せない。
+      strings.xml に voice_add_count と voice_restore_card「戻す」を足した。
+      detekt の TooManyFunctions（1 ファイル 11 個）に掛かったため、確認カードと下のボタン（ConfirmCards・ConfirmCard・CardTexts・ToggleCardButton・EditingCard）を
+      voice/VoiceConfirmCards.kt へ移した。VoiceInputContentTest に外したカードの「戻す」と件数の付いた追加ボタンのテストを足した。
+      使い方 help/voice.md と docs/USER_GUIDE.md、DESIGN.md の F-01 の行を新しい見た目に合わせた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceConfirmCards.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/voice.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputContentTest" --tests "*VoiceInputViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目の軽い検証は detekt の TooManyFunctions で失敗し、ファイルを分けた 2 回目で ktlint・detekt・compile・指定の 2 テストクラス・
+      markdownlint・records・user-guide・secrets がすべて成功した（Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-136
+- date: 2026-11-13 10:14
+  summary: ダイアログのボタンの言葉を、確定は「決める」、取り消しは「戻る」にそろえる
+  details:
+    変更内容: >-
+      BL-133 を実装した。strings.xml に common_decide「決める」を足し、使われなくなった reminder_settings_cancel「やめる」を消した。
+      日付・時刻を選ぶダイアログ（reminder/DueSheet.kt の期限の日付、calendar/RecordEditSheet.kt の RecordDatePicker、
+      settings/ReminderSettingsScreen.kt の時刻）の確定を「できた」から「決める」に、取り消しを「閉じる」「やめる」から「戻る」（common_back）にした。
+      settings/DataScreen.kt の確認ダイアログと settings/StoreManageScreen.kt の 2 つのダイアログの取り消しも「戻る」にした。
+      確定に操作の名前が入るダイアログ（すべて消す・読み込む・使わない）の確定の文字と、ボタンの並び・動きは変えていない。
+      音声カードの「できた」とシートを閉じる「閉じる」は対象外のまま。使い方 help/ にダイアログのボタンを指す記述は無く変えていない。
+      DataContentTest の取り消しのテストを「戻る」で押すよう直し、取り消しが「戻る」であるテストを足した。DESIGN.md の UI/UX 方針に 1 行足した
+    変更ファイル:
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/DueSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/StoreManageScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*ManageContentTest" --tests "*OperationContentTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目の軽い検証で ktlint・detekt・compile・指定の 3 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-133
+- date: 2026-11-13 10:12
+  summary: データの画面を見出しで 3 つに区切り、すべて消すを離して error 色にし、処理中の行と結果を分かるようにする
+  details:
+    変更内容: >-
+      BL-134 を実装した。settings/DataViewModel.kt に DataTask（EXPORT_ZIP・EXPORT_JSON・EXPORT_CSV・IMPORT・ERASE）を足し、
+      DataUiState は busy の代わりに running（処理中の行、無ければ null）を持つ。busy は running から求める読み取りの値として残し、二重に押せなくする動きは変えない。
+      settings/DataScreen.kt の DataContent は結果の知らせを一番上に出し、見出し「書き出す」「読み込む」「消す」（titleSmall・primary）で区切る。
+      「データをすべて消す」は読み込みの下に 32dp の間と区切り線を空けて離し、題の文字と確認ダイアログの「すべて消す」を colorScheme.error にした（読み込みの確認は変えない）。
+      処理中は押した行に CircularProgressIndicator と strings.xml の data_progress_export・data_progress_import・data_progress_erase の文字を出す。
+      行の引数は detekt の LongParameterList を避けるため DataRowSpec にまとめた。使い方 help/data-export.md は区切り・消す行に触れていないため変えていない。
+      DESIGN.md の F-72 と F-76 の行を更新した。設定の画面はスクリーンショットテストの対象外のため記録し直していない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/DataViewModelTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*DataViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 4 回目の軽い検証で ktlint・detekt・compile・指定の 2 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は見出しが増えて画面の外になった行を押せず、切り取られた位置で比べていたため失敗し、performScrollTo と getUnclippedBoundsInRoot に直した。
+      2 回目は進み具合が押せる行にまとめられて見つからず useUnmergedTree で探すよう直し、3 回目はテストの行の長さで ktlint に当たった。
+      Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-134
+- date: 2026-11-13 10:01
+  summary: 期限を決めるシートの候補のチップに、今日から数えた日付を曜日付きで添える
+  details:
+    変更内容: >-
+      BL-132 を実装した。reminder/DueSheet.kt の候補（3日後・1週間後・2週間後・1か月後）のチップを private の DueChoiceChip に分け、
+      上の行に従来の文字、下の行に日付（strings.xml の新しい reminder_due_choice_date「%1$d月%2$d日（%3$s）」、labelSmall）を出す。
+      日付の値は純粋な関数 DueChoice.dateParts（DueDateParts の月・日・曜日。曜日は Locale.JAPANESE の短い名前でカレンダーの dayTitle と同じ作り、
+      1 か月後の月末の丸めは DueChoice.from に従う）で作る。「日付を選ぶ」のチップは 1 行のまま、チップの高さは 48dp 以上を保つ。
+      使い方の help/due.md に日付も出ることを足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-50 の行を更新した。
+      あわせて BL-131 の実機の確かめ（キーボードが出るか、ショートカット・ウィジェットから開いたとき）を BL-153 として人手検証で起票し、BL-151 の依存から BL-132 を外した。
+      シートはスクリーンショットテストの対象外のため記録し直していない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/DueSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/due.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/DueChoiceTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/DueSheetTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DueSheetTest" --tests "*DueChoiceTest" --tests "*ReminderViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 3 回目の軽い検証で ktlint・detekt・compile・指定の 3 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は行の長さで ktlint・detekt、2 回目は DueSheet が長くなって LongMethod の detekt 違反になったため、チップを DueChoiceChip に分けた。
+      Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-132
+- date: 2026-11-13 09:49
+  summary: メモの「文字で追加」とカレンダーの「買った物を記録する」のシートを開いたら、品名の欄にフォーカスしてキーボードを出す
+  details:
+    変更内容: >-
+      BL-131 を実装した。shoppinglist/ItemSheets.kt に rememberFocusOnOpen（FocusRequester を作り、LaunchedEffect で requestFocus し、失敗は無視する）を足し、
+      AddItemSheet の入力欄（ADD_SHEET_INPUT）に focusRequester を付けた。ショートカット・ウィジェットから開いたときも同じシートのため同じく効く。
+      calendar/AddRecordSheet.kt は品名の欄を private の NameField（EditField と同じ見た目で横にマイク）に分け、同じくフォーカスを当てる。
+      共用の EditField は引数を足すと detekt の LongParameterList に当たるため変えず、メモの編集シートと記録の編集シートは従来どおり自動でフォーカスしない。
+      使い方の text.md と add-later.md は入力欄を押す手順が無いため変えていない。DESIGN.md の F-03 と F-17 の行を更新した。
+      シートはスクリーンショットテストの対象外のため記録し直していない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ItemSheets.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/AddRecordSheet.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreenTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/AddRecordSheetTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShoppingListScreenTest" --tests "*AddRecordSheetTest" --tests "*RecordEditSheetTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定の 3 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は EditField に引数を足して LongParameterList、AddRecordSheet が長くなって LongMethod の detekt 違反になったため、品名の欄を NameField に分けた。
+      Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-131
+- date: 2026-11-13 05:39
+  summary: カレンダーの記録を消した後に「元に戻す」を出し、記録と付いていたお知らせを同じ id で戻せるようにする
+  details:
+    変更内容: >-
+      BL-135 を実装した。data/RecordRepository.kt の deleteRecord が、消す前の記録・お知らせ・お買い物を DeletedRecord として返すようにし、
+      restoreRecord で記録とお知らせを同じ id で戻して品目の集計を計算し直すようにした（お買い物は残っていればそれを、無ければ同じ日・お店のもの、それも無ければ元の id で戻す）。
+      お知らせが消えた・戻ったときに次の通知を予約し直すため、RecordRepository に onRemindersChanged を足し、AppContainer で ReminderScheduler.reschedule を渡した。
+      ShoppingTripDao に getById を足した（クエリだけでスキーマは変わらない）。
+      calendar/CalendarViewModel.kt は消すと RecordUndoOffer（通し番号と消した内容）を出し、CalendarEvent.UndoDelete で戻して戻した記録の日を表示し、UndoExpired で申し出を消す。
+      calendar/RecordUndo.kt の RecordUndoEffect がメモの UndoEffect と同じ作りで「消しました：品名 ／ 元に戻す」を 5 秒（読み上げ利用時は延長）出し、
+      CalendarContent の下に SnackbarHost（testTag calendar_snackbar）を置いた。
+      calendar/RecordEditSheet.kt の DeleteAndClose は「閉じる」を右に置き、「この記録を消す」を区切り線の下のシートの一番下へ離した。
+      写真のファイルは消さず参照が戻るだけで、R-14 の掃除は端末を使っていない間だけ動き 1 日未満の写真を残すため、追加の対策はしていない。
+      使い方 edit-record.md と undo.md を直して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-16・R-12・R-14 の行を更新した。
+      あわせて人手検証の BL-118 に、記録の編集シートを 3 通りで閉じたときの保存（BL-144）と、消した後の元に戻す（BL-135）の確認を足した。
+      スクリーンショットテストの calendar は差分が無く、記録し直していない（元に戻すの表示は既定の状態では出ない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/db/Daos.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppContainer.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordUndo.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/edit-record.md
+      - mobile/src/main/assets/help/undo.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordRepositoryTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/RecordEditSheetTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*RecordRepositoryTest" --tests "*CalendarViewModelTest" --tests "*CalendarContentTest" --tests "*RecordEditSheetTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.calendar*"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定の 4 テストクラス・markdownlint・records・user-guide・secrets がすべて成功し、calendar のスクリーンショットも一致した
+      （1 回目は restoreTrip の return が 3 つで detekt の ReturnCount、時間切れのテストが削除前の一覧の状態を拾ったこと、
+      シートの外にはみ出す行を切り取られた座標で比べたことでテストが失敗したため、式を ?: で繋ぎ、待つ条件と比べる座標を直した。フル検証はループの最後に流す）
+    関連ID:
+      - BL-135
+- date: 2026-11-13 05:26
+  summary: カレンダーの記録の編集シートを、メモの編集と同じく閉じたら保存するようにする
+  details:
+    変更内容: >-
+      BL-144 を実装した。calendar/RecordEditSheet.kt の ModalBottomSheet の onDismissRequest を CalendarEvent.CloseEditor から save（CalendarEvent.SaveRecord）にし、
+      払う・戻る・外を押すのどれで閉じても内容を保存するようにした（確認なし、PLAN §1.3-4）。「直す」ボタンは common_close の「閉じる」に替えて押すと保存し、
+      DeleteAndSave を DeleteAndClose、testTag を RECORD_SAVE から RECORD_CLOSE（calendar_record_close）に改名した。
+      使われなくなった CalendarEvent.CloseEditor と文字列 calendar_record_save は消した。
+      消すときはシートが描かれなくなるだけで onDismissRequest は呼ばれず、保存が走らないことを RecordEditSheetTest で確かめた。
+      日付を変えて閉じたときに保存後その日へ移る動き（saveRecord）は変えていない。
+      使い方 edit-record.md に「シートを閉じると保存されます」を足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-16 の行に閉じると保存を足した。
+      シートはスクリーンショットテストの対象外のため画像の記録し直しはしていない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/RecordEditSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/edit-record.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/RecordEditSheetTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*RecordEditSheetTest" --tests "*CalendarViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト（RecordEditSheetTest 3 件、CalendarViewModelTest 6 件）・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は「閉じる」ボタンの行が 120 文字を超えて ktlint と detekt が失敗したため、引数を行に分けた。フル検証はループの最後に流す）
+    関連ID:
+      - BL-144
+- date: 2026-11-13 05:18
+  summary: 3 つのタブのどこからでも設定を開けるようにし、設定を 8 項目に減らして期限の画面からお知らせの時刻へ 1 タップで行けるようにする
+  details:
+    変更内容: >-
+      BL-143 を実装した。メモ画面の ⚙ 設定（アイコン＋文字の TextButton）を settings/SettingsScreen.kt の SettingsButton として共通にし、
+      記録の画面の上部のバー（探すの右）と期限の画面の上部のバーにも置いて、IkumemoApp.kt の NavHost から SettingsRoute を開く処理を渡した。
+      期限の画面は開く先を ReminderNavigation（使い方・設定・お知らせの設定）にまとめ、一覧の先頭（通知オフの帯の下）に「お知らせの時刻 9:00」の
+      ボタン（時刻は設定値、背景の写真があるときは面の上）を置いて OperationRoute を開くようにした。時刻は ReminderViewModel で ReminderPrefs.settings から読み、
+      ReminderUiState.notifyTime に持たせた。「操作」と「お知らせ」は 1 つの画面「操作とお知らせ」（OperationScreen）にまとめ、
+      ○ を出す・振動・お知らせの時刻・期限の当日もお知らせ の 4 行を並べた。ViewModel は OperationViewModel と ReminderSettingsViewModel のまま使い、
+      DataStore のキーは変えていない（分けていた頃のキーで保存した値がまとめた画面に出ることをテストで確かめた）。
+      ReminderSettingsScreen と ReminderSettingsRoute は廃止し、お知らせの行は ReminderSettingsRows にした。
+      「ご意見・ご要望」は設定の一覧から外して このアプリについて の中の行にした（FeedbackRoute と使い方の「やってみる」の行き先は残した）。
+      設定は 使い方・着せ替え・操作とお知らせ・お店の管理・よく買う物の管理・ホーム画面に置く・データ・このアプリについて の 8 項目になった。
+      文言は settings_operation を「操作とお知らせ」にし、使われなくなった settings_reminder を消し、reminder_time_button を足した。
+      使い方（bought-button.md・swipe.md・notified.md・feedback.md・faq.md）と docs/SUPPORT.md の場所の説明を直して docs/USER_GUIDE.md を作り直し、
+      DESIGN.md の設定・操作・お知らせ・F-77・このアプリについて の行と docs/design/WIREFRAME.md の設定と上部のバーを直した。
+      スクリーンショットは calendar（上部のバーの右だけが変わった）と reminder（設定のボタンと時刻のボタンが入って一覧が下がった）を記録し直し、memo は差分なしを確かめた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsNavigation.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/OperationScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AboutScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/bought-button.md
+      - mobile/src/main/assets/help/swipe.md
+      - mobile/src/main/assets/help/notified.md
+      - mobile/src/main/assets/help/feedback.md
+      - mobile/src/main/assets/help/faq.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AboutContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/OperationContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - mobile/screenshots/calendar/（24 枚）
+      - mobile/screenshots/reminder/（24 枚）
+      - docs/USER_GUIDE.md
+      - docs/SUPPORT.md
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*AboutContentTest" --tests "*OperationContentTest" --tests "*CalendarContentTest"
+      --tests "*ReminderContentTest" --tests "*ReminderViewModelTest" --tests "*AccessibilityTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.calendar*"、
+      同じく --tests "*MainScreensScreenshotTest.reminder*"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は ReminderContentTest の面のテストが、時刻のボタンで画面外に出た行を探せず失敗したため、一覧を送ってから探すよう直した）。
+      memo のスクリーンショットは差分なし、calendar と reminder は記録し直し、extra_large でも題名と設定のボタンが重ならないことを画像で確かめた（フル検証はループの最後に流す）
+    関連ID:
+      - BL-143
+- date: 2026-11-13 05:03
+  summary: 背景の写真があるとき、記録と期限の画面の一覧にテーマの面を敷いて文字を読めるようにする
+  details:
+    変更内容: >-
+      BL-130 を実装した。designsystem/ReadablePanel.kt を新設し、LocalHasBackgroundImage が true のときだけテーマの surface を不透明に敷いた Surface
+      （左右 8dp、角 12dp、testTag は readable_panel）で中身を描く ReadablePanel を作った。LazyColumn の行ごとに敷いても 1 枚の面に見えるよう、
+      PanelEdge（SINGLE・TOP・MIDDLE・BOTTOM）で上下の角と外側の余白を分け、panelEdge(index, count) で行の位置から選ぶ。
+      面の中は Surface により文字色が onSurface に戻るため、ペンの色に関わらず CalendarColors・onSurfaceVariant・error・primary がテーマの面の上と同じに見える。
+      写真が無いときは Column で並べるだけにして今の見た目を変えない（スクリーンショットの calendar・reminder は差分なし）。
+      記録の画面は月の表（MonthHeader・MonthGrid）を 1 枚、日の見出し〜記録の行〜「買った物を記録する」を続いた 1 枚、検索の欄と結果の行に敷いた
+      （検索結果の行は SearchResultRow に分けた）。期限の画面は期限が近い順の行、最近買った物の行と「ほか N 件を見る」、空のときの案内、
+      「おしらせが届かないとき」に敷き、セクションの見出しはペンの色のまま写真の上に残した。ペンの色の仕組み（InkColor・AppThemeHost）は変えていない。
+      使い方 background.md に面を敷くことを足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-61 の行を更新した。
+      BL-143・BL-137・BL-109 の依存から BL-130 を外した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ReadablePanel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/RecentSection.kt
+      - mobile/src/main/assets/help/background.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*ReminderContentTest" --tests "*ThemeContrastTest" --tests "*InkColorTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.calendar*"、
+      同じく --tests "*MainScreensScreenshotTest.reminder*"、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功し、
+      スクリーンショットの calendar と reminder は差分なしで成功した（フル検証はループの最後に流す）
+    関連ID:
+      - BL-130
+- date: 2026-11-13 01:45
+  summary: 期限の画面で期限が近い順を上に出し、最近買った物は 3 件だけ出して「期限なし」で一覧から外せるようにする
+  details:
+    変更内容: >-
+      BL-142 を実装した。ReminderList の並びを 通知オフの帯 → 期限が近い順 → 最近買った物 → お知らせが来ないときは にした（期限切れの有無によらず常にこの順）。
+      最近買った物の行と「ほか N 件を見る」を新しい reminder/RecentSection.kt に移し（ReminderScreen.kt の行数を抑えるため）、最初の 3 件だけ出して
+      残りは「ほか N 件を見る」で全部出す（開いた状態は rememberSaveable だけで保存しない）。各行に「期限なし」（TextButton、48dp 以上）を足し、
+      押すと ReminderEvent.NoDue で記録の id を ReminderPrefs の reminder_hidden_recent_ids（文字列の集合）へ保存して一覧から外し、
+      「期限なしにしました：品名 ／ 元に戻す」を 5 秒出す（メモの UndoEffect と同じ作り。押すと UndoNoDue で id を外す）。記録は消さない。
+      保存のたびに、その時点の最近買った物（7 日以内・期限未設定）に無い id を掃除する。読んで書くまでは 1 回の DataStore の edit で行う。
+      ReminderViewModel は外した記録を除いた一覧で uiState.recent と G-08 の条件を作るため、G-08 は外した記録を除いた 1 行目で出る。
+      G-08 で照らす場所は行全体から「期限を決める」のボタンに絞った（行に「期限なし」が並んだため）。
+      設定の書き出し・読み込み（BackupSettingsStore）には外した id を含めない（7 日で消える一時的な値のため、既定のとおり）。
+      データを全部消す（DataEraser）は DataStore を丸ごと消すため、外した id も消える。
+      使い方 due.md に並びと「ほか ○ 件を見る」「期限なし」「元に戻す」を足して docs/USER_GUIDE.md を作り直し、
+      DESIGN.md の F-50・F-53・G-07/G-08 の行と設定の保存方針を更新した。スクリーンショットの reminder 24 枚を記録し直した
+      （並びが入れ替わり、最近買った物の行に「期限なし」が並ぶ。とても大きい文字では買った日が 2 行に折り返すが切れない）。
+      あわせて BL-151 の確認項目に初めての案内の 3 枚目と最近買った物の行を足し、BL-151・BL-130 の依存から BL-142 を外した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/RecentSection.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ReminderPrefs.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/due.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/reminder/ReminderViewModelTest.kt
+      - mobile/screenshots/reminder/（24 枚）
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ReminderContentTest" --tests "*ReminderViewModelTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.reminder*" --tests "*ScreenGuidesTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功し、
+      reminder のスクリーンショットの記録と ScreenGuidesTest も成功した（フル検証はループの最後に流す）
+    関連ID:
+      - BL-142
+- date: 2026-11-13 01:33
+  summary: 下タブと画面の名前を「カレンダー」「お知らせ」から中身に合わせた「記録」「期限」に変え、買い物のためのメモであることを案内と使い方に添える
+  details:
+    変更内容: >-
+      BL-141 を実装した。strings.xml の tab_calendar を「記録」、tab_reminder を「期限」にし（上部のバーの題名も同じ文字列で変わる）、
+      ショートカットを「記録」「期限」と長い名前「買った物の記録を開く」「期限の一覧を開く」に、設定の「ホーム画面に置く」の説明と
+      通知の本文（押すと、期限の一覧を開きます）を新しい名前に合わせた。初めての案内の 3 枚目の本文と使い方の start.md に
+      「予定表やなんでもリマインダーではなく、買い物のためのメモです」を添えた。使い方は calendar.md の見出しを「記録」、目次の章を「期限とお知らせ」にし、
+      due.md・shortcuts.md・add-later.md・edit-record.md・search.md・not-arriving.md の画面を指す箇所を直して docs/USER_GUIDE.md を作り直した。
+      通知そのものを指す「お知らせ」（チャンネル名・お知らせの時刻・お知らせが来ないときは・設定の「お知らせ」・notified.md）は変えていない。
+      テストの目印（TopLevelTabTags）と route、アイコンは変えていない。AppShortcutsTest・HelpContentTest・HelpScreenTest の名前を直した
+      （OnboardingTest には 3 枚目の文言のテストが無いため変えていない）。スクリーンショットの calendar と reminder を記録し直し、
+      48 枚とも差分が上部のバーの題名の範囲だけであることを確かめた。memo は verify で変わらないことを確かめた。
+      DESIGN.md の PLAN §3・F-74・F-70/G-01 の行と UI/UX 方針、docs/design/WIREFRAME.md のタブと画面の名前を合わせた
+    変更ファイル:
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppShortcuts.kt
+      - mobile/src/main/assets/help/start.md
+      - mobile/src/main/assets/help/index.md
+      - mobile/src/main/assets/help/calendar.md
+      - mobile/src/main/assets/help/due.md
+      - mobile/src/main/assets/help/shortcuts.md
+      - mobile/src/main/assets/help/add-later.md
+      - mobile/src/main/assets/help/edit-record.md
+      - mobile/src/main/assets/help/search.md
+      - mobile/src/main/assets/help/not-arriving.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/AppShortcutsTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/help/HelpContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/help/HelpScreenTest.kt
+      - mobile/screenshots/calendar/（24 枚）
+      - mobile/screenshots/reminder/（24 枚）
+      - docs/USER_GUIDE.md
+      - docs/design/WIREFRAME.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*AppShortcutsTest" --tests "*HelpContentTest" --tests "*HelpScreenTest" --tests "*OnboardingTest"、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true（calendar と reminder を 1 画面ずつ）、
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は ktlint・detekt・compile・指定のテスト・markdownlint・records・user-guide・secrets がすべて成功し、
+      スクリーンショットの記録と memo の verify も成功した（フル検証はループの最後に流す）
+    関連ID:
+      - BL-141
+- date: 2026-11-13 01:25
+  summary: カレンダーとおしらせの画面に、画面の操作を確かめる Compose のテスト（Robolectric）を足す
+  details:
+    変更内容: >-
+      BL-116 を実装した。mobile/src/testDebug に calendar/CalendarContentTest.kt（5 件）と reminder/ReminderContentTest.kt（7 件）を新設した。
+      公開されている CalendarContent と ReminderContent に状態を渡して描き、日を押すと SelectDate、記録の行を押すと EditRecord、
+      検索結果を押すと JumpTo が出ること、買い物の無い日と検索で見つからないときの文言を確かめる。おしらせは 使い切った と 捨てた のイベント、
+      期限が近い順の行を押すと OpenDue（期限つき）、最近買った物の 期限を決める で OpenDue、通知オフの帯の表示と 通知をオンにする の呼び出し、
+      通知オンでは帯が無いこと、困ったときの入口がヘルプの NOT_ARRIVING を開くこと、空の一覧の案内を確かめる。
+      後続のタスク（BL-142・BL-130・BL-143・BL-137 など）が文言やレイアウトを変えても壊れにくいよう、要素はテストタグ（CalendarTestTags・ReminderTestTags）で探し、
+      文言は文字列リソースから context.getString で引く（表示文字列を直書きしない）。状態は同じファイル内の CalendarSamples・ReminderSamples の
+      既定値つきの関数（state・row・recent・pending）で組み立て、描くのは各クラスの show に寄せた。ガイドは showGuide を false にして出さない。
+      本体のコードは変えていない
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*ReminderContentTest"、
+      python scripts/quality-gates.py（フル検証、直前に ./gradlew --stop）、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証で CalendarContentTest 5 件・ReminderContentTest 7 件がすべて通り、フル検証は ktlint・detekt・lint・test・build・
+      markdownlint・records・user-guide・secrets の全ゲートが成功した
+    関連ID:
+      - BL-116
+- date: 2026-11-13 01:06
+  summary: Claude Code の権限にゲート系と読み取り系のコマンドの許可を足し、git push と --no-verify を permissions.deny と PreToolUse フックの 2 段で止める
+  details:
+    変更内容: >-
+      オーナーが 2026-11-13 に承認した BL-122 を実装した。.claude/settings.json の permissions.allow に、既存の記録ファイル 3 つの Edit と
+      docs/records の Read を残したまま、./gradlew の品質ゲート（--stop・ktlintCheck・detekt・lintDebug・testDebugUnitTest・:core:test・
+      :mobile:testDebugUnitTest・assembleDebug）、python scripts の quality-gates.py・validate-records.py・make-user-guide.py --check・
+      scan-secrets.py・guard-git-hook.py --self-test、npx markdownlint-cli2、git status・git diff・git log・git branch --show-current を
+      Bash と PowerShell の両方で足した。git add と git commit の許可は足していない。
+      permissions.deny には git push *、git * --no-verify（末尾と途中の 2 形）、git commit -n * を Bash と PowerShell の両方で足した。
+      2 段目として scripts/guard-git-hook.py を作り、hooks.PreToolUse（matcher は Bash|PowerShell、exec 形式で python に渡す、timeout 10 秒）に繋いだ。
+      フックは tool_input.command を shlex で字句に分け（PowerShell はバッククォートを escape にし、ヒアストリングは先に空にする。
+      bash のヒアドキュメントの本文も先に除く）、区切り（; && || | & 改行など）ごとにコマンドの位置の語だけを見る
+      （先頭の変数代入と sudo・env・timeout などの前置きは読み飛ばし、引数の中の git は見ない）。その語が git なら大域オプション
+      （-C・-c・--git-dir など）を読み飛ばしてサブコマンドが push か、--no-verify があるか、git commit の -n（-nm のようなまとめた形も含む）かを見る。
+      bash -c・pwsh -Command の中も 3 段まで調べる。
+      最初の版は区切りの中のどの位置の git も見ていたため、ヒアドキュメントで渡したコミットメッセージ本文の git push を拾って自分のコミットを止めた。
+      settings.json をいったん戻し、コマンドの位置だけを見る判定とヒアドキュメントの本文の除外に直し、その例を self-test に足してから繋ぎ直した。
+      止めるときは終了コード 2 と日本語 1 行の理由（push はユーザーが実行する旨）を標準エラーへ返し、入力が読めない・JSON でない・
+      想定外の例外ではすべて終了コード 0 で通す。引用符の対応が取れない入力は、引用符を含まない素直な書き方だけを正規表現で見る。
+      設定の書式は公式ドキュメント（code.claude.com/docs の hooks と permissions）で確かめた
+    変更ファイル:
+      - .claude/settings.json
+      - scripts/guard-git-hook.py
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/guard-git-hook.py --self-test、標準入力へサンプルの PreToolUse の JSON を渡す確認（スクラッチの drive_hook.py）、
+      設定を繋いだ後の無害なコマンド（Bash と PowerShell の git status --short、python scripts/quality-gates.py --skip-gradle）、
+      本文に git push の語を含む cat のヒアドキュメントと PowerShell のヒアストリング、deny の届かない bash -c と pwsh -Command の中の
+      git --version --no-verify（push しない無害な発火の確認）、python scripts/scan-secrets.py、本記録を含むコミット（ヒアドキュメントのメッセージ）
+    検証結果: >-
+      成功 - self-test は止める例 22 件と通す例 19 件がすべて期待どおり。標準入力の確認は git push・git push --force origin main・
+      git commit --no-verify -m x・git -C path push が終了コード 2、git status・git log --oneline・quality-gates.py --quick・./gradlew ktlintCheck・
+      push の語を含むコミットメッセージと grep が終了コード 0、空・壊れた JSON・不正なバイト列・command の欠けた入力も終了コード 0。
+      繋ぎ直した後は無害なコマンドと git push の語を含むヒアドキュメント・ヒアストリングが Bash・PowerShell の両方で通り、
+      bash -c と pwsh -Command の中の --no-verify は両方でフックが日本語の理由を出して止めた。
+      git push そのものは実行していない
+    関連ID:
+      - BL-122
+- date: 2026-11-13 00:58
+  summary: 記録ファイルの検証に、BACKLOG の id の重複・区分・担当、EXECUTE の必須キーと date の形式、採番の衝突の検査を足す
+  details:
+    変更内容: >-
+      scripts/validate-records.py に FORMAT.md の定めに沿った検査を足した。BACKLOG.md は id の重複、区分 が表の 6 値のどれか、担当 が空でないこと。
+      EXECUTE.md は必須キー（date・summary・details の 変更内容・変更ファイル・検証コマンド・検証結果）、date の形式 YYYY-MM-DD HH:mm、
+      変更ファイル と 関連ID が配列であること。あわせて BACKLOG.md の id が EXECUTE.md の 関連ID と重ならないこと（採番の衝突）を見る。
+      状態が 進行中 の項目は途中までの実施を記録したものとして衝突の検査から除いた（既定値として選択）。
+      既存の記録では、人手検証として起票した id を 関連ID に入れていた 3 件（BL-106・BL-109・BL-111）が衝突に掛かった。
+      関連ID は対応したタスクの id と定めているため、これらの記録の 関連ID から起票した id を外した（ログは削除していない。検証結果の本文には残っている）。
+      モジュール先頭の docstring の検査の一覧も更新した
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+      - scripts/validate-records.py
+    検証コマンド: >-
+      python scripts/validate-records.py、わざと壊した一時コピー（重複 id・区分の誤り・担当の空・date の形式違い・details のキー欠け・採番の衝突）での同スクリプト、
+      python scripts/quality-gates.py --skip-gradle、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 今の記録で終了コード 0、壊した 6 種の一時コピーはいずれも該当の NG を出して終了コード 1。一時コピーはスクラッチの場所に作り削除した
+    関連ID:
+      - BL-120
+- date: 2026-11-13 00:55
+  summary: 品質ゲートに軽い検証のモードを足し、自律ループの各イテレーションは軽い検証、最後と止める前にフル検証を流す運用にする
+  details:
+    変更内容: >-
+      オーナーの判断（2026-11-13）で起票した BL-129 を実装した。scripts/quality-gates.py に --quick と --tests（くり返し可）を足した。
+      軽い検証は Gradle を ktlintCheck・detekt・コンパイル（:core:compileTestKotlin と :mobile:compileDebugUnitTestKotlin）と、
+      --tests で渡したテストだけにし、Android Lint と assembleDebug は SKIP（軽い検証）、--tests が無ければ test を SKIP（--tests の指定なし）と表に出す。
+      --tests のパターンはクラス名と同じ名前の .kt を core/src/test と mobile/src/test・testDebug から探して :core:test か
+      :mobile:testDebugUnitTest へ振り分け、見つからなければ test を失敗にする。最後の行は「軽い検証の結果」と
+      「フル検証ではない」を出す。run_gradle はゲートの表と受け皿のゲートを引数で受けるようにし、引数なし・--only・--skip-gradle の挙動は変えていない。
+      --quick と --only・--skip-gradle の併用、--quick なしの --tests は引数の誤り（終了コード 2）。
+      手順は CLAUDE.md「本リポジトリの品質ゲート定義」にいつ何を流すかを正本として足し、autonomous-loop のイテレーション手順 4・委任の指示・
+      完了条件（最後と止める前にフル検証、失敗したら原因のコミットを特定して直すイテレーションを足す）と、backlog-task-implementer の検証の節
+      （フル検証は指示されたときだけ、180 秒でバックグラウンドへ移ったら待って 2 つ目を起動しない、無関係な失敗は 1 回だけ流し直す、
+      確かめなかった完了条件を報告に書く）を直した。DESIGN.md の品質ゲートの段落にも反映した。
+      所要時間は、軽い検証（--tests "*DataViewModelTest"）がコマンド全体で 36 秒（Gradle 32 秒）。コンパイルは UP-TO-DATE で、
+      テストのタスクは実際に流れた。フル検証は流しておらず、比較は BL-113 の 396 秒・269 秒
+    変更ファイル:
+      - scripts/quality-gates.py
+      - CLAUDE.md
+      - .claude/skills/autonomous-loop/SKILL.md
+      - .claude/agents/backlog-task-implementer.md
+      - CHANGELOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataViewModelTest"、
+      python scripts/quality-gates.py --quick --tests "*NoSuchZzTest" --tests "*DataViewModelTest.zzNoSuchMethod"、
+      python scripts/quality-gates.py --quick、python scripts/quality-gates.py --skip-gradle、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証は終了コード 0 で lint・build が SKIP（軽い検証）。存在しないテストのクラスと一致しないフィルタを渡すと
+      test が NG で原因（見つからないクラス、No tests found）が出て終了コード 1。--tests なしは test が SKIP（--tests の指定なし）で終了コード 0。
+      --tests だけ、--quick と --only の併用は終了コード 2。--skip-gradle は終了コード 0。フル検証は流していない
+    関連ID:
+      - BL-129
+- date: 2026-11-13 00:50
+  summary: 読み上げでカレンダーの選択中の日・質問の開閉・おしらせの行の操作が伝わるようにする
+  details:
+    変更内容: >-
+      calendar/MonthGrid.kt の DayCell の semantics に selected を足し、選ばれている日を読み上げで「選択中」と伝える。
+      settings/FeedbackScreen.kt の困ったときの質問に、開閉の状態（stateDescription「答えを表示中」「答えは閉じています」）と
+      押したときの意味（onClickLabel「答えを開く」「答えを閉じる」）を付けた。reminder/ReminderScreen.kt の PendingRow の clickable に
+      onClickLabel「期限を決め直す」を付けた。文言は strings.xml に 5 件足した。見た目は変えていない。
+      AccessibilityTest に 3 件の検査（選択中の日の selected、質問の状態と操作の文言が開閉で切り替わること、期限が近い順の行の操作の文言）を足した。
+      DESIGN.md の「PLAN §8 アクセシビリティ」の行に反映した。既定値で決めた点は、選択中の表し方を selectable でなく semantics の selected にしたこと
+      （押したときの処理は既存の clickable のまま）と、質問の状態・操作の文言
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/ReminderScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/FeedbackScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/AccessibilityTest.kt
+    検証コマンド: >-
+      python scripts/quality-gates.py、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - quality-gates.py は 1 回目で Gradle の 5 ゲートと markdownlint・records・user-guide・secrets がすべて成功し、
+      AccessibilityTest は 6 件すべて成功。見た目を変えていないためスクリーンショットテストは流していない
+    関連ID:
+      - BL-115
+- date: 2026-11-13 00:43
+  summary: データの書き出し・読み込みでファイルを開けないときにアプリが落ちないようにする
+  details:
+    変更内容: >-
+      settings/DataViewModel.kt の export・import を、IOException に加えて SecurityException と IllegalArgumentException も捕まえる
+      orWhenUnreadable にまとめ、それぞれ EXPORT_FAILED・IMPORT_FAILED を返すようにした（ContentResolver が選択元のアプリの都合や
+      権限の取り消しで投げうるため。CancellationException は IllegalStateException の仲間で捕まえない）。DataViewModelTest を新設し、
+      処理中に重ねて押した書き出し・読み込みを無視すること、開く関数が null・SecurityException・IllegalArgumentException のときの失敗の知らせ、
+      書き出し・読み込み・消去の成功の知らせを、インメモリ DB と本物の BackupExporter・BackupImporter・DataEraser で確かめる。
+      状態は Turbine で 1 件ずつ追わず、StateFlow を実時間で結果が出るまで待つ書き方にした（負荷による時間切れを避けるため）。
+      DESIGN.md の F-72 の行に、開けないときの扱いを足した。既定値で決めた点は、捕まえる例外をタスクに挙がった 2 種と既存の IOException に限ったこと
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataViewModel.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/DataViewModelTest.kt
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest --tests "*DataViewModelTest*"、python scripts/quality-gates.py、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - DataViewModelTest の 4 件が成功。quality-gates.py は 1 回目で Gradle の 5 ゲートと markdownlint・records・user-guide・secrets がすべて成功
+    関連ID:
+      - BL-114
+- date: 2026-11-13 00:36
+  summary: 写真の取り込みで元の写真が読めないときにアプリが落ちないようにする
+  details:
+    変更内容: >-
+      data/PhotoStore.kt の import で、openInputStream が投げる IOException（FileNotFoundException を含む）と SecurityException、
+      save の check が投げる IllegalStateException を捕まえて null を返すようにした。null は既存の「読めない画像」と同じ扱いで、
+      呼び出し側（EditItemSheet.kt の PhotoSection、AppearanceViewModel の PickBackground）は何もしない。
+      detekt の TooManyFunctions（クラス内の関数 11 個が上限）に当たったため、関数を分けずに import の中で try を書き、
+      途中の return を ?.let のつなぎにした（ReturnCount も避ける）。PhotoStoreTest に存在しないファイルの Uri で null が返るテストを足し、
+      DESIGN.md の F-07 の行に読めないときの扱いを足した。既定値で決めた点は 2 つ。(1) 捕まえる例外はタスクに挙がった 3 種に限り、
+      OutOfMemoryError などは捕まえない。(2) 保存の失敗で残りうる一時ファイル（.tmp）の掃除はタスクの範囲外として足していない
+    変更ファイル:
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/PhotoStore.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/PhotoStoreTest.kt
+    検証コマンド: >-
+      python scripts/quality-gates.py（2 回）、./gradlew :core:runKtlintCheckOverMainSourceSet --rerun :core:ktlintMainSourceSetCheck、
+      python scripts/quality-gates.py --only ktlint、python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目は ktlint・detekt・test が失敗。detekt は今回の変更（TooManyFunctions）で、直した。test は AppearanceViewModelTest の
+      scrimLevelIsSavedWithinRange の Turbine のタイムアウトで、PhotoStore を通らないテストのため負荷による揺らぎと判断し、2 回目は成功。
+      ktlint は 2 回とも存在しないファイル core の ZzGateTmp.kt の違反で失敗し、ビルドキャッシュから復元された古い結果だった（BL-128 に起票）。
+      --rerun で該当タスクを流し直した後の --only ktlint が成功。2 回目は ktlint 以外の Gradle のゲートと markdownlint・records・user-guide・secrets が成功
+    関連ID:
+      - BL-113
+- date: 2026-11-13 00:16
+  summary: 品質ゲートの一括実行スクリプトと、コミット前の秘密情報スキャンを足す
+  details:
+    変更内容: >-
+      scripts/quality-gates.py を新設した。CLAUDE.md の品質ゲートの表と同じコマンドを順に流す（./gradlew --stop の後に Gradle の 5 ゲートを
+      --continue 付きの 1 回の呼び出しで流し、失敗したタスク名からゲートごとの合否を出す。markdownlint は Summary 0 issues と Linting の件数を
+      git ls-files の *.md の件数と照合。validate-records・make-user-guide --check・scan-secrets）。出力は成功したゲートが 1 行、失敗したゲートは
+      原因の抜粋（ktlint・detekt・コンパイル・テストの行と What went wrong の節、最大 25 行、パスはリポジトリからの相対）、最後に合否と所要時間の表で、
+      全文は build/quality-gates/ のログに残す。--skip-gradle・--only・--list を受け付け、Windows では gradlew.bat を使い、出力は UTF-8 にそろえる
+      （Git Bash で文字化けしたため）。scripts/scan-secrets.py を新設した。変更行と未追跡のファイルから秘密鍵の見出し・Google API キー・
+      GitHub トークン・AWS アクセスキー・署名のパスワードの値を、追跡中と未追跡のファイル名から署名鍵・資格情報のファイルを検出し、
+      ファイルと行と種類だけを出して値は出さない。明らかなダミー値・コードで読み込む書き方・行に scan-secrets の allow 印のある行は数えず、
+      自身のパターンは検出対象の文字列がソースに現れないよう組み立てた。CLAUDE.md の品質ゲートの表に 2 行と一括実行の説明を足し、
+      autonomous-loop の手順 4 と 7 から参照した。既定値で決めた点は 3 つ。(1) スキャンの既定の範囲は BACKLOG の案の git diff --cached ではなく
+      git diff HEAD（ステージ済みと未ステージの両方）とし、--staged で案どおりの範囲にした。git add の前に流せ、範囲が案を含むため安全側。
+      (2) BACKLOG の案の「伏せ字で出す」は、値を一切出さない形にした（より漏れにくいため）。(3) 対象のファイル名に secrets.properties・.env・
+      *.p12・*.pfx を足した（.gitignore が除外している資格情報のファイルと揃えるため）
+    変更ファイル:
+      - .claude/skills/autonomous-loop/SKILL.md
+      - CHANGELOG.md
+      - CLAUDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+      - scripts/quality-gates.py
+      - scripts/scan-secrets.py
+    検証コマンド: >-
+      python scripts/quality-gates.py --skip-gradle、python scripts/quality-gates.py --only ktlint（PowerShell から）、
+      一時的に置いた書式違反の Markdown と Kotlin のファイルで --only markdownlint,records と --only ktlint（失敗の表示の確認、ファイルは削除済み）、
+      --only に知らない名前を渡す確認、スクラッチの一時リポジトリでの python scripts/scan-secrets.py（検出と非検出）、
+      python scripts/validate-records.py、npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml、python scripts/make-user-guide.py --check
+    検証結果: >-
+      成功 - --skip-gradle は 4 ゲート成功で終了コード 0。ktlint だけの実行は成功で終了コード 0、書式違反を置くと NG と違反の行だけが出て終了コード 1。
+      markdownlint の違反は該当行と Summary だけが出て終了コード 1、知らないゲート名は終了コード 2。秘密情報スキャンは偽の秘密鍵の見出し・
+      Google API キー・GitHub トークン・署名のパスワード・*.jks を検出して終了コード 1（値は出ない）、ダミー値・getProperty での読み込み・
+      説明文・allow 印の行は検出せず終了コード 0。Gradle の全ゲートの一括実行は、PC のメモリが少ないためオーケストレータの指示で今回は流していない
+      （Gradle のゲートはスクリプト経由で ktlint だけを確認。コードの変更は無い）。次に全ゲートを流すイテレーションで確かめる
+    関連ID:
+      - BL-119
 - date: 2026-10-25 22:29
   summary: ウィジェットの色と角の丸みを本体のテーマに合わせる
   details:
@@ -52,7 +1000,6 @@
       実機での反映の確認は人手検証（BL-111）
     関連ID:
       - BL-110
-      - BL-111
 - date: 2026-10-25 21:08
   summary: 背景の写真の上の文字が見えないときのために、ペンの色（おまかせ・くろ・あお・あか・しろ）を選べるようにする
   details:
@@ -89,7 +1036,6 @@
       おしらせ）は変わらないため流していない。実機での全画面の見え方は人手検証（BL-109）
     関連ID:
       - BL-108
-      - BL-109
 - date: 2026-10-25 20:57
   summary: メモ一覧ウィジェットをメモ帳風にする（見出しの下の線・行ごとの罫線・左の余白の縦線）
   details:
@@ -135,7 +1081,6 @@
       人手検証（BL-106）
     関連ID:
       - BL-105
-      - BL-106
 - date: 2026-10-25 20:10
   summary: データの書き出し・読み込み（F-72）。ZIP（写真つき）・JSON・CSV（記録だけ）で書き出し、ZIP と JSON を読み込んで置き換える
   details:

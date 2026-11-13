@@ -29,17 +29,26 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 | Markdown の静的解析 | `npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml` | `Summary: 0 issues`、かつ出力の `Linting: N files` が `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致（対象漏れの検出） |
 | 記録ファイルの検証 | `python scripts/validate-records.py`（PyYAMLが必要） | 終了コード0 |
 | 使い方の Web 版 | `python scripts/make-user-guide.py --check` | 終了コード0（`docs/USER_GUIDE.md` がアプリ内の使い方の正本 `mobile/src/main/assets/help/` と一致。正本を直したら `python scripts/make-user-guide.py` で作り直す） |
+| 秘密情報スキャン | `python scripts/scan-secrets.py` | 終了コード0（作業ツリーの変更・未追跡のファイルに秘密鍵・API キー・トークン・署名のパスワードが無く、署名鍵・資格情報のファイルが Git の対象外。guardrails 12.1 のコミット前のスキャン） |
+| 一括実行 | `python scripts/quality-gates.py` | 終了コード0（上の全ゲートを順に流す。下記） |
 
+- `python scripts/quality-gates.py` は上の表と同じコマンドを順に流す（`./gradlew --stop` → Gradle の5ゲートを1回の呼び出しで
+  → markdownlint（件数の照合まで）→ 記録ファイル → 使い方の Web 版 → 秘密情報スキャン）。ゲートの定義の正本は上の表で、
+  表を変えたらスクリプトの `GRADLE_GATES`・`OTHER_GATES` も合わせる。出力は成功したゲートが1行、失敗したゲートは原因の抜粋だけ
+  （全文は `build/quality-gates/*.log`）、最後に合否の表。文書だけの変更は `--skip-gradle`、一部だけは `--only ktlint,detekt`
+  （名前は `--list`）。Git Bash・PowerShell のどちらからでも `python` で起動できる
 - Gradle 系の5ゲートは `./gradlew ktlintCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug` で一度に実行できる。
   ktlint の違反は `./gradlew ktlintFormat` で自動修正できる（品質ゲートには含めない）
+- いつ何を流すか（オーナー判断、2026-11-13。正本は本節）: 自律ループの各イテレーションは、コードを触ったら軽い検証
+  `python scripts/quality-gates.py --quick --tests "*<変更に関係するテストクラス>"`（ktlint・detekt・コンパイル・指定したテストだけ。
+  Android Lint・全テスト・assembleDebug は流さない）、文書・スクリプトだけなら `--skip-gradle`。フル検証（引数なし、上の表のすべて）は
+  ループの最後と、ループを止める前に 1 回流す。軽い検証の成功はフル検証の成功ではない（最後の行で区別する）
 - `mobile` の release 側の単体テスト（`testReleaseUnitTest`）は debug 側と同じ内容のため流さない。時間のかかるテスト（`@Category(SlowTest::class)`、
   例 2 万件の検索性能）は通常は外し、性能に関わる変更の時とマイルストーンの区切りに
   `./gradlew testDebugUnitTest -PslowTests` で流す（オーナー判断、2026-10-25）
-- スクリーンショットテスト（Roborazzi、`mobile/screenshots/` の正解画像と比べる。遅いテスト扱い）は、見た目に関わる変更の時と
-  マイルストーンの区切りに、画面ごとに比べる（3 画面をまとめて流すと PC のメモリが足りない）。
+- スクリーンショットテスト（Roborazzi、遅いテスト扱い）は見た目に関わる変更の時とマイルストーンの区切りに、画面ごとに
   `./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.verify=true --tests "*MainScreensScreenshotTest.memo*"`
-  （`calendar`・`reminder` も同様）で終了コード0。見た目を意図して変えたときは `-Proborazzi.test.record=true` で記録し直し、
-  画像の差分も確認してコミットする
+  （`calendar`・`reminder` も同様）で終了コード0。判断基準・差分画像の読み方・記録し直し（`-Proborazzi.test.record=true`）は Skill `screenshot-verify`
 - Claude Code では Gradle 系のゲートをバックグラウンドで流さず、通常のコマンド（タイムアウト 10 分）で流す。PC のメモリが少なく、
   バックグラウンドのコマンドはセッションの待機中に Claude Code に強制停止されるため。流す前に `./gradlew --stop` で常駐プロセスを止める
 - 本リポジトリに CI はなく（sesami-wear に合わせたオーナー判断）、上記コマンドのローカル実行が唯一の品質ゲート

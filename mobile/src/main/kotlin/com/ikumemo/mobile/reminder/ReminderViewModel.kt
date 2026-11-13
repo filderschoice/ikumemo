@@ -2,6 +2,7 @@ package com.ikumemo.mobile.reminder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikumemo.core.reminder.ReminderSettings
 import com.ikumemo.mobile.data.GuidePrefs
 import com.ikumemo.mobile.data.ReminderPrefs
 import com.ikumemo.mobile.data.ReminderRepository
@@ -14,11 +15,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalTime
 
 /** 期限を決めるシートの対象。 */
 data class DueTarget(
@@ -41,6 +45,17 @@ data class ReminderUiState(
     val permissionRequests: Int = 0,
     /** いま出すその場のガイド（G-08）。 */
     val guide: GuideId? = null,
+    /** 「期限なしにしました：品名 ／ 元に戻す」の表示（BL-142）。 */
+    val undo: NoDueUndo? = null,
+    /** お知らせの時刻（設定値。一覧の上の「お知らせの時刻 9:00」に出す、BL-143）。 */
+    val notifyTime: LocalTime = ReminderSettings.DEFAULT_TIME,
+)
+
+/** 「期限なし」で外した記録を元に戻す申し出。[serial] は押すたびに変わり、前の表示を置き換える。 */
+data class NoDueUndo(
+    val serial: Long,
+    val recordId: Long,
+    val name: String,
 )
 
 sealed interface ReminderEvent {
@@ -61,6 +76,22 @@ sealed interface ReminderEvent {
 
     data class Discarded(
         val reminderId: Long,
+    ) : ReminderEvent
+
+    /** 最近買った物の「期限なし」。記録は消さず、一覧から外すだけ（BL-142）。 */
+    data class NoDue(
+        val recordId: Long,
+        val name: String,
+    ) : ReminderEvent
+
+    /** 「期限なし」の「元に戻す」を押した。 */
+    data class UndoNoDue(
+        val serial: Long,
+    ) : ReminderEvent
+
+    /** 「元に戻す」を出す時間が過ぎた。 */
+    data class NoDueUndoExpired(
+        val serial: Long,
     ) : ReminderEvent
 
     /** 画面に戻ったときに通知の許可を確かめ直す。 */
@@ -84,6 +115,7 @@ private data class ReminderLocal(
     val notificationsEnabled: Boolean = true,
     val dueTarget: DueTarget? = null,
     val permissionRequests: Int = 0,
+    val undo: NoDueUndo? = null,
 )
 
 /** おしらせ画面（F-50 期限の設定、F-53 期限が近い順の一覧、R-22 期限切れの片付け、R-29 通知オフの案内）。 */
@@ -95,6 +127,7 @@ class ReminderViewModel(
 ) : ViewModel() {
     private val local = MutableStateFlow(ReminderLocal())
     private val guides = ScreenGuides(guidePrefs, viewModelScope)
+    private var undoSerial = 0L
 
     init {
         viewModelScope.launch { local.update { it.copy(permissionRequests = prefs.permissionRequestCount()) } }
@@ -106,7 +139,10 @@ class ReminderViewModel(
             repository.observePending(),
             local,
             guides.state,
-        ) { recent, pending, state, guideState ->
+            combine(prefs.hiddenRecentIds, prefs.settings.map { it.time }, ::Pair),
+        ) { allRecent, pending, state, guideState, (hidden, notifyTime) ->
+            // 「期限なし」で外した記録を除く（BL-142）
+            val recent = allRecent.filterNot { it.id in hidden }
             ReminderUiState(
                 today = LocalDate.now(clock),
                 recent = recent,
@@ -115,7 +151,9 @@ class ReminderViewModel(
                 dueTarget = state.dueTarget,
                 loaded = true,
                 permissionRequests = state.permissionRequests,
-                // G-08: 初めて「買った」にした後に開いた（最近買った物があり、「期限を決める」を照らせる）。
+                undo = state.undo,
+                notifyTime = notifyTime,
+                // G-08: 初めて「買った」にした後に開いた（外した記録を除いた最近買った物があり、「期限を決める」を照らせる）。
                 // 期限の設定シートを出している間は出さない（R-52）
                 guide =
                     guides.next(
@@ -145,6 +183,9 @@ class ReminderViewModel(
                 }
             is ReminderEvent.UsedUp -> viewModelScope.launch { repository.markUsedUp(event.reminderId) }
             is ReminderEvent.Discarded -> viewModelScope.launch { repository.markDiscarded(event.reminderId) }
+            is ReminderEvent.NoDue -> hideRecent(event)
+            is ReminderEvent.UndoNoDue -> undoNoDue(event.serial)
+            is ReminderEvent.NoDueUndoExpired -> expireUndo(event.serial)
             is ReminderEvent.NotificationStateChanged -> local.update { it.copy(notificationsEnabled = event.enabled) }
             ReminderEvent.PermissionRequested ->
                 viewModelScope.launch {
@@ -154,6 +195,28 @@ class ReminderViewModel(
             is ReminderEvent.GuideDismissed -> guides.markShown(event.guide)
             is ReminderEvent.GuideDisableAll -> guides.disableAll(event.guide)
         }
+    }
+
+    /**
+     * 「期限なし」。外した id を保存し、7 日を過ぎた・期限を決めた・消したなどで一覧に出なくなった id は同時に掃除する。
+     */
+    private fun hideRecent(event: ReminderEvent.NoDue) {
+        undoSerial++
+        local.update { it.copy(undo = NoDueUndo(undoSerial, event.recordId, event.name)) }
+        viewModelScope.launch {
+            val alive = repository.observeRecentWithoutReminder().first().map { it.id }.toSet()
+            prefs.updateHiddenRecentIds { (it + event.recordId) intersect alive }
+        }
+    }
+
+    private fun undoNoDue(serial: Long) {
+        val undo = local.value.undo?.takeIf { it.serial == serial } ?: return
+        local.update { it.copy(undo = null) }
+        viewModelScope.launch { prefs.updateHiddenRecentIds { it - undo.recordId } }
+    }
+
+    private fun expireUndo(serial: Long) {
+        local.update { if (it.undo?.serial == serial) it.copy(undo = null) else it }
     }
 
     private companion object {

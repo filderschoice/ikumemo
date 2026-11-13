@@ -5,7 +5,68 @@
       "Edit(docs/records/managed/BACKLOG.md)",
       "Edit(docs/records/managed/DESIGN.md)",
       "Edit(docs/records/managed/EXECUTE.md)",
-      "Read(docs/records/**)"
+      "Read(docs/records/**)",
+      "Bash(./gradlew --stop)",
+      "Bash(./gradlew ktlintCheck *)",
+      "Bash(./gradlew detekt *)",
+      "Bash(./gradlew lintDebug *)",
+      "Bash(./gradlew testDebugUnitTest *)",
+      "Bash(./gradlew :core:test *)",
+      "Bash(./gradlew :mobile:testDebugUnitTest *)",
+      "Bash(./gradlew assembleDebug *)",
+      "Bash(python scripts/quality-gates.py *)",
+      "Bash(python scripts/validate-records.py)",
+      "Bash(python scripts/make-user-guide.py --check)",
+      "Bash(python scripts/scan-secrets.py *)",
+      "Bash(python scripts/guard-git-hook.py --self-test)",
+      "Bash(npx markdownlint-cli2 *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch --show-current)",
+      "PowerShell(./gradlew --stop)",
+      "PowerShell(./gradlew ktlintCheck *)",
+      "PowerShell(./gradlew detekt *)",
+      "PowerShell(./gradlew lintDebug *)",
+      "PowerShell(./gradlew testDebugUnitTest *)",
+      "PowerShell(./gradlew :core:test *)",
+      "PowerShell(./gradlew :mobile:testDebugUnitTest *)",
+      "PowerShell(./gradlew assembleDebug *)",
+      "PowerShell(python scripts/quality-gates.py *)",
+      "PowerShell(python scripts/validate-records.py)",
+      "PowerShell(python scripts/make-user-guide.py --check)",
+      "PowerShell(python scripts/scan-secrets.py *)",
+      "PowerShell(python scripts/guard-git-hook.py --self-test)",
+      "PowerShell(npx markdownlint-cli2 *)",
+      "PowerShell(git status *)",
+      "PowerShell(git diff *)",
+      "PowerShell(git log *)",
+      "PowerShell(git branch --show-current)"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git * --no-verify)",
+      "Bash(git * --no-verify *)",
+      "Bash(git commit -n *)",
+      "PowerShell(git push *)",
+      "PowerShell(git * --no-verify)",
+      "PowerShell(git * --no-verify *)",
+      "PowerShell(git commit -n *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/scripts/guard-git-hook.py"],
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

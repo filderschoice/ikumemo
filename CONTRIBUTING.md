@@ -99,6 +99,7 @@ AIエージェントが人の応答を待たずに複数イテレーションを
 | `.github/instructions/*.instructions.md` | **特定の作業に限った共通規約の正本** | PR説明文・コードレビューの言語と構成。Copilot へは `.vscode/settings.json` から自動適用され、Claude Code はスキル経由で読む |
 | `.github/prompts/*.prompt.md` | Copilot のオンデマンド手順（`/名前` で呼び出す） | Copilot 固有の実行手順。規範は `.github/instructions/` 側に置き、ここへは複製しない |
 | `.claude/skills/*/SKILL.md` | Claude Code のオンデマンド手順 | 明示指示時にしか使わない手順（自律ループ実行モードの実行手順など） |
+| `.claude/agents/*.md` | Claude Code のサブエージェント定義 | 委任先の役割・使うツール・モデル・返す内容。委任の運用は Skill `autonomous-loop`「サブエージェントへの委任」が正本で、ここへは複製しない |
 
 構成上の前提:
 

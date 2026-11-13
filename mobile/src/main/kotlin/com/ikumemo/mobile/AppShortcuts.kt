@@ -9,7 +9,7 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 
 /**
- * アイコン長押しのショートカット（F-74）。「話して追加」「文字で追加」「カレンダー」「おしらせ」の 4 つで、
+ * アイコン長押しのショートカット（F-74）。「話して追加」「文字で追加」「記録」「期限」の 4 つで、
  * それぞれ [MainActivity.intent] の画面を開く（「話して追加」はメモ画面を開いて音声入力を始める）。
  *
  * debug 版は applicationId が違い、静的なショートカット定義（shortcuts.xml）にはパッケージ名を固定で書くしかないため、

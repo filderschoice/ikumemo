@@ -60,6 +60,7 @@ class FieldMicTest {
                         stores = emptyList(),
                         photoStore = PhotoStore(app),
                         onSave = { saved += it },
+                        onRemove = {},
                     )
                 }
             }

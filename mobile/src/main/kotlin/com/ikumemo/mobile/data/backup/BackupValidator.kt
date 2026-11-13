@@ -39,7 +39,7 @@ object BackupValidator {
             !file.trips.map { it.id }.isUnique() -> "お買い物の ID が重なっています"
             !file.records.map { it.id }.isUnique() -> "記録の ID が重なっています"
             !file.reminders.map { it.id }.isUnique() -> "期限の ID が重なっています"
-            !file.reminders.map { it.purchaseRecordId }.isUnique() -> "1 つの記録に期限が複数あります"
+            !file.reminders.map { it.purchaseRecordId }.isUnique() -> "1つの記録に期限が複数あります"
             else -> null
         }
 

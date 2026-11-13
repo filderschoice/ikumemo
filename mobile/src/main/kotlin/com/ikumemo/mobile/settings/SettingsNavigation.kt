@@ -24,11 +24,9 @@ data class HelpPageRoute(
 @Serializable
 object AppearanceRoute
 
+/** 操作とお知らせ（BL-143 でお知らせの設定をまとめた。期限の画面の「お知らせの時刻」からも開く）。 */
 @Serializable
 object OperationRoute
-
-@Serializable
-object ReminderSettingsRoute
 
 @Serializable
 object StoreManageRoute
@@ -78,12 +76,17 @@ fun NavGraphBuilder.settingsGraph(
     }
     composable<AppearanceRoute> { AppearanceScreen(onBack = back) }
     composable<OperationRoute> { OperationScreen(onBack = back) }
-    composable<ReminderSettingsRoute> { ReminderSettingsScreen(onBack = back) }
     composable<StoreManageRoute> { StoreManageScreen(onBack = back) }
     composable<ProductManageRoute> { ProductManageScreen(onBack = back) }
     composable<HomeScreenRoute> { HomeScreenScreen(onBack = back) }
     composable<FeedbackRoute> { FeedbackScreen(onBack = back) }
     composable<DataRoute> { DataScreen(onBack = back) }
-    composable<AboutRoute> { AboutScreen(onBack = back, onOpenLicenses = { navController.navigate(LicensesRoute) }) }
+    composable<AboutRoute> {
+        AboutScreen(
+            onBack = back,
+            onOpenLicenses = { navController.navigate(LicensesRoute) },
+            onOpenFeedback = { navController.navigate(FeedbackRoute) },
+        )
+    }
     composable<LicensesRoute> { LicensesScreen(onBack = back) }
 }

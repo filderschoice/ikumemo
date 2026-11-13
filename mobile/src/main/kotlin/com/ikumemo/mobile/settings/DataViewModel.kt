@@ -27,11 +27,25 @@ enum class DataResult {
     IMPORT_FAILED,
 }
 
-/** データ画面の状態。[busy] は処理中（二重に押せなくする）、[result] は最後の処理の知らせ。 */
+/** データ画面のどの行の処理か（処理中の表示を押した行に出すため、BL-134）。 */
+enum class DataTask {
+    EXPORT_ZIP,
+    EXPORT_JSON,
+    EXPORT_CSV,
+    IMPORT,
+    ERASE,
+}
+
+/**
+ * データ画面の状態。[running] は処理中の行（null なら処理していない）、[result] は最後の処理の知らせ。
+ * [busy] は処理中か（二重に押せなくする）。
+ */
 data class DataUiState(
-    val busy: Boolean = false,
+    val running: DataTask? = null,
     val result: DataResult? = null,
-)
+) {
+    val busy: Boolean get() = running != null
+}
 
 sealed interface DataEvent {
     /** データをすべて消す（F-76）。確認は画面側で済んでいる。 */
@@ -62,7 +76,7 @@ class DataViewModel(
 
     fun onEvent(event: DataEvent) {
         if (_state.value.busy) return
-        _state.update { DataUiState(busy = true) }
+        _state.update { DataUiState(running = event.task()) }
         viewModelScope.launch {
             val result =
                 when (event) {
@@ -74,29 +88,56 @@ class DataViewModel(
         }
     }
 
+    private fun DataEvent.task(): DataTask =
+        when (this) {
+            DataEvent.EraseAll -> DataTask.ERASE
+            is DataEvent.Import -> DataTask.IMPORT
+            is DataEvent.Export ->
+                when (kind) {
+                    ExportKind.ZIP -> DataTask.EXPORT_ZIP
+                    ExportKind.JSON -> DataTask.EXPORT_JSON
+                    ExportKind.CSV -> DataTask.EXPORT_CSV
+                }
+        }
+
     private suspend fun erase(): DataResult {
         eraser.eraseAll()
         return DataResult.ERASED
     }
 
     private suspend fun export(event: DataEvent.Export): DataResult =
-        try {
+        orWhenUnreadable(DataResult.EXPORT_FAILED) {
             val output = openOutput(event.uri) ?: throw IOException("開けません")
             output.use { exporter.export(event.kind, it) }
             DataResult.EXPORTED
-        } catch (_: IOException) {
-            DataResult.EXPORT_FAILED
         }
 
     private suspend fun import(event: DataEvent.Import): DataResult =
-        try {
+        orWhenUnreadable(DataResult.IMPORT_FAILED) {
             val input = openInput(event.uri) ?: throw IOException("開けません")
             when (input.use { importer.import(it) }) {
                 ImportResult.Success -> DataResult.IMPORTED
                 is ImportResult.Invalid -> DataResult.IMPORT_INVALID
                 ImportResult.Failed -> DataResult.IMPORT_FAILED
             }
+        }
+
+    /**
+     * ファイルを開けない・読み書きできないときに [failed] を返す。ContentResolver は入出力の失敗（IOException）のほか、
+     * 選択元のアプリの都合や権限の取り消しで SecurityException、扱えない Uri で IllegalArgumentException を投げうるため、
+     * これらも失敗として知らせる（捕まえないとアプリが落ちる、BL-114）。
+     */
+    private suspend fun orWhenUnreadable(
+        failed: DataResult,
+        block: suspend () -> DataResult,
+    ): DataResult =
+        try {
+            block()
         } catch (_: IOException) {
-            DataResult.IMPORT_FAILED
+            failed
+        } catch (_: SecurityException) {
+            failed
+        } catch (_: IllegalArgumentException) {
+            failed
         }
 }
