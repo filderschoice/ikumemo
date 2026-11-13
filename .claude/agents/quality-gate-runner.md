@@ -18,7 +18,8 @@ tools: Bash, Read, Grep
 1. 呼び出し元から引数（`--quick --tests "*XxxTest"`・`--skip-gradle`・`--only ktlint,detekt` 等）の指定があればそれを、
    無ければ引数なしでフル検証を流す。作業ディレクトリはリポジトリのルート
 2. Bash で `python scripts/quality-gates.py <引数>` を**通常のコマンド（タイムアウト 600000）**で流す。
-   `run_in_background` は使わない（バックグラウンドの Gradle はセッションの待機中に強制停止される）。
+   Bash の `timeout` に 600000 を必ず渡す（省くと 180 秒前後でコマンドがバックグラウンドへ移る。フル検証の Gradle は
+   200 秒ほどかかる）。`run_in_background` は使わない（バックグラウンドの Gradle はセッションの待機中に強制停止される）。
    スクリプトが先に `./gradlew --stop` を流すので、自分で流す必要はない
 3. 流し直さない。タイムアウト・強制停止したら、そのことと最後に出ていたゲート名を返して終わる
 
