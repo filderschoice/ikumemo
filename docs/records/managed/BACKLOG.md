@@ -50,7 +50,6 @@
   担当: ユーザー
   完了条件: はみ出し・重なりが無い。あれば画面名・端末・文字の設定を記録している
   依存:
-    - BL-137
     - BL-139
     - BL-145
   根拠: >-
@@ -233,33 +232,6 @@
     docs/records/managed/DESIGN.md の「F-60・F-63・F-65」の行に並び順を足す
   依存: []
   根拠: 2026-11-13 の UX レビュー A9（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた
-- id: BL-137
-  区分: UX改善
-  タスク内容: >-
-    カレンダー（BL-141 の後は「記録」）を見やすくする。買い物の印を大きく、今月以外を見ているときは「今日」へ戻るボタンを出し、右上の「探す」を文字付きにする（UX レビュー A8）。
-    パスの kotlin/ は mobile/src/main/kotlin/com/ikumemo/mobile/。
-    いまの状態。kotlin/calendar/MonthGrid.kt の DayCell（188〜192 行目）で、買い物のあった日の印は直径 6dp の点（最大 3 つ、お店ごとの色）。
-    MonthHeader（49〜75 行目）は前の月・次の月の矢印だけで、別の月から今日へ戻る手段が無い。
-    kotlin/calendar/CalendarScreen.kt の CalendarTopBar（120〜142 行目）の「探す」は虫眼鏡のアイコンだけ（文字は読み上げ用の contentDescription のみ）で、メモ画面の「設定」が文字を添えている（PLAN §2.7）のと不ぞろい。
-    どう変えるか。点を 8dp にし、日付の数字との間を 2dp 以上空ける（マスの最小 48dp は保つ）。見ている月が今月でないときだけ、月の見出しの横に「今日」ボタン（文字、48dp 以上）を出し、
-    押すと今月の今日を選ぶ（CalendarEvent に新しいイベントを足し、CalendarViewModel の showMonth を使う）。
-    「探す」はアイコン＋文字の TextButton にする（検索中は calendar_search_close の意味の文字）。BL-143 で同じ上部のバーに「⚙ 設定」が入っているので、
-    文字の大きさ「とても大きい」でも題名と 2 つのボタンが重ならない並びにする
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest（BL-116 で作る）に、今月では「今日」が出ず、別の月では出て押すとイベントが出ることのテストを、
-    mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest に今日へ戻るイベントで今月の今日が選ばれるテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*CalendarViewModelTest" が成功する。
-    見た目が変わるため、スクリーンショットテストの calendar を CLAUDE.md の手順で -Proborazzi.test.record=true で記録し直し、
-    画像の差分（点の大きさ・探すの文字、extra_large ではみ出しが無いこと）を確かめてコミットに含める。
-    使い方 mobile/src/main/assets/help/calendar.md に「今日」ボタンを足し、search.md の「右上の「探す」」が新しい見た目と合うか確かめて、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の F-40（点の大きさ・今日へ戻る）と F-42 の行（探すの入口）を合わせる
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー A8（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
-    MonthGrid を触る BL-130 と、CalendarTopBar に設定のボタンを足す BL-143 の後に行う。BL-117（検索欄の音声入力）は検索の入口と search.md を触るため本タスクの後にした
 - id: BL-128
   区分: 品質ゲート
   タスク内容: >-
@@ -349,8 +321,7 @@
   完了条件: >-
     検索欄にマイクがあり、話した品名で検索結果が出る。CalendarViewModel か Compose のテストで、マイクの結果が検索語に入ることを確かめている。
     CLAUDE.md の品質ゲートがすべて成功し、見た目が変わるためスクリーンショットテストの calendar を比べている
-  依存:
-    - BL-137
+  依存: []
   根拠: >-
     2026-11-13 にオーナーが、カレンダーの検索欄に音声入力を付けることを承認した。
     オーナーへの質問は「カレンダーの検索欄に音声入力（マイク）を付けてよいか」。DESIGN.md の F-42 の行が「検索欄の音声入力は未実装」と明記しており、

@@ -69,6 +69,8 @@
     <string name="calendar_no_shopping">この日のお買い物はありません</string>
     <string name="calendar_search">探す</string>
     <string name="calendar_search_close">探すのをやめる</string>
+    <string name="calendar_search_stop">やめる</string>
+    <string name="calendar_today">今日</string>
     <string name="calendar_search_hint">品名（例: 牛乳）</string>
     <string name="calendar_search_empty">見つかりませんでした</string>
     <string name="calendar_result_date">%1$d年%2$d月%3$d日</string>

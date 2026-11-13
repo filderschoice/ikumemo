@@ -160,6 +160,24 @@ class CalendarViewModelTest {
         }
 
     @Test
+    fun goingToTodaySelectsTodayInCurrentMonth() =
+        runTest {
+            // BL-137。別の月を見ていても「今日」で今月へ戻り、今日が選ばれる
+            viewModel.uiState.test(timeout = TURBINE_TIMEOUT) {
+                viewModel.onEvent(CalendarEvent.PreviousMonth)
+                viewModel.onEvent(CalendarEvent.PreviousMonth)
+                awaitUntil { it.month == YearMonth.of(2026, 8) }
+
+                viewModel.onEvent(CalendarEvent.GoToToday)
+
+                val back = awaitUntil { it.month == YearMonth.of(2026, 10) }
+                assertEquals(LocalDate.of(2026, 10, 25), back.selectedDate)
+                assertEquals(back.today, back.selectedDate)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
     fun editingAndDeletingRecordFromDayDetail() =
         runTest {
             val record = buy("牛乳", LocalDate.of(2026, 10, 25))

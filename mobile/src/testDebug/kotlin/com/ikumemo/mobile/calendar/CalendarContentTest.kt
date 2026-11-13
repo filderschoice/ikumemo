@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -177,6 +178,46 @@ class CalendarContentTest {
 
         composeRule.waitForIdle()
         assertEquals(listOf<CalendarEvent>(CalendarEvent.UndoDelete(3)), events.toList())
+    }
+
+    @Test
+    fun todayButtonIsHiddenInTheCurrentMonth() {
+        show()
+
+        composeRule.onNodeWithTag(CalendarTestTags.TODAY).assertDoesNotExist()
+    }
+
+    @Test
+    fun todayButtonInAnotherMonthGoesBackToToday() {
+        // BL-137。別の月では月の見出しの横に「今日」が出て、押すと今日へ戻るイベントを送る
+        show(CalendarSamples.state(selectedDate = CalendarSamples.TODAY.minusMonths(2).withDayOfMonth(1)))
+
+        composeRule
+            .onNodeWithTag(CalendarTestTags.TODAY)
+            .assertIsDisplayed()
+            .assertTextEquals(text(R.string.calendar_today))
+            .performClick()
+
+        assertEquals(listOf<CalendarEvent>(CalendarEvent.GoToToday), events.toList())
+    }
+
+    @Test
+    fun searchButtonShowsItsLabel() {
+        // BL-137。「探す」は虫眼鏡だけでなく文字も添え、検索中は「やめる」にする
+        show()
+        composeRule.onNodeWithText(text(R.string.calendar_search)).assertIsDisplayed()
+        composeRule.onNodeWithTag(CalendarTestTags.SEARCH).performClick()
+        assertEquals(listOf<CalendarEvent>(CalendarEvent.OpenSearch), events.toList())
+    }
+
+    @Test
+    fun searchButtonWhileSearchingSaysStop() {
+        show(CalendarSamples.state(searchOpen = true))
+
+        composeRule.onNodeWithText(text(R.string.calendar_search_stop)).assertIsDisplayed()
+        composeRule.onNodeWithTag(CalendarTestTags.SEARCH).performClick()
+
+        assertEquals(listOf<CalendarEvent>(CalendarEvent.CloseSearch), events.toList())
     }
 
     @Test

@@ -5,6 +5,42 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:32
+  summary: 記録の画面で買い物の点を大きくし、別の月から今日へ戻る「今日」と文字付きの「探す」を出す
+  details:
+    変更内容: >-
+      BL-137 を実装した。calendar/MonthGrid.kt の DayCell で買い物の点を 6dp から 8dp にし、日付の数字との間を 2dp 空けた（マスの最小 48dp は変えない）。
+      MonthHeader に省略可能な onToday を足し、渡したときだけ見出しと ▶ の間に「今日」（TextButton、48dp 以上、テストタグ calendar_today）を出す。
+      CalendarScreen.kt の MonthPane は今月以外を見ているときだけ onToday を渡し、押すと新しい CalendarEvent.GoToToday を送る。
+      CalendarViewModel は GoToToday で showMonth（今月なら今日を選ぶ）を呼ぶ。
+      上部のバーの「探す」をアイコンだけの IconButton からアイコン＋文字の TextButton（SearchToggleButton）にし、検索中は「✕ やめる」、
+      読み上げは今までどおり「探す」「探すのをやめる」を semantics で付けた。文字が大きくても題名と 2 つのボタンが重ならないよう、題名は 1 行で溢れたら省く。
+      strings.xml に calendar_today「今日」と calendar_search_stop「やめる」を足した。
+      CalendarContentTest に今月では「今日」が出ない・別の月では出て押すと GoToToday が出る・探すの文字と検索中の「やめる」のテストを、
+      CalendarViewModelTest に GoToToday で今月の今日が選ばれるテストを足した。
+      使い方 help/calendar.md に「今日」、help/search.md に「やめる」を足して docs/USER_GUIDE.md を作り直し、DESIGN.md の F-40・F-42 の行を合わせた。
+      スクリーンショットの calendar の記録し直しはオーケストレータが区切りで行う
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/MonthGrid.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/calendar/CalendarViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/calendar.md
+      - mobile/src/main/assets/help/search.md
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/calendar/CalendarContentTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/calendar/CalendarViewModelTest.kt
+      - docs/USER_GUIDE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*CalendarContentTest" --tests "*CalendarViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 軽い検証の 1 回目で ktlint・detekt・compile・指定の 2 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug・スクリーンショットテストは流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-137
 - date: 2026-11-13 10:26
   summary: 話して追加の確認カードで、外したカードに取り消し線と「戻す」を出し、追加ボタンに入れる件数を出す
   details:

@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,12 +46,16 @@ import java.time.YearMonth
 private const val DAYS_IN_WEEK = 7
 private const val MAX_DOTS = 3
 
-/** 月の見出し（◀ 2026年10月 ▶）。 */
+/**
+ * 月の見出し（◀ 2026年10月 ▶）。[onToday] を渡したとき（今月以外を見ているとき）だけ、
+ * 見出しと ▶ の間に「今日」を出す（BL-137）。
+ */
 @Composable
 fun MonthHeader(
     month: YearMonth,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
+    onToday: (() -> Unit)? = null,
 ) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onPrevious, modifier = Modifier.testTag(CalendarTestTags.PREVIOUS)) {
@@ -65,6 +70,11 @@ fun MonthHeader(
             textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f),
         )
+        onToday?.let {
+            TextButton(onClick = it, modifier = Modifier.heightIn(min = 48.dp).testTag(CalendarTestTags.TODAY)) {
+                Text(stringResource(R.string.calendar_today))
+            }
+        }
         IconButton(onClick = onNext, modifier = Modifier.testTag(CalendarTestTags.NEXT)) {
             Icon(
                 Icons.AutoMirrored.Rounded.KeyboardArrowRight,
@@ -185,9 +195,10 @@ private fun DayCell(
             color = if (selected) colors.onSecondaryContainer else textColor,
             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        // 買い物の印は 8dp の点。日付の数字との間を 2dp 空ける（BL-137）
+        Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             stores.take(MAX_DOTS).forEach { storeId ->
-                Box(Modifier.size(6.dp).background(Color(CalendarColors.storeDot(storeId, dark)), CircleShape))
+                Box(Modifier.size(8.dp).background(Color(CalendarColors.storeDot(storeId, dark)), CircleShape))
             }
         }
     }
@@ -196,6 +207,7 @@ private fun DayCell(
 object CalendarTestTags {
     const val PREVIOUS = "calendar_previous"
     const val NEXT = "calendar_next"
+    const val TODAY = "calendar_today"
     const val SEARCH = "calendar_search"
     const val SETTINGS = "calendar_settings"
     const val SEARCH_INPUT = "calendar_search_input"

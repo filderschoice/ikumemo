@@ -21,13 +21,13 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -43,6 +43,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,6 +62,7 @@ import com.ikumemo.mobile.guide.LocalGuideTargets
 import com.ikumemo.mobile.guide.rememberGuideTargets
 import com.ikumemo.mobile.settings.SettingsButton
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -146,24 +150,45 @@ private fun CalendarTopBar(
     onEvent: (CalendarEvent) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    // 右は 探す → ⚙ 設定（設定はメモ・期限と同じ右端、BL-143）
+    // 右は 🔍 探す → ⚙ 設定（設定はメモ・期限と同じ右端、BL-143）。文字が大きくても重ならないよう、
+    // 題名は 1 行に収めて溢れたら省く（BL-137）
     TopAppBar(
-        title = { Text(stringResource(R.string.tab_calendar)) },
+        title = {
+            Text(stringResource(R.string.tab_calendar), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        },
         actions = {
-            IconButton(
-                onClick = { onEvent(if (searchOpen) CalendarEvent.CloseSearch else CalendarEvent.OpenSearch) },
-                modifier = Modifier.testTag(CalendarTestTags.SEARCH),
-            ) {
-                Icon(
-                    if (searchOpen) Icons.Rounded.Close else Icons.Rounded.Search,
-                    contentDescription =
-                        stringResource(if (searchOpen) R.string.calendar_search_close else R.string.calendar_search),
-                )
-            }
+            SearchToggleButton(searchOpen = searchOpen, onEvent = onEvent)
             SettingsButton(onOpenSettings, CalendarTestTags.SETTINGS)
         },
         windowInsets = WindowInsets(0),
     )
+}
+
+/**
+ * 上部のバーの「🔍 探す」。メモ画面の「⚙ 設定」とそろえて文字を添える（BL-137）。
+ * 検索中は「✕ やめる」にし、読み上げは「探すのをやめる」と伝える。
+ */
+@Composable
+private fun SearchToggleButton(
+    searchOpen: Boolean,
+    onEvent: (CalendarEvent) -> Unit,
+) {
+    val description = stringResource(if (searchOpen) R.string.calendar_search_close else R.string.calendar_search)
+    TextButton(
+        onClick = { onEvent(if (searchOpen) CalendarEvent.CloseSearch else CalendarEvent.OpenSearch) },
+        modifier =
+            Modifier
+                .heightIn(min = 48.dp)
+                .semantics(mergeDescendants = true) { contentDescription = description }
+                .testTag(CalendarTestTags.SEARCH),
+    ) {
+        Icon(if (searchOpen) Icons.Rounded.Close else Icons.Rounded.Search, contentDescription = null)
+        Text(
+            stringResource(if (searchOpen) R.string.calendar_search_stop else R.string.calendar_search),
+            maxLines = 1,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+    }
 }
 
 /** 月のカレンダーと、選んだ日の記録（F-40・F-41）。 */
@@ -182,6 +207,10 @@ private fun MonthPane(
                     month = state.month,
                     onPrevious = { onEvent(CalendarEvent.PreviousMonth) },
                     onNext = { onEvent(CalendarEvent.NextMonth) },
+                    // 今月以外を見ているときだけ「今日」を出す（BL-137）
+                    onToday =
+                        { onEvent(CalendarEvent.GoToToday) }
+                            .takeIf { state.month != YearMonth.from(state.today) },
                 )
                 MonthGrid(
                     month = state.month,

@@ -68,6 +68,9 @@ sealed interface CalendarEvent {
 
     data object NextMonth : CalendarEvent
 
+    /** 別の月を見ているときに「今日」を押した。今月へ戻り、今日を選ぶ（BL-137）。 */
+    data object GoToToday : CalendarEvent
+
     data class SelectDate(
         val date: LocalDate,
     ) : CalendarEvent
@@ -209,6 +212,7 @@ class CalendarViewModel(
         when (event) {
             CalendarEvent.PreviousMonth -> showMonth(local.value.month.minusMonths(1))
             CalendarEvent.NextMonth -> showMonth(local.value.month.plusMonths(1))
+            CalendarEvent.GoToToday -> showMonth(YearMonth.from(today))
             is CalendarEvent.SelectDate -> {
                 // R-51: 自分で日付を押して中身を見たら、G-07 は要らない
                 guides.markShown(GuideId.G07_CALENDAR_DAY)
