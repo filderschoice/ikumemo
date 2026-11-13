@@ -5,6 +5,36 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 10:12
+  summary: データの画面を見出しで 3 つに区切り、すべて消すを離して error 色にし、処理中の行と結果を分かるようにする
+  details:
+    変更内容: >-
+      BL-134 を実装した。settings/DataViewModel.kt に DataTask（EXPORT_ZIP・EXPORT_JSON・EXPORT_CSV・IMPORT・ERASE）を足し、
+      DataUiState は busy の代わりに running（処理中の行、無ければ null）を持つ。busy は running から求める読み取りの値として残し、二重に押せなくする動きは変えない。
+      settings/DataScreen.kt の DataContent は結果の知らせを一番上に出し、見出し「書き出す」「読み込む」「消す」（titleSmall・primary）で区切る。
+      「データをすべて消す」は読み込みの下に 32dp の間と区切り線を空けて離し、題の文字と確認ダイアログの「すべて消す」を colorScheme.error にした（読み込みの確認は変えない）。
+      処理中は押した行に CircularProgressIndicator と strings.xml の data_progress_export・data_progress_import・data_progress_erase の文字を出す。
+      行の引数は detekt の LongParameterList を避けるため DataRowSpec にまとめた。使い方 help/data-export.md は区切り・消す行に触れていないため変えていない。
+      DESIGN.md の F-72 と F-76 の行を更新した。設定の画面はスクリーンショットテストの対象外のため記録し直していない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataViewModel.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/DataViewModelTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*DataViewModelTest"、
+      python scripts/validate-records.py、python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 4 回目の軽い検証で ktlint・detekt・compile・指定の 2 テストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （1 回目は見出しが増えて画面の外になった行を押せず、切り取られた位置で比べていたため失敗し、performScrollTo と getUnclippedBoundsInRoot に直した。
+      2 回目は進み具合が押せる行にまとめられて見つからず useUnmergedTree で探すよう直し、3 回目はテストの行の長さで ktlint に当たった。
+      Android Lint・全テスト・assembleDebug は流しておらず、フル検証はループの最後に流す）
+    関連ID:
+      - BL-134
 - date: 2026-11-13 10:01
   summary: 期限を決めるシートの候補のチップに、今日から数えた日付を曜日付きで添える
   details:

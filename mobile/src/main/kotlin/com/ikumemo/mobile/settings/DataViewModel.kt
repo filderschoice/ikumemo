@@ -27,11 +27,25 @@ enum class DataResult {
     IMPORT_FAILED,
 }
 
-/** データ画面の状態。[busy] は処理中（二重に押せなくする）、[result] は最後の処理の知らせ。 */
+/** データ画面のどの行の処理か（処理中の表示を押した行に出すため、BL-134）。 */
+enum class DataTask {
+    EXPORT_ZIP,
+    EXPORT_JSON,
+    EXPORT_CSV,
+    IMPORT,
+    ERASE,
+}
+
+/**
+ * データ画面の状態。[running] は処理中の行（null なら処理していない）、[result] は最後の処理の知らせ。
+ * [busy] は処理中か（二重に押せなくする）。
+ */
 data class DataUiState(
-    val busy: Boolean = false,
+    val running: DataTask? = null,
     val result: DataResult? = null,
-)
+) {
+    val busy: Boolean get() = running != null
+}
 
 sealed interface DataEvent {
     /** データをすべて消す（F-76）。確認は画面側で済んでいる。 */
@@ -62,7 +76,7 @@ class DataViewModel(
 
     fun onEvent(event: DataEvent) {
         if (_state.value.busy) return
-        _state.update { DataUiState(busy = true) }
+        _state.update { DataUiState(running = event.task()) }
         viewModelScope.launch {
             val result =
                 when (event) {
@@ -73,6 +87,18 @@ class DataViewModel(
             _state.update { DataUiState(result = result) }
         }
     }
+
+    private fun DataEvent.task(): DataTask =
+        when (this) {
+            DataEvent.EraseAll -> DataTask.ERASE
+            is DataEvent.Import -> DataTask.IMPORT
+            is DataEvent.Export ->
+                when (kind) {
+                    ExportKind.ZIP -> DataTask.EXPORT_ZIP
+                    ExportKind.JSON -> DataTask.EXPORT_JSON
+                    ExportKind.CSV -> DataTask.EXPORT_CSV
+                }
+        }
 
     private suspend fun erase(): DataResult {
         eraser.eraseAll()

@@ -129,6 +129,28 @@ class DataViewModelTest {
             assertFalse(viewModel.state.value.busy)
         }
 
+    /** BL-134。処理中は押した行（処理の種類）を持ち、終わったら null に戻る。 */
+    @Test
+    fun runningTaskFollowsTheEvent() =
+        runTest {
+            val cases =
+                listOf(
+                    DataEvent.Export(ExportKind.ZIP, uri) to DataTask.EXPORT_ZIP,
+                    DataEvent.Export(ExportKind.JSON, uri) to DataTask.EXPORT_JSON,
+                    DataEvent.Export(ExportKind.CSV, uri) to DataTask.EXPORT_CSV,
+                    DataEvent.Import(uri) to DataTask.IMPORT,
+                    DataEvent.EraseAll to DataTask.ERASE,
+                )
+            val viewModel = viewModel()
+            cases.forEach { (event, task) ->
+                viewModel.onEvent(event)
+                assertEquals(task, viewModel.state.value.running)
+                assertEquals(null, viewModel.state.value.result)
+                viewModel.awaitResult()
+                assertEquals(null, viewModel.state.value.running)
+            }
+        }
+
     @Test
     fun exportFailsWhenFileCannotBeOpened() =
         runTest {

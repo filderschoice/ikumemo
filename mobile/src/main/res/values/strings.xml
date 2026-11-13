@@ -158,6 +158,12 @@
     <string name="onboarding_pin_voice">「話して追加」を置く</string>
     <string name="onboarding_pin_memo">「メモ一覧」を置く</string>
     <string name="settings_data">データ</string>
+    <string name="data_section_export">書き出す</string>
+    <string name="data_section_import">読み込む</string>
+    <string name="data_section_erase">消す</string>
+    <string name="data_progress_export">書き出しています…</string>
+    <string name="data_progress_import">読み込んでいます…</string>
+    <string name="data_progress_erase">消しています…</string>
     <string name="data_export_zip_title">データを書き出す（写真つき）</string>
     <string name="data_export_zip_detail">メモ・買った記録・設定・写真を 1 つのファイル（ZIP）に書き出します。読み込めば元に戻せます</string>
     <string name="data_export_json_title">データを書き出す（写真なし）</string>

@@ -50,7 +50,6 @@
   担当: ユーザー
   完了条件: はみ出し・重なりが無い。あれば画面名・端末・文字の設定を記録している
   依存:
-    - BL-134
     - BL-137
     - BL-139
     - BL-145
@@ -163,8 +162,7 @@
     設定の画面はスクリーンショットテストの対象外のため記録し直しは不要。
     使い方 mobile/src/main/assets/help/data-export.md（書き出しの 3 行の説明）と device-change.md の書き出しの記述を新しい行の名前に合わせ、python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
     docs/records/managed/DESIGN.md の F-72 の行を合わせる
-  依存:
-    - BL-134
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー B5（効果 中）。オーナーが 2026-11-13 に質問の案のとおりで承認した。
     データの画面を組み替える BL-134 の後に行う（同じ DataContent の並びを触るため）
@@ -284,32 +282,6 @@
     docs/records/managed/DESIGN.md の「F-01・PLAN §3.2」の行（確認カード）を合わせる
   依存: []
   根拠: 2026-11-13 の UX レビュー A7（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた
-- id: BL-134
-  区分: UX改善
-  タスク内容: >-
-    設定の「データ」画面で、「データをすべて消す」を書き出しから離して目立たせ、処理中と結果が分かるようにする（UX レビュー A5）。
-    対象は mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt の DataContent（77〜117 行目）・DataRow（119〜143 行目）・ConfirmDialog（169〜190 行目）、
-    settings/DataViewModel.kt（DataUiState の busy・result）、mobile/src/main/res/values/strings.xml の 158〜179 行目。
-    いまの状態。書き出し 3 つ・読み込み・すべて消すの 5 行が同じ見た目で続き、「データをすべて消す」に色も区切りも無い。確認ダイアログの「すべて消す」も普通の文字ボタン。
-    処理中は行が押せなくなるだけで進み具合の表示が無い（busy は enabled にしか使っていない）。結果の文字は一覧の一番下に出る。
-    どう変えるか。見出し「書き出す」「読み込む」「消す」で 3 つに区切り、写真つきの書き出しを一番上に置く。「データをすべて消す」は区切り線の下に離し、文字を colorScheme.error にする。
-    確認ダイアログの「すべて消す」も error 色にする（読み込みの確認は色を変えない）。処理中は押した行に CircularProgressIndicator と「書き出しています…」などの文字（strings.xml）を出す
-    （どの行を押したかを DataUiState に持たせる）。結果は一覧の一番上（最初の見出しの上）に出す
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/DataContentTest に、見出し 3 つの順、処理中に進み具合の表示が出ること、結果が一番上に出ることのテストを、
-    mobile/src/test/kotlin/com/ikumemo/mobile/settings/DataViewModelTest に処理中の行の状態のテストを足す。
-    軽い検証 python scripts/quality-gates.py --quick --tests "*DataContentTest" --tests "*DataViewModelTest" が成功する。
-    設定の画面はスクリーンショットテストの対象外のため記録し直しは不要。
-    使い方 mobile/src/main/assets/help/data-export.md に区切り・消す行の位置に関わる記述があれば直し（2026-11-13 時点では書き出しの各行の説明だけで、消す操作の記述は無い）、
-    変えたら python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す。
-    docs/records/managed/DESIGN.md の F-72 と F-76 の行に、区切り・消す行の色・処理中の表示・結果の位置を足す
-  依存: []
-  根拠: >-
-    2026-11-13 の UX レビュー A5（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
-    レビューは結果の出し方を「スナックバー、または一覧の一番上」としていた。設定の画面にはスナックバーを出す Scaffold が無く、文字が大きい設定でも画面の外へ出ないため、一番上を既定とした
 - id: BL-133
   区分: UX改善
   タスク内容: >-
@@ -335,8 +307,7 @@
     ダイアログはスクリーンショットテストの対象外のため記録し直しは不要。
     使い方 mobile/src/main/assets/help/ を「できた」「やめる」「閉じる」で Grep し、ダイアログのボタンを指す記述があれば直して python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直す（2026-11-13 時点では該当なし）。
     docs/records/managed/DESIGN.md の「UI/UX 方針」に、ダイアログの確定は「決める」・取り消しは「戻る」の決まりを 1 行足す
-  依存:
-    - BL-134
+  依存: []
   根拠: >-
     2026-11-13 の UX レビュー A4（効果 中）。オーナーが 2026-11-13 に A の 11 件の採用を決めた。
     既定で決めた点。取り消しはレビューの推奨の「戻る」。音声カードの「できた」とシートの「閉じる」はダイアログではないため対象外。
