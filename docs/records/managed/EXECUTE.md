@@ -5,6 +5,34 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-13 11:19
+  summary: 画面と掲載文の「つ」の件数表記で、数字の前の空白も外して「の2つ」にそろえる
+  details:
+    変更内容: >-
+      BL-155 を実装した（オーナー判断 2026-11-13、BACKLOG には起票せず今回のコミットで完了扱い）。BL-154 で数字と「つ」の間の空白を外したのに続き、
+      半角数字と「つ」の件数表記の直前にある半角空白を外した。使い方 help/theme.md（を4つから）、undo.md（いちばん新しい1つ）、
+      usual.md（押すたびに1つずつ）、store.md（登録が2つある）と、docs/store/STORE_LISTING.md（の2つのウィジェット）を直し、
+      python scripts/make-user-guide.py で docs/USER_GUIDE.md を作り直した。strings.xml と画面に出る Kotlin の文言（BackupValidator.kt を含む）には
+      該当が無く変えていない。行頭・見出しの記号・表の区切りの直後で元から空白が無いもの（# 2つのウィジェット、- 4つのテーマ、表の 4つのテーマ）はそのまま。
+      「つ」以外の助数詞（牛乳 2 本 など）、時刻、コードのコメント、RELEASE_NOTES・CLOSED_TEST・PLAN は範囲外で変えていない。
+      文言を期待値に持つテストは無かった。DESIGN.md の F-01 の表記の決まりに、数字の前にも空白を入れないことを書き足した
+    変更ファイル:
+      - mobile/src/main/assets/help/theme.md
+      - mobile/src/main/assets/help/undo.md
+      - mobile/src/main/assets/help/usual.md
+      - mobile/src/main/assets/help/store.md
+      - docs/USER_GUIDE.md
+      - docs/store/STORE_LISTING.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*HelpContentTest" --tests "*HelpScreenTest"、python scripts/validate-records.py、
+      python scripts/scan-secrets.py
+    検証結果: >-
+      成功 - 1 回目で ktlint・detekt・compile・指定のテストクラス・markdownlint・records・user-guide・secrets がすべて成功した
+      （Android Lint・全テスト・assembleDebug は流していない。画面のコードは変えておらずスクリーンショットは対象外）
+    関連ID:
+      - BL-155
 - date: 2026-11-13 11:16
   summary: 文字で追加でも「牛乳 2本」を品名 牛乳 と数量 2本 に分けて入れる
   details:
