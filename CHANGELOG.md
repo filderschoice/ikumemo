@@ -384,3 +384,7 @@ Google Play 公開とクローズドテストに使う文書を作りました�
   BL-118 に読めない写真の結果を追記した
 - オーナーの許可（Baseline Profile を作る）により、BL-100 の区分を人手検証から性能へ、担当をエージェントへ変え、
   中級機での計測を人手検証 BL-171 に分けた
+
+## 2026-11-14（点検の指摘: libs.versions.toml のコメント）
+
+- 点検（change-reviewer）の要修正により、`gradle/libs.versions.toml` の Baseline Profile の版のコメントを、実際の値（1.4.1）と上げた理由に直した（値は変えていない）
