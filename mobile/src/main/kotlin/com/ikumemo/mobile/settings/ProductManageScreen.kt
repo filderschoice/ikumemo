@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.db.ProductEntity
+import com.ikumemo.mobile.designsystem.photoInk
 
 /** よく買う物の管理（PLAN §3）。品目ごとに「候補に出す」を切り替える（F-23）。 */
 @Composable
@@ -47,7 +48,7 @@ fun ProductManageContent(
 ) {
     if (products.isEmpty()) {
         Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.products_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.products_empty), color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant))
         }
         return
     }
@@ -56,7 +57,7 @@ fun ProductManageContent(
             Text(
                 stringResource(R.string.products_detail),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
                 modifier = Modifier.padding(16.dp),
             )
         }
@@ -78,7 +79,7 @@ fun ProductManageContent(
                     Text(
                         stringResource(R.string.products_count, product.purchaseCount),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
                     )
                 }
                 Switch(checked = visible, onCheckedChange = null)

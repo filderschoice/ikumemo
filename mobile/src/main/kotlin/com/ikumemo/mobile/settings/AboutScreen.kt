@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.designsystem.photoInk
 
 /**
  * このアプリについて（PLAN §3）。版・名前の由来・ご意見・ご要望・ライセンス・プライバシーポリシー・GitHub・ストアのページ。
@@ -55,7 +56,7 @@ fun AboutContent(
             Text(
                 stringResource(R.string.about_version, version),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
             )
             Text(
                 stringResource(R.string.about_origin),

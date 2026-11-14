@@ -18,12 +18,14 @@ import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -159,6 +161,19 @@ private fun ItemRowContent(
         targetValue = if (highlighted) colors.secondaryContainer else colors.surface,
         label = "highlight",
     )
+    // 行の面は surface を塗るため、文字はペンの色（LocalContentColor）ではなく onSurface にする（BL-170）
+    CompositionLocalProvider(LocalContentColor provides colors.onSurface) {
+        ItemRowBody(item, background, onClick, onBoughtClick)
+    }
+}
+
+@Composable
+private fun ItemRowBody(
+    item: ShoppingItemEntity,
+    background: Color,
+    onClick: () -> Unit,
+    onBoughtClick: () -> Unit,
+) {
     Row(
         modifier =
             Modifier

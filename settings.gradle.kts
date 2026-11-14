@@ -18,3 +18,4 @@ rootProject.name = "ikumemo"
 
 include(":core")
 include(":mobile")
+include(":baselineprofile")

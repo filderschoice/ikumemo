@@ -2,6 +2,7 @@ package com.ikumemo.mobile.data
 
 import androidx.room.withTransaction
 import com.ikumemo.core.text.ProductNameNormalizer
+import com.ikumemo.core.voice.QuantityText
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
@@ -88,7 +89,7 @@ class ShoppingRepository(
                         ShoppingItemEntity(
                             productId = product.id,
                             displayName = displayName,
-                            quantity = quantity?.trim()?.ifEmpty { null } ?: product.defaultQuantity,
+                            quantity = QuantityText.normalize(quantity) ?: product.defaultQuantity,
                             sortOrder = itemDao.maxSortOrder() + 1,
                             createdAt = clock.instant(),
                         ),
@@ -112,7 +113,7 @@ class ShoppingRepository(
             var result: AddItemResult = AddItemResult.Added(itemId)
             var updated =
                 item.copy(
-                    quantity = edit.quantity.blankToNull(),
+                    quantity = QuantityText.normalize(edit.quantity),
                     note = edit.note.blankToNull(),
                     plannedStoreId = edit.plannedStoreId,
                     photoUri = edit.photoUri,

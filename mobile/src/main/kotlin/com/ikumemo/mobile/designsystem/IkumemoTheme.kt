@@ -9,8 +9,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -26,7 +28,45 @@ fun IkumemoTheme(
     textSize: TextSizeSetting = TextSizeSetting.NORMAL,
     content: @Composable () -> Unit,
 ) {
-    val palette = preset.palette(darkTheme)
+    IkumemoTheme(
+        palette = preset.palette(darkTheme),
+        corners = preset.corners,
+        darkTheme = darkTheme,
+        textSize = textSize,
+        content = content,
+    )
+}
+
+/**
+ * きせかえで選んだテーマ [choice]（プリセットまたはおまかせ）で描く。おまかせの配色は端末の壁紙から作るため、
+ * [ThemeChoice.palette] で Context から取り出す。
+ */
+@Composable
+fun IkumemoTheme(
+    choice: ThemeChoice,
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    textSize: TextSizeSetting = TextSizeSetting.NORMAL,
+    content: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    val palette = remember(choice, darkTheme, context) { choice.palette(context, darkTheme) }
+    IkumemoTheme(
+        palette = palette,
+        corners = choice.corners,
+        darkTheme = darkTheme,
+        textSize = textSize,
+        content = content,
+    )
+}
+
+@Composable
+private fun IkumemoTheme(
+    palette: IkumemoPalette,
+    corners: CornerSet,
+    darkTheme: Boolean,
+    textSize: TextSizeSetting,
+    content: @Composable () -> Unit,
+) {
     val density = LocalDensity.current
     val scaledDensity =
         Density(
@@ -36,7 +76,7 @@ fun IkumemoTheme(
     CompositionLocalProvider(LocalDensity provides scaledDensity, LocalDarkTheme provides darkTheme) {
         MaterialTheme(
             colorScheme = palette.toColorScheme(darkTheme),
-            shapes = preset.corners.toShapes(),
+            shapes = corners.toShapes(),
             content = content,
         )
     }

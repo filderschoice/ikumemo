@@ -15,10 +15,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Storefront
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.StoreRepository
 import com.ikumemo.mobile.data.db.StoreEntity
+import com.ikumemo.mobile.designsystem.LocalHasBackgroundImage
 
 /** メモの上部のお店チップ（F-14、G-06 で照らす場所）。「🏪 買うお店を選ぶ」／「🏪 ○○ で買う」。 */
 @Composable
@@ -47,8 +50,21 @@ fun StoreChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 写真の上に直接置くチップなので、背景の写真があるときはペンの色（LocalContentColor）に合わせる（BL-170）
+    val ink = LocalContentColor.current
+    val colors =
+        if (LocalHasBackgroundImage.current) {
+            AssistChipDefaults.assistChipColors(
+                labelColor = ink,
+                leadingIconContentColor = ink,
+                trailingIconContentColor = ink,
+            )
+        } else {
+            AssistChipDefaults.assistChipColors()
+        }
     AssistChip(
         onClick = onClick,
+        colors = colors,
         label = {
             Text(
                 selectedStore?.let { stringResource(R.string.store_chip_selected, it.name) }

@@ -10,17 +10,18 @@ import com.ikumemo.mobile.designsystem.CornerSet
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.IkumemoPalette
 import com.ikumemo.mobile.designsystem.ThemePreset
+import com.ikumemo.mobile.designsystem.palette
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 /**
- * ウィジェットの色。アプリで選んだテーマ（4 種）とダークモードの設定に合わせる（PLAN §2.11）。背景画像は使わない。
+ * ウィジェットの色。アプリで選んだテーマ（プリセット 4 種・おまかせ）とダークモードの設定に合わせる（PLAN §2.11）。背景画像は使わない。
  * 「端末に合わせる」のときは昼と夜の色を両方渡し、端末の設定で切り替わるようにする。
  */
 class WidgetColors(
-    private val day: IkumemoPalette,
-    private val night: IkumemoPalette,
+    internal val day: IkumemoPalette,
+    internal val night: IkumemoPalette,
     /** 本体と同じ、テーマの角の丸み。 */
     val corners: CornerSet = ThemePreset.DEFAULT.corners,
 ) {
@@ -51,12 +52,17 @@ class WidgetColors(
         /** 見た目の設定が変わるたびに流す。ウィジェットの表示中に着せ替えを反映するために使う。 */
         fun observe(context: Context): Flow<WidgetColors> {
             val container = (context.applicationContext as IkumemoApplication).container
-            return container.appearancePrefs.appearance.map(::from)
+            val appContext = context.applicationContext
+            return container.appearancePrefs.appearance.map { from(appContext, it) }
         }
 
-        private fun from(appearance: Appearance): WidgetColors {
-            val light = appearance.theme.palette(darkTheme = false)
-            val dark = appearance.theme.palette(darkTheme = true)
+        /** おまかせ（壁紙の色）のときも、アプリ本体と同じ [palette] から配色を取る。 */
+        internal fun from(
+            context: Context,
+            appearance: Appearance,
+        ): WidgetColors {
+            val light = appearance.theme.palette(context, darkTheme = false)
+            val dark = appearance.theme.palette(context, darkTheme = true)
             return when (appearance.darkMode) {
                 DarkMode.SYSTEM -> WidgetColors(light, dark, appearance.theme.corners)
                 DarkMode.LIGHT -> WidgetColors(light, light, appearance.theme.corners)

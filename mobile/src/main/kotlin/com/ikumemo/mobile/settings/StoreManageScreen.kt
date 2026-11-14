@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.db.StoreEntity
+import com.ikumemo.mobile.designsystem.photoInk
 
 /** お店の管理（PLAN §3）。お店ごとに「使わない」と「ほかのお店とまとめる」（R-16）。 */
 @Composable
@@ -56,7 +57,7 @@ fun StoreManageContent(
     var dialog by rememberSaveable { mutableStateOf<StoreDialog?>(null) }
     if (stores.isEmpty()) {
         Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.stores_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.stores_empty), color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant))
         }
         return
     }

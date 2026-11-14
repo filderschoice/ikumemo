@@ -37,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -50,10 +49,16 @@ import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.DynamicColor
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.designsystem.InkColor
+import com.ikumemo.mobile.designsystem.SeedSwatch
 import com.ikumemo.mobile.designsystem.TextSizeSetting
+import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
+import com.ikumemo.mobile.designsystem.photoFilterChipColors
+import com.ikumemo.mobile.designsystem.photoOutlinedButtonColors
+import com.ikumemo.mobile.designsystem.photoTextButtonColors
 
 @Composable
 fun AppearanceScreen(
@@ -66,12 +71,16 @@ fun AppearanceScreen(
     }
 }
 
-/** きせかえ（F-65 文字の大きさ → F-60 プレビュー付きのカードでテーマを選ぶ → F-63 暗い画面 → F-61 背景の写真 の順）。 */
+/**
+ * きせかえ（F-65 文字の大きさ → F-60 プレビュー付きのカードでテーマを選ぶ・見本の色から選ぶ → F-63 暗い画面 →
+ * F-61 背景の写真 の順）。
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppearanceContent(
     appearance: Appearance,
     onEvent: (AppearanceEvent) -> Unit,
+    wallpaperAvailable: Boolean = DynamicColor.isAvailable(),
 ) {
     val dark = appearance.darkMode.isDark(isSystemInDarkTheme())
     Column(
@@ -87,6 +96,7 @@ fun AppearanceContent(
                     selected = size == appearance.textSize,
                     onClick = { onEvent(AppearanceEvent.SelectTextSize(size)) },
                     label = { Text(stringResource(size.label()), fontSize = (BASE_SAMPLE_SP * size.multiplier).sp) },
+                    colors = photoFilterChipColors(),
                     modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.textSize(size)),
                 )
             }
@@ -97,15 +107,17 @@ fun AppearanceContent(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            ThemePreset.entries.forEach { preset ->
+            themeChoices(wallpaperAvailable).forEach { choice ->
                 ThemeCard(
-                    preset = preset,
+                    choice = choice,
                     dark = dark,
-                    selected = preset == appearance.theme,
-                    onClick = { onEvent(AppearanceEvent.SelectTheme(preset)) },
+                    selected = choice == appearance.theme,
+                    onClick = { onEvent(AppearanceEvent.SelectTheme(choice)) },
                 )
             }
         }
+        // プリセットの他に、見本の色から 1 色選んで配色を作れる（BL-177）
+        SeedColorPicker(selected = appearance.theme, onSelect = { onEvent(AppearanceEvent.SelectTheme(it)) })
         SectionTitle(R.string.appearance_dark_mode)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DarkMode.entries.forEach { mode ->
@@ -113,6 +125,7 @@ fun AppearanceContent(
                     selected = mode == appearance.darkMode,
                     onClick = { onEvent(AppearanceEvent.SelectDarkMode(mode)) },
                     label = { Text(stringResource(mode.label())) },
+                    colors = photoFilterChipColors(),
                     modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.darkMode(mode)),
                 )
             }
@@ -122,6 +135,13 @@ fun AppearanceContent(
 }
 
 private const val BASE_SAMPLE_SP = 14f
+
+/**
+ * 着せ替えで並べるテーマ。プリセット 4 種の後におまかせ（壁紙の色）を置く。
+ * おまかせは Android 12 以降だけで選べるため、それより前の端末では出さない（押せない見本を並べるより迷わない）。
+ */
+internal fun themeChoices(wallpaperAvailable: Boolean): List<ThemeChoice> =
+    ThemePreset.entries + listOfNotNull(ThemeChoice.Wallpaper.takeIf { wallpaperAvailable })
 
 /** 背景の写真（F-61）。写真を選ぶ・外す、膜の濃さのスライダー（離したときに保存する）。 */
 @OptIn(ExperimentalLayoutApi::class)
@@ -138,6 +158,7 @@ private fun BackgroundSection(
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         OutlinedButton(
             onClick = { pick.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            colors = photoOutlinedButtonColors(),
             modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.BACKGROUND_PICK),
         ) {
             Text(stringResource(R.string.appearance_background_pick))
@@ -145,6 +166,7 @@ private fun BackgroundSection(
         if (appearance.backgroundImage != null) {
             TextButton(
                 onClick = { onEvent(AppearanceEvent.RemoveBackground) },
+                colors = photoTextButtonColors(),
                 modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.BACKGROUND_REMOVE),
             ) {
                 Text(stringResource(R.string.appearance_background_remove))
@@ -167,7 +189,8 @@ private fun BackgroundSection(
                 FilterChip(
                     selected = ink == appearance.ink,
                     onClick = { onEvent(AppearanceEvent.SelectInk(ink)) },
-                    label = { Text(stringResource(ink.label()), color = ink.textColor ?: Color.Unspecified) },
+                    label = { Text(stringResource(ink.label())) },
+                    colors = photoFilterChipColors(),
                     modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.ink(ink)),
                 )
             }
@@ -182,7 +205,7 @@ private fun SectionTitle(text: Int) {
 
 @Composable
 private fun ThemeCard(
-    preset: ThemePreset,
+    choice: ThemeChoice,
     dark: Boolean,
     selected: Boolean,
     onClick: () -> Unit,
@@ -194,9 +217,9 @@ private fun ThemeCard(
             Modifier
                 .width(150.dp)
                 .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-                .testTag(AppearanceTestTags.theme(preset)),
+                .testTag(AppearanceTestTags.theme(choice)),
     ) {
-        IkumemoTheme(preset = preset, darkTheme = dark) {
+        IkumemoTheme(choice = choice, darkTheme = dark) {
             Surface(color = MaterialTheme.colorScheme.background) {
                 Column(Modifier.fillMaxWidth()) {
                     Surface(color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth()) {
@@ -236,17 +259,19 @@ private fun ThemeCard(
             if (selected) {
                 Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = outline)
             }
-            Text(stringResource(preset.label()), modifier = Modifier.padding(start = 4.dp))
+            Text(stringResource(choice.label()), modifier = Modifier.padding(start = 4.dp))
         }
     }
 }
 
-private fun ThemePreset.label(): Int =
+private fun ThemeChoice.label(): Int =
     when (this) {
         ThemePreset.POP -> R.string.theme_pop
         ThemePreset.GENTLE -> R.string.theme_gentle
         ThemePreset.COOL -> R.string.theme_cool
         ThemePreset.SIMPLE -> R.string.theme_simple
+        ThemeChoice.Wallpaper -> R.string.theme_wallpaper
+        is ThemeChoice.Seed -> SeedSwatch.of(this)?.labelRes ?: R.string.theme_seed
     }
 
 private fun DarkMode.label(): Int =
@@ -277,7 +302,7 @@ object AppearanceTestTags {
     const val BACKGROUND_REMOVE = "appearance_background_remove"
     const val SCRIM = "appearance_scrim"
 
-    fun theme(preset: ThemePreset) = "appearance_theme_${preset.storageKey}"
+    fun theme(choice: ThemeChoice) = "appearance_theme_${choice.storageKey}"
 
     fun darkMode(mode: DarkMode) = "appearance_dark_${mode.storageKey}"
 

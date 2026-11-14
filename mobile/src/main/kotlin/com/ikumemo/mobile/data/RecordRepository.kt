@@ -2,6 +2,7 @@ package com.ikumemo.mobile.data
 
 import androidx.room.withTransaction
 import com.ikumemo.core.text.ProductNameNormalizer
+import com.ikumemo.core.voice.QuantityText
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
 import com.ikumemo.mobile.data.db.ReminderEntity
@@ -89,7 +90,7 @@ class RecordRepository(
                     tripId = tripId,
                     purchasedDate = edit.purchasedDate,
                     storeId = edit.storeId,
-                    quantity = edit.quantity?.trim()?.ifEmpty { null },
+                    quantity = QuantityText.normalize(edit.quantity),
                     note = edit.note?.trim()?.ifEmpty { null },
                     photoUri = edit.photoUri,
                 ),
@@ -114,7 +115,7 @@ class RecordRepository(
                         tripId = findOrCreateTrip(record.purchasedDate, record.storeId),
                         productId = product.id,
                         displayName = displayName,
-                        quantity = record.quantity?.trim()?.ifEmpty { null },
+                        quantity = QuantityText.normalize(record.quantity),
                         note = record.note?.trim()?.ifEmpty { null },
                         photoUri = record.photoUri,
                         purchasedDate = record.purchasedDate,

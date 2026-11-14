@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalAccessibilityManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -86,6 +87,9 @@ internal fun LazyListScope.recentRows(
     }
 }
 
+/** 文字がこの倍率以上のとき、最近買った物の行はボタンを品名の下の行へ回す（BL-169）。標準〜1.3 倍の並びは変えない。 */
+internal const val RECENT_STACK_FONT_SCALE = 1.5f
+
 /** 最近買った物の 1 行。「期限を決める」（G-08 で照らす場所）と「期限なし」（一覧から外す、BL-142）。 */
 @Composable
 private fun RecentRow(
@@ -94,12 +98,9 @@ private fun RecentRow(
     onSetDue: () -> Unit,
     onNoDue: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = 16.dp, end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Column(Modifier.weight(1f)) {
+    val stacked = LocalDensity.current.fontScale >= RECENT_STACK_FONT_SCALE
+    val info: @Composable (Modifier) -> Unit = { modifier ->
+        Column(modifier) {
             Text(record.displayName, style = MaterialTheme.typography.bodyLarge)
             Text(
                 stringResource(
@@ -111,6 +112,8 @@ private fun RecentRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+    val buttons: @Composable () -> Unit = {
         TextButton(
             onClick = onNoDue,
             modifier = Modifier.heightIn(min = 48.dp).testTag(ReminderTestTags.noDue(record.id)),
@@ -124,6 +127,25 @@ private fun RecentRow(
             ) {
                 Text(stringResource(R.string.reminder_set_due))
             }
+        }
+    }
+    if (stacked) {
+        Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 4.dp)) {
+            info(Modifier.fillMaxWidth())
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+            ) { buttons() }
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = 16.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            info(Modifier.weight(1f))
+            buttons()
         }
     }
 }

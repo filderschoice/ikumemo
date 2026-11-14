@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ikumemo.core.reminder.ReminderSettings
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.designsystem.photoInk
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -54,13 +55,13 @@ fun ReminderSettingsRows(
             Text(
                 stringResource(R.string.reminder_settings_time_detail),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
             )
         }
         Text(
             formatReminderTime(settings.time),
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = photoInk(MaterialTheme.colorScheme.primary),
         )
     }
     HorizontalDivider()

@@ -17,7 +17,7 @@ data class NameAndQuantity(
  */
 object QuantityParser {
     // 長い表記から照合する（「パック」と「パ」などの取り違えを防ぐ）
-    private val counters =
+    internal val counters =
         listOf(
             "リットル", "ミリリットル", "キログラム", "グラム", "キロ", "パック", "ロール", "ふくろ", "セット",
             "kg", "ml", "本", "個", "袋", "箱", "枚", "缶", "束", "玉", "尾", "房", "株", "丁", "斤", "足", "切れ",

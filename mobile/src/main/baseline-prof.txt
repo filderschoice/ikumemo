@@ -1,7 +1,0 @@
-# Baseline Profile（PLAN §8 起動 1.5 秒以内、BL-089）。インストール時に事前コンパイルするメソッドとクラスの規則。
-# 実機の計測（Macrobenchmark）で作るまでの間は、アプリのコード全体を対象にする広い規則にしておく（実機での作成は BL-100）。
-# Compose などのライブラリは、それぞれが持つ規則が AGP によって合わせて入る。
-HSPLcom/ikumemo/mobile/**->**(**)**
-HSPLcom/ikumemo/core/**->**(**)**
-Lcom/ikumemo/mobile/**;
-Lcom/ikumemo/core/**;

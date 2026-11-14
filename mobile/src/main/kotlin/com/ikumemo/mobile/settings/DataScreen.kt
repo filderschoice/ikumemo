@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikumemo.mobile.AppViewModelFactory
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.backup.ExportKind
+import com.ikumemo.mobile.designsystem.photoInk
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -165,13 +166,13 @@ private fun OtherExportToggle(
         Text(
             stringResource(R.string.data_export_other),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary,
+            color = photoInk(MaterialTheme.colorScheme.primary),
             modifier = Modifier.weight(1f),
         )
         Icon(
             if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = photoInk(MaterialTheme.colorScheme.primary),
         )
     }
     HorizontalDivider()
@@ -194,7 +195,7 @@ private fun SectionHeading(
     Text(
         stringResource(text),
         style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
+        color = photoInk(MaterialTheme.colorScheme.primary),
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp).testTag(tag),
     )
 }
@@ -277,7 +278,7 @@ private fun DataRow(
         Text(
             stringResource(spec.detail),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
         )
         if (state.running == spec.task) Progress(spec.progress)
     }

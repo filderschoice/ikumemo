@@ -5,6 +5,385 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 00:37
+  summary: 数量が「〇」だけのとき 0 にせず元の文字のまま残す
+  details:
+    関連ID:
+      - BL-185
+    変更内容: >-
+      手入力の数量の正規化（QuantityText.normalize）で、先頭の漢数字が「〇」だけ（〇〇も含む）で助数詞が続かないとき 0 になっていた経路を直し、元の文字のまま残すようにした。
+      「〇個」など助数詞付き（0個）、「〇分」など助数詞でない語（そのまま）、ほかの漢数字・算用数字の扱いは変えていない。
+      音声入力は助数詞が続かない語を数量に分けないため、この経路だけが原因だった。使い方の説明に該当する記述は無い
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityText.kt
+      - core/src/test/kotlin/com/ikumemo/core/voice/QuantityTextTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*QuantityTextTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug は未実施）
+- date: 2026-11-15 00:27
+  summary: おまかせ（壁紙の色）の配色の分岐を Android の版ごとに単体テストで確かめられるようにする
+  details:
+    関連ID:
+      - BL-182
+    変更内容: >-
+      ThemeChoice.palette(context, darkTheme) に既定引数 sdkInt（既定は Build.VERSION.SDK_INT）と wallpaperColors（既定は端末の壁紙の配色）を足し、版の判定と壁紙の配色の取得を差し替えられるようにした。
+      本番の呼び出し側は引数を渡さないため挙動は変わらない。ThemeChoiceTest に、Android 11 以前（30）は壁紙の配色を呼ばず既定のポップの配色になること、
+      Android 12 以降（31）は壁紙の配色（明るい・暗いの両方）になることを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeChoiceTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeChoiceTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug は未実施。見た目の変更は無い）
+- date: 2026-11-15 00:25
+  summary: 見本の色の保存値 seed の 16 進の検証を半角の 0-9・a-f・A-F だけにする
+  details:
+    関連ID:
+      - BL-181
+    変更内容: >-
+      ThemeChoice.fromStorageKey の seed:#RRGGBB の検証が isDigit を使い全角数字なども通していたため、半角の 0-9・a-f・A-F だけを通すようにした。
+      それ以外を含む値は従来の不正値と同じく既定のポップに戻り、半角の大文字・小文字の値は従来どおり読める。仕様はオーナーの回答（半角に絞る）による
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeChoiceTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeChoiceTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（ThemeChoiceTest に全角数字・全角英字・範囲外の英字・半角の大文字小文字のテストを追加。フル検証・Android Lint・assembleDebug は未実施。見た目の変更は無い）
+- date: 2026-11-15 00:19
+  summary: データの書き出しのテーマを、画面用に置き換える前の保存値で書くようにする
+  details:
+    関連ID:
+      - BL-180
+    変更内容: >-
+      AppearancePrefs に、端末で選べるかどうかで置き換えない保存したままのテーマ savedTheme（Flow）を足し、BackupSettingsStore.read の theme をそこから書くようにした。
+      Android 11 以前でおまかせ（wallpaper）を保存したまま書き出しても theme は wallpaper のまま出て、Android 12 以降で読み込めばおまかせに戻る。
+      プリセットと seed の値は従来どおり、未知の値は従来どおり既定のポップの値で書き出す（保存値は ThemeChoice.fromStorageKey を通すため、バックアップの値の種類は増えない。既定値で決めた）。
+      読み込み側（apply）と画面に出す配色（appearance は 11 以前で既定）は変えていない。DESIGN.md の F-64 の行に書き出しの扱いを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStore.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStoreTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*BackupSettingsStoreTest" --tests "*BackupRoundTripTest" --tests "*AppearanceViewModelTest"、
+      記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（BackupSettingsStoreTest 4 件を含む。フル検証・Android Lint・assembleDebug は未実施。見た目の変更は無いためスクリーンショットは流していない）
+- date: 2026-11-14 23:30
+  summary: 着せ替えに「見本の色から選ぶ」を足し、選んだ色から明るい・暗いの配色を作る
+  details:
+    関連ID:
+      - BL-177
+    変更内容: >-
+      ThemeChoice に種の色を持つ data class ThemeChoice.Seed を足し、保存値は従来の appearance_theme と書き出しの設定の theme に "seed:#RRGGBB" を入れる形にした
+      （プリセットと wallpaper の値は不変。形の壊れた seed の値と未知の値は既定のポップへ戻し、見本に無い色でも形が正しければ読む。古い版は seed の値を読むと既定のポップになる）。
+      配色は新しい SeedPalette が種の色の色相から 5 つの系統（主・副・第三は色相を 60 度回す・中間色・中間色の変種）を作り、Material 3 と同じ役割ごとの明るさ
+      （明るい画面は 40/100/90/10、背景 98、暗い画面は 80/20/30/90、背景 6 など）で IkumemoPalette の全項目を埋める。明るさは CIELAB の L* で取り、sRGB に収まらない色は
+      明るさを保ったまま彩度だけを二分探索で下げるため、どの種の色でも文字と面の色の比 4.5:1 以上になる。依存は足していない
+      （計算は 200 行ほどの純粋な Kotlin で足り、依存を足すと版の組み合わせ・ライセンス・配布物の大きさの確認が増えるため。Material の配色計算ライブラリの配布の形と版の相性は未確認。
+      HCT ではなく CIELAB の近似のため、Material の配色とは色味が少し違う）。見本は SeedSwatch（10 色、読み上げ用に身近なものの名前）にまとめ、着せ替えのテーマのカードの下に
+      丸い見本（押せる大きさ 52dp、選んだ色は枠とチェックの印）を並べる SeedColorPicker を足した。おまかせと違い全 OS で選べ、角の丸みはおまかせと同じ標準にした（既定値で決めた）。
+      アプリ本体・ウィジェット（WidgetColors.from）・写真の上のペンの色は ThemeChoice.palette を通して同じ配色に従う。使い方（help/theme.md）に 1 行足し、docs/USER_GUIDE.md を作り直した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/SeedPalette.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/SeedSwatch.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SeedColorPicker.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/theme.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/SeedPaletteTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/SeedThemeFollowTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupRoundTripTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SeedPaletteTest" --tests "*SeedThemeFollowTest" --tests "*BackupRoundTripTest" --tests "*AppearanceContentTest"
+      --tests "*ThemeChoiceTest" --tests "*WallpaperPaletteTest" --tests "*ThemeContrastTest"、記録の更新後に --quick --tests "*HelpContentTest"
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・スクリーンショットは未実施。着せ替え画面の見た目が変わるため、正解画像の記録し直しは区切りの作業で判断する）
+- date: 2026-11-14 23:20
+  summary: 着せ替えのテーマに「おまかせ（壁紙の色）」を足す
+  details:
+    関連ID:
+      - BL-176
+    変更内容: >-
+      テーマの選択肢を sealed interface ThemeChoice で表し、ThemePreset（enum）をその実装にし、おまかせを data object ThemeChoice.Wallpaper として足した。
+      保存は従来の appearance_theme に値 wallpaper を足すだけで、プリセットの値と書き出しの設定の theme の形は変えていない（古いバックアップはそのまま読め、
+      古い版が wallpaper を読むと既定のポップになる）。配色は ThemeChoice.palette(context, dark) で取り、おまかせは Android 12 以降の
+      dynamicLight/DarkColorScheme を IkumemoPalette へ写す（toPalette）。アプリ本体は AppThemeHost から IkumemoTheme(choice) を、ウィジェットは
+      WidgetColors.from(context, appearance) を通して同じ配色を使い、写真の上のペンの色もこのテーマの上で決まる。Android 11 以前では着せ替えに
+      おまかせのカードを出さず、保存値が wallpaper でも AppearancePrefs が書き換えずに既定のテーマとして読む。角の丸みはシンプルと同じにした（既定値で決めた）。
+      BL-177 は ThemeChoice に実装（種の色の値を持つ型）を足し、fromStorageKey と palette の分岐を増やせば同じ保存の形に乗る。
+      使い方（help/theme.md）に 1 行足し、docs/USER_GUIDE.md を作り直した。
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemePreset.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/IkumemoTheme.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/theme.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeChoiceTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/WallpaperPaletteTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupRoundTripTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeChoiceTest" --tests "*WallpaperPaletteTest" --tests "*AppearanceViewModelTest"
+      --tests "*AppearanceContentTest" --tests "*BackupRoundTripTest" --tests "*ThemeContrastTest" --tests "*MemoListWidgetTest"、
+      行の長さを直した後に --quick --tests "*WallpaperPaletteTest" --tests "*AppearanceViewModelTest"
+    検証結果: >-
+      成功 - 1 回目はテストが通り ktlint・detekt がテストの行の長さで失敗、直した 2 回目は軽い検証がすべて成功（フル検証・スクリーンショットは未実施）
+- date: 2026-11-14 23:00
+  summary: BL-175 のプリセット 4 色の見直しに伴い、スクリーンショットの正解画像を記録し直す
+  details:
+    関連ID:
+      - BL-175
+    変更内容: >-
+      MainScreensScreenshotTest の memo・calendar・reminder を 1 画面ずつ記録し直した（各画面 24 枚のうち、ポップ・やさしい・クールの 3 テーマ
+      × 明暗 × 文字の大きさ 3 段階 = 18 枚、計 54 枚が変わった。シンプルは変化なし）。ポップの extra_large（文字が最大）の memo を縮小せず読み、
+      背景が FFF4EC のコーラルオレンジ系になり、文字・ボタンの崩れが無いことを確かめた。
+    変更ファイル:
+      - mobile/screenshots/memo/
+      - mobile/screenshots/calendar/
+      - mobile/screenshots/reminder/
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.memo*"（calendar・reminder も同様）、
+      続けて -Proborazzi.test.verify=true で 3 画面を 1 画面ずつ
+    検証結果: >-
+      成功 - 記録し直しの 3 回と verify の 3 回すべて終了コード 0（フル検証は未実施）
+- date: 2026-11-14 22:54
+  summary: プリセットテーマ 4 種の背景・面・アクセントを色の系統で分ける
+  details:
+    関連ID:
+      - BL-175
+    変更内容: >-
+      4 種とも背景と面がほぼ白でアクセントだけが違い、ポップとやさしいはピンク系、クールとシンプルは暗い無彩色寄りで近く見えていた。
+      ポップはコーラルオレンジ（背景 FFF4EC、アクセント B5381C、副色アンバー）、やさしいはセージグリーン（背景 EEF5EB、アクセント 4A6B4F、
+      副色にくすみピンク）、クールは青みの背景（EDF2FD）で紺のまま、シンプルは白黒のまま（青の副色）とし、明るい・暗いの両方の色を直した。
+      ポップの角の丸みをやさしいと別にした（16・28・36 dp）。背景と面は従来どおり同じ色にし、面の中の文字は BL-170 の onSurface のまま変えない。
+      storageKey・表示名・ThemePreset の構造は変えていない。ウィジェットは WidgetColors がパレットを読むため変更なしで新しい配色に従う。
+      テーマごとのパレットを 1 か所（ThemePreset）に並べる形のままなので、BL-176・BL-177 は同じ IkumemoPalette を返す生成を足せばよい。
+      ThemeDistinctTest で、色付き 3 種の背景とアクセントの色相差が 40 度以上、シンプルの背景が無彩色、角の丸みが全テーマで別であることを確かめ、
+      既存の ThemeContrastTest（全ペア 4.5:1 以上）・InkColorTest・PhotoInkTest も通った。
+      見た目が変わるため、スクリーンショットテストは流していない。記録し直しが必要なのは MainScreensScreenshotTest の memo・calendar・reminder
+      （全画面。テーマの背景と面の色が変わるため）。
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemePreset.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeDistinctTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeDistinctTest" --tests "*ThemeContrastTest" --tests "*InkColorTest" --tests "*PhotoInkTest" --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）。スクリーンショットテストは未実施（記録し直しが必要）
+- date: 2026-11-14 22:46
+  summary: 背景の写真の上に直接置く文字（副題・見出し・チップ・ボタン）をペンの色にする
+  details:
+    関連ID:
+      - BL-174
+    変更内容: >-
+      設定と着せ替えで、面に載らず写真（膜）の上に出る文字がテーマの固定色（onSurfaceVariant・primary）のままで読めなかった。
+      ペンの色を LocalPhotoInk として AppThemeHost から渡し（写真があり、おまかせでないときだけ。それ以外は null）、
+      photoInk（無ければテーマ色のまま）を設定の各画面の副題・区分の見出し・件数と時刻・空の案内・FAQ の答えに使った。
+      着せ替えの未選択のチップ（文字の大きさ・暗い画面・ペンの色）と「写真を選ぶ」「外す」のボタンも photoFilterChipColors・photoOutlinedButtonColors・
+      photoTextButtonColors で文字色をペンの色にした（選択中のチップは従来どおり面の色）。ペンの色のチップは各ペンの色で塗った文字をやめ、ペンの色に揃えた
+      （明るいテーマ＋暗い写真でくろの文字が背景に溶けるため）。写真が無い・おまかせのときの見た目は変えない。
+      テスト PhotoInkTest で、ペンの色が無ければテーマ色のまま、ペンの色があれば全テーマ・明暗でそれに替わり膜との比が 4.5:1 以上であることを確かめた。
+      見た目が変わるため、スクリーンショットテストは流していない（写真が無い画面は変わらない想定）。
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/PhotoInk.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AboutScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/FeedbackScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ProductManageScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/StoreManageScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsScreen.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoInkTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoInkTest" --tests "*InkColorTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）。スクリーンショットテストは未実施
+- date: 2026-11-14 22:26
+  summary: 下タブの切り替えで 2 段積んだ画面からの復帰と外部起動の経路をテストで固定する
+  details:
+    関連ID:
+      - BL-173
+    変更内容: >-
+      BL-173（点検の要修正への対応で、オーナーの指示により起票せずに完了）。BL-168 の navigateToTab の popBackStack ループに次のテストが無かった。
+      (a) 設定の下の画面（設定、着せ替え）まで 2 段積んだ状態から下タブを押すと、そのタブの一覧まで戻ること。
+      (b) 設定の下の画面を開いた状態から、ウィジェット・ショートカット相当の外部起動（おしらせを開く要求）が来ても、pop の途中の画面を経由して
+      outsideRoute が外れず、おしらせのガイドが出ないこと。(b) は実際に起きるかを確かめたが起きなかった
+      （pop と navigate は同じフレーム内で終わり、再構成の前に最終の画面だけが観測されるため）。修正は入れずテストで固定した。
+      製品コードと下タブの見た目は変えていない。
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/BottomTabSettingsTest.kt
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*BottomTabSettingsTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）
+- date: 2026-11-14 22:30
+  summary: 数量の欄の漢数字の変換を、助数詞が続くときだけにする
+  details:
+    関連ID:
+      - BL-172
+    変更内容: >-
+      BL-172（オーナーの指示で起票せずに完了）。QuantityText.normalize が先頭の漢数字を無条件に算用数字へ変えており、
+      「十分」が「10分」になるなどの誤変換があった。先頭の漢数字の後ろが空か、QuantityParser の助数詞の一覧（counters を internal にして共有）と
+      完全に一致するときだけ変換する（二本 → 2本、三 → 3、十個 → 10個、百二十g → 120g。十分・一部・一杯・二本ずつ は変えない）。
+      全角数字の半角化は従来どおり全体に効く。保存済みのデータ、音声の QuantityParser の挙動、欄のキーボードは変えない。
+      未変更で報告する点は、「〇」だけの入力が 0 になること。
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityText.kt
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityParser.kt
+      - core/src/test/kotlin/com/ikumemo/core/voice/QuantityTextTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*QuantityTextTest" --tests "*RecordRepositoryTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）
+- date: 2026-11-14 22:00
+  summary: Baseline Profile を実機の Macrobenchmark で作り直し、コールドスタートを計測する
+  details:
+    変更内容: >-
+      BL-100。:baselineprofile モジュールで USB 接続の Pixel 8 Pro（Android 17）から規則を生成し（mobile/src/release/generated/baselineProfiles/）、
+      旧 mobile/src/main/baseline-prof.txt（7 行の広い規則）を削除して置き換えた。前回の startActivityAndWait の失敗（Unable to confirm activity launch completion）は、
+      アプリのクラッシュではなく（logcat で Displayed +151ms を確認）、benchmark-macro 1.3.4 が Android 17 に未対応なためで、androidx.baselineprofile・benchmark-macro を 1.4.1 に上げて解消した。
+      規則あり計測は対象アプリの profileinstaller が 1.4.0 未満だと API 34 以降で失敗するため、profileinstaller を 1.3.1 から 1.4.1 に上げた。
+      計測（Pixel 8 Pro、コールドスタート 10 回、timeToInitialDisplayMs）は規則なし 中央値 186.3ms（最小 163.3・最大 240.8）、規則あり 中央値 182.3ms（最小 162.3・最大 202.9）。
+      上位機のため差は小さい。中級機での 1.5 秒以内の確認は BL-171（人手検証）。計測用に入れた com.ikumemo.mobile と baselineprofile は端末から消えている。
+    変更ファイル:
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/baseline-prof.txt
+      - mobile/src/release/generated/baselineProfiles/baseline-prof.txt
+      - mobile/src/release/generated/baselineProfiles/startup-prof.txt
+      - docs/BASELINE_PROFILE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ANDROID_SERIAL=39181FDJG008MY ./gradlew :mobile:generateBaselineProfile、同 :baselineprofile:connectedBenchmarkReleaseAndroidTest、
+      python scripts/quality-gates.py（フル検証）
+    検証結果: >-
+      成功 - 生成・計測とも成功。フル検証は ktlint・detekt・Android Lint・単体テスト・assembleDebug・記録ファイル・使い方・秘密情報が成功。Markdown 静的解析は行長の指摘を直して再実行し成功
+- date: 2026-11-14 15:57
+  summary: 背景の写真とペンの色しろで、明るいテーマの面の中の文字が白になって読めない不具合を直す
+  details:
+    変更内容: >-
+      BL-170。原因は、テーマの surface と background が同じ色のため、AppThemeHost が onBackground をペンの色へ差し替えると、
+      Surface の既定の文字色（contentColorFor）が background に先に当たり、面の中の文字までペンの色になること。
+      AppThemeHost の onBackground の差し替えをやめ、ペンの色は LocalContentColor（写真の上に直接置く文字）だけに効かせる。
+      面の中は文字色を明示して onSurface に戻す（ReadablePanel の Surface、メモの行 SwipeableItemRow）。
+      写真の上に直接置くお店のチップ（StoreChip）は、背景の写真があるときだけペンの色に合わせる（暗い膜の上で濃い文字になっていたため）。
+      背景の写真が無いときの見た目は変わらない（onBackground と onSurface は全テーマで同値）ため、スクリーンショットの正解画像は記録し直し不要
+      （背景の写真を使う条件のスクリーンショットテストも無い）。InkColorTest に、全テーマ・明暗・ペンの色で面の文字と写真の上の文字が 4.5:1 以上になるテストを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ReadablePanel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/StorePicker.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/InkColorTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*InkColorTest"
+    検証結果: >-
+      成功（軽い検証）- ktlint・detekt・コンパイル・InkColorTest が成功。Android Lint・全テスト・assembleDebug のフル検証は未実施。
+      実機での確認は BL-109 で行う
+- date: 2026-11-14 15:20
+  summary: 文字が大きいときの期限の画面の最近買った物の行で、ボタンを品名の下の行へ回す
+  details:
+    変更内容: >-
+      BL-169。RecentSection.kt の RecentRow で、文字の倍率（LocalDensity の fontScale、端末の設定とアプリ内の着せ替えを掛けた後の値）が 1.5 以上のとき、
+      品名と買った日を 1 行目、「期限なし」「期限を決める」を右寄せの 2 行目に並べる。font_scale 2.0 の「とても大きい」で品名に幅が残る。
+      1.5 未満（標準・大・とても大きいに端末標準の組み合わせ）の並びは変えないため、スクリーンショットの正解画像は記録し直していない。
+      テストは ReminderContentTest に、標準ではボタンが品名の右、2.0 倍では品名の下に並ぶことを足した（Robolectric は文字幅を正しく測れないため、1 行に収まるかは実機で確かめる）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/RecentSection.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ReminderContentTest"
+    検証結果: >-
+      成功（軽い検証）- ktlint・detekt・コンパイル・指定したテストが成功。Android Lint・全テスト・assembleDebug のフル検証は未実施。
+      スクリーンショットテストと実機の確認は未実施（BL-151 で期限の画面を確かめ直す）
+- date: 2026-11-14 15:05
+  summary: 下タブを押したときに、タブの上に積んだ設定が復元されて残る不具合を直す
+  details:
+    変更内容: >-
+      BL-168。IkumemoApp.kt の navigateToTab で、移動の前に、いまタブの画面でなければ（設定やその下の画面なら）タブの画面まで戻る履歴を閉じるようにした。
+      これで popUpTo の saveState が設定ごと保存せず、同じタブを押すと一覧へ戻り、別のタブ経由でも設定が復元されない。
+      タブごとの saveState・restoreState（スクロール位置などの保存）は残している。設定を開いている間に下タブが選ばれていない見え方は変えていない。
+      テストは BottomTabSettingsTest を足し、同じタブを押す場合と別のタブ経由の場合の 2 通りを確かめる
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/BottomTabSettingsTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*BottomTabSettingsTest" --tests "*OpenedFromOutsideGuideTest" --tests "*OnboardingTest"
+    検証結果: >-
+      成功（軽い検証）- ktlint・detekt・コンパイル・指定したテストが成功。Android Lint・全テスト・assembleDebug のフル検証は未実施。
+      実機での確認は BL-148 で行う
+- date: 2026-11-14 14:57
+  summary: 手で入れた数量の全角数字と先頭の漢数字を、保存時に半角の算用数字へそろえる
+  details:
+    変更内容: >-
+      オーナー指示（2026-11-14、数量の欄は単位を残し、数字を半角にする）により、core/voice/QuantityText.kt に normalize を足した。
+      前後の空白を除き、全角の数字を半角にし、先頭の漢数字（KanjiNumber、〜999）を算用数字にする。単位やそれ以外の文字は残し、空なら null。
+      ShoppingRepository の addItem・updateItem と RecordRepository の addRecord・updateRecord で、これまでの trim と空なら null の処理を置き換えた。
+      欄は自由入力のまま（キーボードの種類は変えない）。バックアップの読み込みは変えていない。
+      テストは QuantityTextTest を足し、RecordRepositoryTest の数量の入力を全角数字・漢数字に変えて「2本」で保存されることを確かめる。
+      あわせて、オーケストレーションによる実機の人手検証（BL-008・BL-118・BL-148・BL-151・BL-153）の結果を BACKLOG へ追記し、
+      見つかった不具合 2 件を BL-168・BL-169 として起票した
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityText.kt
+      - core/src/test/kotlin/com/ikumemo/core/voice/QuantityTextTest.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordRepositoryTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*QuantityTextTest" --tests "*RecordRepositoryTest"
+      --tests "*ShoppingListViewModelTest" --tests "*VoiceInputViewModelTest"、./gradlew :mobile:installDebug（Pixel 8 Pro）
+    検証結果: >-
+      成功（軽い検証）- 1 回目は detekt の ReturnCount で失敗し、関数を分けて 2 回目で ktlint・detekt・コンパイル・指定したテストが成功した。
+      Android Lint・全テスト・assembleDebug のフル検証は未実施。実機へのインストールは成功したが、数量の欄の実機での入力は未確認
 - date: 2026-11-14 13:32
   summary: 配布元 copilot-rules 0.30.0 の秘密情報スキャンと記録ファイル検証フックを取り込む
   details:

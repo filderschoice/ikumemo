@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.designsystem.photoInk
 
 /** せっていの各画面の枠（見出しと戻るボタン）。 */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,7 +139,7 @@ private fun SettingsSectionHeading(
     Text(
         stringResource(title),
         style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
+        color = photoInk(MaterialTheme.colorScheme.primary),
         modifier =
             Modifier
                 .fillMaxWidth()
@@ -168,7 +169,7 @@ private fun SettingsListRow(
             Text(
                 stringResource(it),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
             )
         }
     }
@@ -197,7 +198,7 @@ fun SettingsSwitchRow(
             Text(
                 stringResource(detail),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
             )
         }
         // 行全体で切り替えるため、スイッチ自体は押せないようにする（読み上げが二重にならないように）
