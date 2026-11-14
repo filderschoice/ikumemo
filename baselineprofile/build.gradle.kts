@@ -9,6 +9,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        // アプリ（:mobile）の minSdk とは別の値。根拠は docs/BASELINE_PROFILE.md（BL-184）
         minSdk = 28
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

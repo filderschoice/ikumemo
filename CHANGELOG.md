@@ -416,3 +416,5 @@ Google Play 公開とクローズドテストに使う文書を作りました�
 - `:baselineprofile` の `minSdk = 28` は Baseline Profile の生成・計測の端末要件に合わせた値で、アプリの `minSdk = 26` とは別のため、変えずに残すことにした。
   根拠を `docs/BASELINE_PROFILE.md` に記録した。設定・コードは変えていない
 - 上記 BL-184 の記述のうち、接続した端末での生成要件（ルート化済み、または API 33 以上）を公式ドキュメントで照合し、照合元と未照合の点（下限 API 28）を `docs/BASELINE_PROFILE.md` に明記した
+- 点検（change-reviewer）の要修正により、`docs/BASELINE_PROFILE.md` の minSdk 28 の根拠を、照合済みの要件（ルート化済み、または API 33 以上）だけを断定する書き方に直し、
+  `baselineprofile/build.gradle.kts` の `minSdk` の直上に根拠の文書を指すコメントを足した（値は変えていない）
