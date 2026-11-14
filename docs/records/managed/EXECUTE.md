@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 15:57
+  summary: 背景の写真とペンの色しろで、明るいテーマの面の中の文字が白になって読めない不具合を直す
+  details:
+    変更内容: >-
+      BL-170。原因は、テーマの surface と background が同じ色のため、AppThemeHost が onBackground をペンの色へ差し替えると、
+      Surface の既定の文字色（contentColorFor）が background に先に当たり、面の中の文字までペンの色になること。
+      AppThemeHost の onBackground の差し替えをやめ、ペンの色は LocalContentColor（写真の上に直接置く文字）だけに効かせる。
+      面の中は文字色を明示して onSurface に戻す（ReadablePanel の Surface、メモの行 SwipeableItemRow）。
+      写真の上に直接置くお店のチップ（StoreChip）は、背景の写真があるときだけペンの色に合わせる（暗い膜の上で濃い文字になっていたため）。
+      背景の写真が無いときの見た目は変わらない（onBackground と onSurface は全テーマで同値）ため、スクリーンショットの正解画像は記録し直し不要
+      （背景の写真を使う条件のスクリーンショットテストも無い）。InkColorTest に、全テーマ・明暗・ペンの色で面の文字と写真の上の文字が 4.5:1 以上になるテストを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ReadablePanel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/StorePicker.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/InkColorTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*InkColorTest"
+    検証結果: >-
+      成功（軽い検証）- ktlint・detekt・コンパイル・InkColorTest が成功。Android Lint・全テスト・assembleDebug のフル検証は未実施。
+      実機での確認は BL-109 で行う
 - date: 2026-11-14 15:20
   summary: 文字が大きいときの期限の画面の最近買った物の行で、ボタンを品名の下の行へ回す
   details:

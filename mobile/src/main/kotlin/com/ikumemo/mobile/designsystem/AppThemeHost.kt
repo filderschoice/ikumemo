@@ -3,7 +3,6 @@ package com.ikumemo.mobile.designsystem
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -46,15 +45,15 @@ fun AppThemeHost(
                     darkTheme = darkTheme,
                     scrimColor = value.ink.scrimColor,
                 )
-                // ペンの色を選んでいれば、写真の上に直接置く文字（onBackground）をその色にする
-                val scheme = MaterialTheme.colorScheme
-                MaterialTheme(colorScheme = ink?.let { scheme.copy(onBackground = it) } ?: scheme) {
-                    CompositionLocalProvider(
-                        LocalHasBackgroundImage provides true,
-                        LocalContentColor provides (ink ?: LocalContentColor.current),
-                        content = content,
-                    )
-                }
+                // ペンの色は、写真の上に直接置く文字（LocalContentColor）だけに効かせる（BL-170）。
+                // テーマの surface と background は同じ色のため、onBackground を差し替えると
+                // Surface の既定の文字色（contentColorFor）が先に background に当たり、面の中の文字までペンの色になる。
+                // 面の中の文字は ReadablePanel などが onSurface を明示して戻す
+                CompositionLocalProvider(
+                    LocalHasBackgroundImage provides true,
+                    LocalContentColor provides (ink ?: LocalContentColor.current),
+                    content = content,
+                )
             }
         }
     }

@@ -72,6 +72,8 @@ fun ReadablePanel(
                 ).testTag(ReadablePanelTestTags.PANEL),
         shape = edge.shape(),
         color = MaterialTheme.colorScheme.surface,
+        // surface と background が同じ色のテーマでも、面の中の文字はペンの色にせず onSurface にする（BL-170）
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Column(content = content)
     }
