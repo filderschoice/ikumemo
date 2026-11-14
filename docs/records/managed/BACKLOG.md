@@ -19,18 +19,6 @@
   根拠: >-
     点検（change-reviewer、2026-11-14）の提案「〇だけの数量が 0 になる」を、2026-11-14 のオーナーの回答（直す）でタスク化した。
     残し方は BL-172 の判断（助数詞が続くときだけ）から既定値として決めた
-- id: BL-184
-  区分: 品質ゲート
-  タスク内容: >-
-    :baselineprofile モジュールの minSdk がアプリ（:mobile）の minSdk と Baseline Profile の生成・計測の要件に合っているかを確かめ、合っていなければ直す。
-    合っている場合は、根拠（どの値に合わせたか）を build.gradle.kts のコメントか EXECUTE に残す
-  優先度: P3
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    :baselineprofile の minSdk の値と根拠が記録されており、変えた場合は assembleDebug と軽い検証が通る
-  依存: []
-  根拠: 点検（change-reviewer、2026-11-14）の提案「:baselineprofile の minSdk の確認」を、2026-11-14 のオーナーの回答（確認する）でタスク化した
 - id: BL-179
   区分: 人手検証
   タスク内容: >-

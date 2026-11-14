@@ -410,3 +410,8 @@ Google Play 公開とクローズドテストに使う文書を作りました�
 - `baseline-prof.txt`（ART の AOT コンパイル用）と `startup-prof.txt`（R8 の DEX レイアウト最適化用）は役割が違い、両方が要るため残すことにした。
   理由と差分を減らす手段（起動だけの操作を `includeInStartupProfile` に分ける。実機での再生成が要る）を `docs/BASELINE_PROFILE.md` に記録した。
   根拠は developer.android.com の「DEX layout optimizations」と「Configure Baseline Profiles」。設定・規則は変えていない
+
+## 2026-11-15（BL-184 :baselineprofile の minSdk の確認）
+
+- `:baselineprofile` の `minSdk = 28` は Baseline Profile の生成・計測の端末要件に合わせた値で、アプリの `minSdk = 26` とは別のため、変えずに残すことにした。
+  根拠を `docs/BASELINE_PROFILE.md` に記録した。設定・コードは変えていない

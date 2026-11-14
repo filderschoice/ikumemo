@@ -41,3 +41,13 @@ PLAN §8 の目標は中級機で 1.5 秒以内（中級機の確認は BL-171�
   1 つ目の `classes.dex` に収まりやすくなる利点もある）。ただし規則の中身が変わり、実機での再生成と起動の再計測が要るため、実機を使える時に別タスクで行う
 - 参照: <https://developer.android.com/topic/performance/baselineprofiles/dex-layout-optimizations>、
   <https://developer.android.com/topic/performance/baselineprofiles/configure-baselineprofiles>
+
+## :baselineprofile の minSdk が 28 である理由（BL-184、2026-11-15）
+
+- `:baselineprofile`（計測・生成側の `com.android.test` モジュール）の `minSdk = 28` は、アプリ（`:mobile`）の `minSdk = 26` より高いが、**意図どおりで変えない**。
+  アプリ本体の対応範囲（Android 8.0 以降）には影響せず、Baseline Profile を生成・計測する端末の下限だけを決める
+- 根拠は、Baseline Profile の生成に使う端末が API 28 以上（Android 9 以降。ルート化していない実機は Android 13 以降が目安）を要件とすること。
+  Macrobenchmark 自体は API 23 以上で動くが、プロファイルの生成はそれより高い下限になるため、AGP の Baseline Profile 既定の 28 に合わせている
+- 計測側のモジュールは `targetProjectPath` で `:mobile` を指すだけで、`:mobile` の APK にはマージされない。minSdk を 26 へ下げても、
+  生成できる端末が増えるわけではなく、Android 8（API 26・27）の端末ではプロファイルを作れない
+- 実機での再生成・再計測は行っていない（文書の根拠のみ。要件の最新は developer.android.com の Baseline Profiles の「Create Baseline Profiles」を参照）
