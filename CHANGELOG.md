@@ -404,3 +404,9 @@ Google Play 公開とクローズドテストに使う文書を作りました�
 - 点検（change-reviewer）の提案について、オーナーの回答（2026-11-14）により BL-180〜BL-185 を起票した。
   書き出しで保存したままのテーマの値を使う（BL-180）、見本の色の 16 進を半角に絞る（BL-181）、おまかせの分岐に Android の版のテストを足す（BL-182）、
   Baseline Profile の 2 ファイルの重複の解消（BL-183）、:baselineprofile の minSdk の確認（BL-184）、「〇」だけの数量が 0 になる不具合（BL-185）
+
+## 2026-11-15（BL-183 Baseline Profile の 2 ファイルの重複の確認）
+
+- `baseline-prof.txt`（ART の AOT コンパイル用）と `startup-prof.txt`（R8 の DEX レイアウト最適化用）は役割が違い、両方が要るため残すことにした。
+  理由と差分を減らす手段（起動だけの操作を `includeInStartupProfile` に分ける。実機での再生成が要る）を `docs/BASELINE_PROFILE.md` に記録した。
+  根拠は developer.android.com の「DEX layout optimizations」と「Configure Baseline Profiles」。設定・規則は変えていない

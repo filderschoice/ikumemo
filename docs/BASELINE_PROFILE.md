@@ -26,3 +26,18 @@ PLAN §8 の目標は中級機で 1.5 秒以内（中級機の確認は BL-171�
   規則あり計測は対象アプリの `profileinstaller` が 1.4.0 以上でないと API 34 以降で失敗するため、これも 1.4.1 にした
 - 計測（Pixel 8 Pro・Android 17、コールドスタート 10 回、`timeToInitialDisplayMs`）: 規則なし 中央値 186.3ms（163.3〜240.8）、規則あり 中央値 182.3ms（162.3〜202.9）。
   上位機のため差は小さい。中級機で 1.5 秒以内かは BL-171（人手検証）
+
+## baseline-prof.txt と startup-prof.txt が同じ内容になる理由（BL-183、2026-11-15）
+
+両ファイルは中身が同じ（各 14,869 行）だが、役割が違うため両方を残す。重複の解消（片方の削除）はしない。
+
+- `baseline-prof.txt`: Baseline Profile。ART がインストール時に規則のクラス・メソッドを AOT コンパイルする（`profileinstaller` と合わせて効く）
+- `startup-prof.txt`: Startup Profile。Baseline Profile の部分集合で、R8 が DEX 内のコードの配置を最適化するのに使う
+  （DEX レイアウト最適化。AGP 8.3 以降は既定で有効、R8 が必要で、このアプリは release が `isMinifyEnabled = true`）。
+  Baseline Profile と併用すると、起動が Baseline Profile だけのときより 15〜30% 速くなるとされる
+- 同じ中身になるのは、`BaselineProfileGenerator` が `rule.collect(..., includeInStartupProfile = true)` で、起動とタブ巡りの 1 本の操作をどちらにも入れているため。
+  片方を消すと、`baseline-prof.txt` なら AOT コンパイルが、`startup-prof.txt` なら DEX の配置の最適化が効かなくなる
+- 差分を減らすなら、`includeInStartupProfile = true` を起動だけの操作に分けて、タブ巡りは Baseline Profile だけに入れる（Startup Profile を小さくすると
+  1 つ目の `classes.dex` に収まりやすくなる利点もある）。ただし規則の中身が変わり、実機での再生成と起動の再計測が要るため、実機を使える時に別タスクで行う
+- 参照: <https://developer.android.com/topic/performance/baselineprofiles/dex-layout-optimizations>、
+  <https://developer.android.com/topic/performance/baselineprofiles/configure-baselineprofiles>
