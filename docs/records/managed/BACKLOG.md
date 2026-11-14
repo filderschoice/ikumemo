@@ -117,9 +117,17 @@
   タスク内容: >-
     実機で Baseline Profile を Macrobenchmark で作り直し（:baselineprofile モジュールの追加）、コールドスタートを計測する（PLAN §8 は中級機で 1.5 秒以内）。
     いまの mobile/src/main/baseline-prof.txt はアプリのコード全体を対象にした広い規則。
-    USB 接続の Pixel 8 Pro（adb シリアル 39181FDJG008MY）を使い、規則の作成と計測の手順をリポジトリに残す
+    USB 接続の Pixel 8 Pro（adb シリアル 39181FDJG008MY）を使い、規則の作成と計測の手順をリポジトリに残す。
+    途中経過（2026-11-14、オーナーの移動で中断）: 実装済みは :baselineprofile モジュール（BaselineProfileGenerator・StartupBenchmark）、
+    libs.versions.toml・settings・root/mobile の build.gradle.kts への追加、docs/BASELINE_PROFILE.md、（旧 mobile/src/main/baseline-prof.txt はまだ残してある。規則ができた時点で削除する）。
+    実機で :mobile:generateBaselineProfile を流したら BaselineProfileGenerator が startActivityAndWait の
+    「Unable to confirm activity launch completion」で失敗した（画面が消灯・ロックだったか、リリース相当ビルドの起動失敗かは未切り分け）。
+    残り: 端末を点灯・ロック解除して再実行し（必要なら adb logcat で起動時のクラッシュを確認）、
+    mobile/src/main/generated/baselineProfiles/ の規則を得る、:baselineprofile:connectedBenchmarkReleaseAndroidTest で規則あり・なしの計測値を取る、
+    EXECUTE・DESIGN へ計測値を記録して BL-171 の依存から BL-100 を外す。
+    再開の手順は docs/BASELINE_PROFILE.md。規則を作る前に旧 baseline-prof.txt を git rm すること（残すと「規則なし」の計測が汚れる）
   優先度: P3
-  状態: 未着手
+  状態: 進行中
   担当: AIエージェント
   完了条件: >-
     実機で作った規則に置き換わり、Pixel 8 Pro でのコールドスタートの計測値（規則あり・なし）を記録している。

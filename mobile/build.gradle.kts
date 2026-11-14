@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.roborazzi)
+    alias(libs.plugins.baselineprofile)
 }
 
 // 現在のバージョンは scripts/version.properties が正本（PLAN §4.5）。リリースビルドでは
@@ -141,6 +142,8 @@ dependencies {
     implementation(libs.androidx.work.runtime)
     // Baseline Profile（src/main/baseline-prof.txt）をインストール時に反映する（PLAN §8）
     implementation(libs.androidx.profileinstaller)
+    // 規則は :baselineprofile を実機で流して作る（src/main/generated/baselineProfiles/、手順は docs/BASELINE_PROFILE.md）
+    baselineProfile(project(":baselineprofile"))
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
