@@ -53,6 +53,14 @@ class AppearancePrefs(
             )
         }
 
+    /**
+     * 保存したままのテーマ（端末で選べるかどうかで置き換えない）。書き出し（F-72）に使い、
+     * Android 11 以前の端末でおまかせを保存したまま書き出しても、Android 12 以降で読み込めばおまかせに戻るようにする（BL-180）。
+     * 未知の値は [appearance] と同じく既定のテーマへ戻す。
+     */
+    val savedTheme: Flow<ThemeChoice> =
+        dataStore.data.map { prefs -> ThemeChoice.fromStorageKey(prefs[THEME]) }
+
     suspend fun setTheme(theme: ThemeChoice) {
         dataStore.edit { it[THEME] = theme.storageKey }
     }

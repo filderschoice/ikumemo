@@ -27,8 +27,10 @@ class BackupSettingsStore(
         val appearance = appearancePrefs.appearance.first()
         val operation = operationPrefs.settings.first()
         val reminder = reminderPrefs.currentSettings()
+        // テーマは画面用の置き換え（Android 11 以前のおまかせ → 既定）前の保存値を書き出す（BL-180）
+        val savedTheme = appearancePrefs.savedTheme.first()
         return BackupSettings(
-            theme = appearance.theme.storageKey,
+            theme = savedTheme.storageKey,
             darkMode = appearance.darkMode.storageKey,
             textSize = appearance.textSize.storageKey,
             scrimLevel = appearance.scrimLevel,

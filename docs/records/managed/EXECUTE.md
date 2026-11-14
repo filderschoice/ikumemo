@@ -5,6 +5,28 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 00:19
+  summary: データの書き出しのテーマを、画面用に置き換える前の保存値で書くようにする
+  details:
+    関連ID:
+      - BL-180
+    変更内容: >-
+      AppearancePrefs に、端末で選べるかどうかで置き換えない保存したままのテーマ savedTheme（Flow）を足し、BackupSettingsStore.read の theme をそこから書くようにした。
+      Android 11 以前でおまかせ（wallpaper）を保存したまま書き出しても theme は wallpaper のまま出て、Android 12 以降で読み込めばおまかせに戻る。
+      プリセットと seed の値は従来どおり、未知の値は従来どおり既定のポップの値で書き出す（保存値は ThemeChoice.fromStorageKey を通すため、バックアップの値の種類は増えない。既定値で決めた）。
+      読み込み側（apply）と画面に出す配色（appearance は 11 以前で既定）は変えていない。DESIGN.md の F-64 の行に書き出しの扱いを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStore.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStoreTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*BackupSettingsStoreTest" --tests "*BackupRoundTripTest" --tests "*AppearanceViewModelTest"、
+      記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（BackupSettingsStoreTest 4 件を含む。フル検証・Android Lint・assembleDebug は未実施。見た目の変更は無いためスクリーンショットは流していない）
 - date: 2026-11-14 23:30
   summary: 着せ替えに「見本の色から選ぶ」を足し、選んだ色から明るい・暗いの配色を作る
   details:
