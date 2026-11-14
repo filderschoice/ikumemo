@@ -213,11 +213,18 @@ private fun AppScaffold(
 
 /** 下タブの画面へ切り替える。開始画面まで戻してから開き、タブごとの状態は保存・復元する。 */
 private fun NavHostController.navigateToTab(route: Any) {
+    // タブの上に積んだ設定などを先に閉じる。残すと saveState が設定ごと保存し、同じタブを押しても別のタブ経由でも設定が復元される（BL-168）
+    while (previousBackStackEntry != null && !isOnTopLevelTab()) popBackStack()
     navigate(route) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }
+}
+
+private fun NavHostController.isOnTopLevelTab(): Boolean {
+    val destination = currentDestination ?: return true
+    return TopLevelTab.entries.any { destination.hasRoute(it.routeClass) }
 }
 
 /** 使い方の「やってみる」「ガイドをもう一度見る」から、メモ・カレンダー・おしらせの画面を開く（H-02）。 */

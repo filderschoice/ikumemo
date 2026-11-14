@@ -5,6 +5,24 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 15:05
+  summary: 下タブを押したときに、タブの上に積んだ設定が復元されて残る不具合を直す
+  details:
+    変更内容: >-
+      BL-168。IkumemoApp.kt の navigateToTab で、移動の前に、いまタブの画面でなければ（設定やその下の画面なら）タブの画面まで戻る履歴を閉じるようにした。
+      これで popUpTo の saveState が設定ごと保存せず、同じタブを押すと一覧へ戻り、別のタブ経由でも設定が復元されない。
+      タブごとの saveState・restoreState（スクロール位置などの保存）は残している。設定を開いている間に下タブが選ばれていない見え方は変えていない。
+      テストは BottomTabSettingsTest を足し、同じタブを押す場合と別のタブ経由の場合の 2 通りを確かめる
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/IkumemoApp.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/BottomTabSettingsTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*BottomTabSettingsTest" --tests "*OpenedFromOutsideGuideTest" --tests "*OnboardingTest"
+    検証結果: >-
+      成功（軽い検証）- ktlint・detekt・コンパイル・指定したテストが成功。Android Lint・全テスト・assembleDebug のフル検証は未実施。
+      実機での確認は BL-148 で行う
 - date: 2026-11-14 14:57
   summary: 手で入れた数量の全角数字と先頭の漢数字を、保存時に半角の算用数字へそろえる
   details:
