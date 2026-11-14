@@ -5,6 +5,38 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 22:46
+  summary: 背景の写真の上に直接置く文字（副題・見出し・チップ・ボタン）をペンの色にする
+  details:
+    関連ID:
+      - BL-174
+    変更内容: >-
+      設定と着せ替えで、面に載らず写真（膜）の上に出る文字がテーマの固定色（onSurfaceVariant・primary）のままで読めなかった。
+      ペンの色を LocalPhotoInk として AppThemeHost から渡し（写真があり、おまかせでないときだけ。それ以外は null）、
+      photoInk（無ければテーマ色のまま）を設定の各画面の副題・区分の見出し・件数と時刻・空の案内・FAQ の答えに使った。
+      着せ替えの未選択のチップ（文字の大きさ・暗い画面・ペンの色）と「写真を選ぶ」「外す」のボタンも photoFilterChipColors・photoOutlinedButtonColors・
+      photoTextButtonColors で文字色をペンの色にした（選択中のチップは従来どおり面の色）。ペンの色のチップは各ペンの色で塗った文字をやめ、ペンの色に揃えた
+      （明るいテーマ＋暗い写真でくろの文字が背景に溶けるため）。写真が無い・おまかせのときの見た目は変えない。
+      テスト PhotoInkTest で、ペンの色が無ければテーマ色のまま、ペンの色があれば全テーマ・明暗でそれに替わり膜との比が 4.5:1 以上であることを確かめた。
+      見た目が変わるため、スクリーンショットテストは流していない（写真が無い画面は変わらない想定）。
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/PhotoInk.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SettingsScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AboutScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/DataScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/FeedbackScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ProductManageScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/StoreManageScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ReminderSettingsScreen.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoInkTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoInkTest" --tests "*InkColorTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）。スクリーンショットテストは未実施
 - date: 2026-11-14 22:26
   summary: 下タブの切り替えで 2 段積んだ画面からの復帰と外部起動の経路をテストで固定する
   details:

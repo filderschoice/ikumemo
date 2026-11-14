@@ -51,6 +51,7 @@ fun AppThemeHost(
                 // 面の中の文字は ReadablePanel などが onSurface を明示して戻す
                 CompositionLocalProvider(
                     LocalHasBackgroundImage provides true,
+                    LocalPhotoInk provides ink,
                     LocalContentColor provides (ink ?: LocalContentColor.current),
                     content = content,
                 )

@@ -37,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -54,6 +53,9 @@ import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemePreset
+import com.ikumemo.mobile.designsystem.photoFilterChipColors
+import com.ikumemo.mobile.designsystem.photoOutlinedButtonColors
+import com.ikumemo.mobile.designsystem.photoTextButtonColors
 
 @Composable
 fun AppearanceScreen(
@@ -87,6 +89,7 @@ fun AppearanceContent(
                     selected = size == appearance.textSize,
                     onClick = { onEvent(AppearanceEvent.SelectTextSize(size)) },
                     label = { Text(stringResource(size.label()), fontSize = (BASE_SAMPLE_SP * size.multiplier).sp) },
+                    colors = photoFilterChipColors(),
                     modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.textSize(size)),
                 )
             }
@@ -113,6 +116,7 @@ fun AppearanceContent(
                     selected = mode == appearance.darkMode,
                     onClick = { onEvent(AppearanceEvent.SelectDarkMode(mode)) },
                     label = { Text(stringResource(mode.label())) },
+                    colors = photoFilterChipColors(),
                     modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.darkMode(mode)),
                 )
             }
@@ -138,6 +142,7 @@ private fun BackgroundSection(
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         OutlinedButton(
             onClick = { pick.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            colors = photoOutlinedButtonColors(),
             modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.BACKGROUND_PICK),
         ) {
             Text(stringResource(R.string.appearance_background_pick))
@@ -145,6 +150,7 @@ private fun BackgroundSection(
         if (appearance.backgroundImage != null) {
             TextButton(
                 onClick = { onEvent(AppearanceEvent.RemoveBackground) },
+                colors = photoTextButtonColors(),
                 modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.BACKGROUND_REMOVE),
             ) {
                 Text(stringResource(R.string.appearance_background_remove))
@@ -167,7 +173,8 @@ private fun BackgroundSection(
                 FilterChip(
                     selected = ink == appearance.ink,
                     onClick = { onEvent(AppearanceEvent.SelectInk(ink)) },
-                    label = { Text(stringResource(ink.label()), color = ink.textColor ?: Color.Unspecified) },
+                    label = { Text(stringResource(ink.label())) },
+                    colors = photoFilterChipColors(),
                     modifier = Modifier.heightIn(min = 48.dp).testTag(AppearanceTestTags.ink(ink)),
                 )
             }

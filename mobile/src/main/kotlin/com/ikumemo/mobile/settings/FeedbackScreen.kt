@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.ikumemo.mobile.R
+import com.ikumemo.mobile.designsystem.photoInk
 
 /** よくある質問（問いと答え）。先に読んでもらい、解決しなければ送る方法へ進む（F-77 ①）。 */
 private val FAQ =
@@ -85,7 +86,7 @@ fun FeedbackContent(
                     Text(
                         stringResource(answer),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
                         modifier = Modifier.padding(top = 8.dp).testTag(FeedbackTestTags.answer(index)),
                     )
                 }
@@ -98,7 +99,7 @@ fun FeedbackContent(
             Text(
                 deviceInfo,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
                 modifier = Modifier.padding(vertical = 8.dp),
             )
             OutlinedButton(onClick = onCopyDeviceInfo, modifier = Modifier.testTag(FeedbackTestTags.COPY)) {
@@ -119,7 +120,7 @@ private fun SectionTitle(title: Int) {
     Text(
         stringResource(title),
         style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
+        color = photoInk(MaterialTheme.colorScheme.primary),
         modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 8.dp),
     )
 }
