@@ -316,4 +316,16 @@
     <string name="theme_cool">クール</string>
     <string name="theme_simple">シンプル</string>
     <string name="theme_wallpaper">おまかせ（壁紙の色）</string>
+    <string name="theme_seed">見本の色</string>
+    <string name="appearance_theme_seed">見本の色から選ぶ</string>
+    <string name="seed_strawberry">いちご</string>
+    <string name="seed_sakura">さくら</string>
+    <string name="seed_orange">みかん</string>
+    <string name="seed_sunflower">ひまわり</string>
+    <string name="seed_leaf">わかば</string>
+    <string name="seed_forest">もり</string>
+    <string name="seed_sky">そら</string>
+    <string name="seed_sea">うみ</string>
+    <string name="seed_grape">ぶどう</string>
+    <string name="seed_cocoa">ココア</string>
 </resources>

@@ -52,6 +52,7 @@ import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.DynamicColor
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.designsystem.InkColor
+import com.ikumemo.mobile.designsystem.SeedSwatch
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
@@ -70,7 +71,10 @@ fun AppearanceScreen(
     }
 }
 
-/** きせかえ（F-65 文字の大きさ → F-60 プレビュー付きのカードでテーマを選ぶ → F-63 暗い画面 → F-61 背景の写真 の順）。 */
+/**
+ * きせかえ（F-65 文字の大きさ → F-60 プレビュー付きのカードでテーマを選ぶ・見本の色から選ぶ → F-63 暗い画面 →
+ * F-61 背景の写真 の順）。
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppearanceContent(
@@ -112,6 +116,8 @@ fun AppearanceContent(
                 )
             }
         }
+        // プリセットの他に、見本の色から 1 色選んで配色を作れる（BL-177）
+        SeedColorPicker(selected = appearance.theme, onSelect = { onEvent(AppearanceEvent.SelectTheme(it)) })
         SectionTitle(R.string.appearance_dark_mode)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DarkMode.entries.forEach { mode ->
@@ -265,6 +271,7 @@ private fun ThemeChoice.label(): Int =
         ThemePreset.COOL -> R.string.theme_cool
         ThemePreset.SIMPLE -> R.string.theme_simple
         ThemeChoice.Wallpaper -> R.string.theme_wallpaper
+        is ThemeChoice.Seed -> SeedSwatch.of(this)?.labelRes ?: R.string.theme_seed
     }
 
 private fun DarkMode.label(): Int =

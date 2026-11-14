@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performScrollTo
 import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.IkumemoTheme
+import com.ikumemo.mobile.designsystem.SeedSwatch
 import com.ikumemo.mobile.designsystem.TextSizeSetting
 import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
@@ -91,6 +92,26 @@ class AppearanceContentTest {
 
         composeRule.onNodeWithTag(AppearanceTestTags.theme(ThemeChoice.Wallpaper)).assertDoesNotExist()
         composeRule.onNodeWithTag(AppearanceTestTags.theme(ThemePreset.SIMPLE)).assertExists()
+    }
+
+    @Test
+    fun seedSwatchesSendSeedChoiceAndShowSelection() {
+        // BL-177: 見本の色はおまかせと違い、端末を問わず選べる
+        val events = mutableStateListOf<AppearanceEvent>()
+        composeRule.setContent {
+            IkumemoTheme {
+                AppearanceContent(
+                    appearance = Appearance(theme = SeedSwatch.SEA.choice),
+                    onEvent = { events += it },
+                    wallpaperAvailable = false,
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(AppearanceTestTags.theme(SeedSwatch.SEA.choice)).performScrollTo().assertIsSelected()
+        composeRule.onNodeWithTag(AppearanceTestTags.theme(SeedSwatch.LEAF.choice)).performScrollTo().performClick()
+
+        assertEquals(listOf(AppearanceEvent.SelectTheme(SeedSwatch.LEAF.choice)), events.toList())
     }
 
     private fun topOf(tag: String): Float = composeRule.onNodeWithTag(tag).fetchSemanticsNode().positionInRoot.y

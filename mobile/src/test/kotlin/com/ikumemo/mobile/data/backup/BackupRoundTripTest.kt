@@ -16,6 +16,7 @@ import com.ikumemo.mobile.data.db.ShoppingItemEntity
 import com.ikumemo.mobile.data.db.ShoppingTripEntity
 import com.ikumemo.mobile.data.db.StoreEntity
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.SeedSwatch
 import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
 import com.ikumemo.mobile.testing.fixedClock
@@ -184,6 +185,20 @@ class BackupRoundTripTest {
             assertEquals(ImportResult.Success, importer().import(ByteArrayInputStream(bytes)))
 
             assertEquals(ThemeChoice.Wallpaper, appearance.appearance.first().theme)
+        }
+
+    @Test
+    fun seedThemeRoundTrips() =
+        runTest {
+            // BL-177: 見本の色も同じ設定の項目（theme）に "seed:#RRGGBB" で入り、書き出し・読み込みで戻る
+            seed()
+            appearance.setTheme(SeedSwatch.GRAPE.choice)
+            val bytes = exportBytes(ExportKind.JSON)
+            wipe()
+
+            assertEquals(ImportResult.Success, importer().import(ByteArrayInputStream(bytes)))
+
+            assertEquals(SeedSwatch.GRAPE.choice, appearance.appearance.first().theme)
         }
 
     @Test

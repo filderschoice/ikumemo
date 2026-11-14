@@ -5,6 +5,42 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 23:30
+  summary: 着せ替えに「見本の色から選ぶ」を足し、選んだ色から明るい・暗いの配色を作る
+  details:
+    関連ID:
+      - BL-177
+    変更内容: >-
+      ThemeChoice に種の色を持つ data class ThemeChoice.Seed を足し、保存値は従来の appearance_theme と書き出しの設定の theme に "seed:#RRGGBB" を入れる形にした
+      （プリセットと wallpaper の値は不変。形の壊れた seed の値と未知の値は既定のポップへ戻し、見本に無い色でも形が正しければ読む。古い版は seed の値を読むと既定のポップになる）。
+      配色は新しい SeedPalette が種の色の色相から 5 つの系統（主・副・第三は色相を 60 度回す・中間色・中間色の変種）を作り、Material 3 と同じ役割ごとの明るさ
+      （明るい画面は 40/100/90/10、背景 98、暗い画面は 80/20/30/90、背景 6 など）で IkumemoPalette の全項目を埋める。明るさは CIELAB の L* で取り、sRGB に収まらない色は
+      明るさを保ったまま彩度だけを二分探索で下げるため、どの種の色でも文字と面の色の比 4.5:1 以上になる。依存は足していない
+      （計算は 200 行ほどの純粋な Kotlin で足り、依存を足すと版の組み合わせ・ライセンス・配布物の大きさの確認が増えるため。Material の配色計算ライブラリの配布の形と版の相性は未確認。
+      HCT ではなく CIELAB の近似のため、Material の配色とは色味が少し違う）。見本は SeedSwatch（10 色、読み上げ用に身近なものの名前）にまとめ、着せ替えのテーマのカードの下に
+      丸い見本（押せる大きさ 52dp、選んだ色は枠とチェックの印）を並べる SeedColorPicker を足した。おまかせと違い全 OS で選べ、角の丸みはおまかせと同じ標準にした（既定値で決めた）。
+      アプリ本体・ウィジェット（WidgetColors.from）・写真の上のペンの色は ThemeChoice.palette を通して同じ配色に従う。使い方（help/theme.md）に 1 行足し、docs/USER_GUIDE.md を作り直した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/SeedPalette.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/SeedSwatch.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/SeedColorPicker.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/theme.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/SeedPaletteTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/SeedThemeFollowTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupRoundTripTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SeedPaletteTest" --tests "*SeedThemeFollowTest" --tests "*BackupRoundTripTest" --tests "*AppearanceContentTest"
+      --tests "*ThemeChoiceTest" --tests "*WallpaperPaletteTest" --tests "*ThemeContrastTest"、記録の更新後に --quick --tests "*HelpContentTest"
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・スクリーンショットは未実施。着せ替え画面の見た目が変わるため、正解画像の記録し直しは区切りの作業で判断する）
 - date: 2026-11-14 23:20
   summary: 着せ替えのテーマに「おまかせ（壁紙の色）」を足す
   details:

@@ -10,7 +10,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.graphics.toArgb
 
 /**
- * きせかえで選んだテーマ（F-60・F-64）。プリセット 4 種（[ThemePreset]）と「おまかせ（壁紙の色）」（[Wallpaper]）のどれか。
+ * きせかえで選んだテーマ（F-60・F-64）。プリセット 4 種（[ThemePreset]）、「おまかせ（壁紙の色）」（[Wallpaper]）、
+ * 見本の色から作る配色（[Seed]）のどれか。
  *
  * 設定とバックアップには [storageKey] の文字列 1 つで保存する（プリセットの値は従来のまま）。種類を足すときは、
  * ここへ実装を足して [fromStorageKey] で読めるようにし、既存の値の意味は変えない（保存済みの選択を壊さないため）。
@@ -33,17 +34,46 @@ sealed interface ThemeChoice {
         override val corners: CornerSet get() = ThemePreset.SIMPLE.corners
     }
 
+    /**
+     * 見本の色から作る配色（BL-177）。種の色 [argb] から明るい・暗いの配色を [SeedPalette] で作る。
+     * 保存値は `seed:#RRGGBB`。見本（[SeedSwatch]）に無い色でも、形が正しければそのまま読む（見本の入れ替えで選択を失わないため）。
+     * 角の丸みはおまかせと同じく標準にする。
+     */
+    data class Seed(
+        val argb: Long,
+    ) : ThemeChoice {
+        override val storageKey: String get() = SEED_PREFIX + "%06X".format(argb and RGB_MASK)
+        override val corners: CornerSet get() = ThemePreset.SIMPLE.corners
+
+        fun palette(darkTheme: Boolean): IkumemoPalette =
+            if (darkTheme) SeedPalette.dark(argb) else SeedPalette.light(argb)
+    }
+
     companion object {
         const val WALLPAPER_KEY = "wallpaper"
+        const val SEED_PREFIX = "seed:#"
+        private const val RGB_MASK = 0xFFFFFFL
+        private const val OPAQUE = 0xFF000000L
+        private const val RGB_DIGITS = 6
 
         val DEFAULT: ThemeChoice get() = ThemePreset.DEFAULT
 
         /** 保存値から読む。未知の値（削除したテーマ、新しい版の値）は既定のテーマへ戻す。 */
         fun fromStorageKey(key: String?): ThemeChoice =
-            when (key) {
-                WALLPAPER_KEY -> Wallpaper
+            when {
+                key == WALLPAPER_KEY -> Wallpaper
+                key != null && key.startsWith(SEED_PREFIX) -> seedOf(key) ?: DEFAULT
                 else -> ThemePreset.fromStorageKey(key)
             }
+
+        /** 見本の色の選択肢。不透明な色にそろえる。 */
+        fun seed(argb: Long): Seed = Seed(OPAQUE or (argb and RGB_MASK))
+
+        private fun seedOf(key: String): Seed? {
+            val hex = key.removePrefix(SEED_PREFIX)
+            val valid = hex.length == RGB_DIGITS && hex.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+            return if (valid) seed(hex.toLong(radix = 16)) else null
+        }
     }
 }
 
@@ -60,7 +90,8 @@ fun ThemeChoice.availableOr(
 ): ThemeChoice = if (this == ThemeChoice.Wallpaper && !wallpaperAvailable) fallback else this
 
 /**
- * 実際に描く配色。アプリ本体・ウィジェット（BL-112）・写真の上のペンの色（BL-170・BL-174）は、どれもこの配色から色を取る。
+ * 実際に描く配色。アプリ本体・ウィジェット（BL-112）・写真の上のペンの色（BL-170・BL-174）は、どれもこの配色から色を取る
+ * （見本の色の配色 [ThemeChoice.Seed] も同じ）。
  * おまかせを選べない端末では既定のテーマの配色を返す。
  */
 fun ThemeChoice.palette(
@@ -69,6 +100,7 @@ fun ThemeChoice.palette(
 ): IkumemoPalette =
     when (this) {
         is ThemePreset -> palette(darkTheme)
+        is ThemeChoice.Seed -> palette(darkTheme)
         ThemeChoice.Wallpaper ->
             if (DynamicColor.isAvailable()) {
                 wallpaperPalette(context, darkTheme)
