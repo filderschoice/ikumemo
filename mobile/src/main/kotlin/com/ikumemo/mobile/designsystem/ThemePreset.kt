@@ -12,17 +12,17 @@ data class CornerSet(
 
 /**
  * プリセットテーマ 4 種（PLAN D-8・§2.7）。各テーマはライト／ダークの両方を持つ。
- * 「おまかせ」（Dynamic Color、F-64）は v1.x のため含めない。
+ * 「おまかせ（壁紙の色）」（Dynamic Color、F-64）は配色が実行時に決まるため、ここではなく [ThemeChoice.Wallpaper] にある。
  *
  * [storageKey] は設定の保存に使う値で、表示名や並び順を変えても保存済みの選択が壊れないよう固定する。
  */
 enum class ThemePreset(
-    val storageKey: String,
+    override val storageKey: String,
     @StringRes val labelRes: Int,
     val light: IkumemoPalette,
     val dark: IkumemoPalette,
-    val corners: CornerSet,
-) {
+    override val corners: CornerSet,
+) : ThemeChoice {
     /** 明るく元気。コーラルオレンジ × アンバー × ミント。いちばん大きい角丸。 */
     POP(
         storageKey = "pop",

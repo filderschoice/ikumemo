@@ -29,7 +29,7 @@ fun AppThemeHost(
     val value = current ?: return
     val darkTheme = value.darkMode.isDark(isSystemInDarkTheme())
     IkumemoTheme(
-        preset = value.theme,
+        choice = value.theme,
         darkTheme = darkTheme,
         textSize = value.textSize,
     ) {

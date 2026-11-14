@@ -16,6 +16,7 @@ import com.ikumemo.mobile.data.db.ShoppingItemEntity
 import com.ikumemo.mobile.data.db.ShoppingTripEntity
 import com.ikumemo.mobile.data.db.StoreEntity
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
 import com.ikumemo.mobile.testing.fixedClock
 import com.ikumemo.mobile.testing.inMemoryDatabase
@@ -169,6 +170,20 @@ class BackupRoundTripTest {
             assertEquals("牛乳", dao.products().single().name)
             assertNull(appearance.appearance.first().backgroundImage)
             assertEquals(ThemePreset.COOL, appearance.appearance.first().theme)
+        }
+
+    @Test
+    fun wallpaperThemeRoundTrips() =
+        runTest {
+            // BL-176: おまかせ（壁紙の色）も、プリセットと同じ設定の項目（theme）の値として書き出し・読み込みできる
+            seed()
+            appearance.setTheme(ThemeChoice.Wallpaper)
+            val bytes = exportBytes(ExportKind.JSON)
+            wipe()
+
+            assertEquals(ImportResult.Success, importer().import(ByteArrayInputStream(bytes)))
+
+            assertEquals(ThemeChoice.Wallpaper, appearance.appearance.first().theme)
         }
 
     @Test

@@ -9,7 +9,7 @@ import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
-import com.ikumemo.mobile.designsystem.ThemePreset
+import com.ikumemo.mobile.designsystem.ThemeChoice
 import kotlinx.coroutines.flow.first
 import java.time.LocalTime
 
@@ -43,7 +43,7 @@ class BackupSettingsStore(
 
     /** [settings] の値を保存する。ファイルに無い項目は初期値にする。 */
     suspend fun apply(settings: BackupSettings) {
-        appearancePrefs.setTheme(ThemePreset.fromStorageKey(settings.theme))
+        appearancePrefs.setTheme(ThemeChoice.fromStorageKey(settings.theme))
         appearancePrefs.setDarkMode(DarkMode.fromStorageKey(settings.darkMode))
         appearancePrefs.setTextSize(TextSizeSetting.fromStorageKey(settings.textSize))
         appearancePrefs.setScrimLevel(BackgroundScrim.clamp(settings.scrimLevel ?: BackgroundScrim.DEFAULT))

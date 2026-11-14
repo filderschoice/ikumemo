@@ -49,9 +49,11 @@ import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
+import com.ikumemo.mobile.designsystem.DynamicColor
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
+import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
 import com.ikumemo.mobile.designsystem.photoFilterChipColors
 import com.ikumemo.mobile.designsystem.photoOutlinedButtonColors
@@ -74,6 +76,7 @@ fun AppearanceScreen(
 fun AppearanceContent(
     appearance: Appearance,
     onEvent: (AppearanceEvent) -> Unit,
+    wallpaperAvailable: Boolean = DynamicColor.isAvailable(),
 ) {
     val dark = appearance.darkMode.isDark(isSystemInDarkTheme())
     Column(
@@ -100,12 +103,12 @@ fun AppearanceContent(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            ThemePreset.entries.forEach { preset ->
+            themeChoices(wallpaperAvailable).forEach { choice ->
                 ThemeCard(
-                    preset = preset,
+                    choice = choice,
                     dark = dark,
-                    selected = preset == appearance.theme,
-                    onClick = { onEvent(AppearanceEvent.SelectTheme(preset)) },
+                    selected = choice == appearance.theme,
+                    onClick = { onEvent(AppearanceEvent.SelectTheme(choice)) },
                 )
             }
         }
@@ -126,6 +129,13 @@ fun AppearanceContent(
 }
 
 private const val BASE_SAMPLE_SP = 14f
+
+/**
+ * 着せ替えで並べるテーマ。プリセット 4 種の後におまかせ（壁紙の色）を置く。
+ * おまかせは Android 12 以降だけで選べるため、それより前の端末では出さない（押せない見本を並べるより迷わない）。
+ */
+internal fun themeChoices(wallpaperAvailable: Boolean): List<ThemeChoice> =
+    ThemePreset.entries + listOfNotNull(ThemeChoice.Wallpaper.takeIf { wallpaperAvailable })
 
 /** 背景の写真（F-61）。写真を選ぶ・外す、膜の濃さのスライダー（離したときに保存する）。 */
 @OptIn(ExperimentalLayoutApi::class)
@@ -189,7 +199,7 @@ private fun SectionTitle(text: Int) {
 
 @Composable
 private fun ThemeCard(
-    preset: ThemePreset,
+    choice: ThemeChoice,
     dark: Boolean,
     selected: Boolean,
     onClick: () -> Unit,
@@ -201,9 +211,9 @@ private fun ThemeCard(
             Modifier
                 .width(150.dp)
                 .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-                .testTag(AppearanceTestTags.theme(preset)),
+                .testTag(AppearanceTestTags.theme(choice)),
     ) {
-        IkumemoTheme(preset = preset, darkTheme = dark) {
+        IkumemoTheme(choice = choice, darkTheme = dark) {
             Surface(color = MaterialTheme.colorScheme.background) {
                 Column(Modifier.fillMaxWidth()) {
                     Surface(color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth()) {
@@ -243,17 +253,18 @@ private fun ThemeCard(
             if (selected) {
                 Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = outline)
             }
-            Text(stringResource(preset.label()), modifier = Modifier.padding(start = 4.dp))
+            Text(stringResource(choice.label()), modifier = Modifier.padding(start = 4.dp))
         }
     }
 }
 
-private fun ThemePreset.label(): Int =
+private fun ThemeChoice.label(): Int =
     when (this) {
         ThemePreset.POP -> R.string.theme_pop
         ThemePreset.GENTLE -> R.string.theme_gentle
         ThemePreset.COOL -> R.string.theme_cool
         ThemePreset.SIMPLE -> R.string.theme_simple
+        ThemeChoice.Wallpaper -> R.string.theme_wallpaper
     }
 
 private fun DarkMode.label(): Int =
@@ -284,7 +295,7 @@ object AppearanceTestTags {
     const val BACKGROUND_REMOVE = "appearance_background_remove"
     const val SCRIM = "appearance_scrim"
 
-    fun theme(preset: ThemePreset) = "appearance_theme_${preset.storageKey}"
+    fun theme(choice: ThemeChoice) = "appearance_theme_${choice.storageKey}"
 
     fun darkMode(mode: DarkMode) = "appearance_dark_${mode.storageKey}"
 

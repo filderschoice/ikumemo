@@ -5,6 +5,47 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 23:20
+  summary: 着せ替えのテーマに「おまかせ（壁紙の色）」を足す
+  details:
+    関連ID:
+      - BL-176
+    変更内容: >-
+      テーマの選択肢を sealed interface ThemeChoice で表し、ThemePreset（enum）をその実装にし、おまかせを data object ThemeChoice.Wallpaper として足した。
+      保存は従来の appearance_theme に値 wallpaper を足すだけで、プリセットの値と書き出しの設定の theme の形は変えていない（古いバックアップはそのまま読め、
+      古い版が wallpaper を読むと既定のポップになる）。配色は ThemeChoice.palette(context, dark) で取り、おまかせは Android 12 以降の
+      dynamicLight/DarkColorScheme を IkumemoPalette へ写す（toPalette）。アプリ本体は AppThemeHost から IkumemoTheme(choice) を、ウィジェットは
+      WidgetColors.from(context, appearance) を通して同じ配色を使い、写真の上のペンの色もこのテーマの上で決まる。Android 11 以前では着せ替えに
+      おまかせのカードを出さず、保存値が wallpaper でも AppearancePrefs が書き換えずに既定のテーマとして読む。角の丸みはシンプルと同じにした（既定値で決めた）。
+      BL-177 は ThemeChoice に実装（種の色の値を持つ型）を足し、fromStorageKey と palette の分岐を増やせば同じ保存の形に乗る。
+      使い方（help/theme.md）に 1 行足し、docs/USER_GUIDE.md を作り直した。
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemePreset.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/IkumemoTheme.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/AppearancePrefs.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupSettingsStore.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/AppearanceViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/WidgetColors.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/theme.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeChoiceTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/WallpaperPaletteTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupRoundTripTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AppearanceContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeChoiceTest" --tests "*WallpaperPaletteTest" --tests "*AppearanceViewModelTest"
+      --tests "*AppearanceContentTest" --tests "*BackupRoundTripTest" --tests "*ThemeContrastTest" --tests "*MemoListWidgetTest"、
+      行の長さを直した後に --quick --tests "*WallpaperPaletteTest" --tests "*AppearanceViewModelTest"
+    検証結果: >-
+      成功 - 1 回目はテストが通り ktlint・detekt がテストの行の長さで失敗、直した 2 回目は軽い検証がすべて成功（フル検証・スクリーンショットは未実施）
 - date: 2026-11-14 23:00
   summary: BL-175 のプリセット 4 色の見直しに伴い、スクリーンショットの正解画像を記録し直す
   details:

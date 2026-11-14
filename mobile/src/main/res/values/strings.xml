@@ -315,4 +315,5 @@
     <string name="theme_gentle">やさしい</string>
     <string name="theme_cool">クール</string>
     <string name="theme_simple">シンプル</string>
+    <string name="theme_wallpaper">おまかせ（壁紙の色）</string>
 </resources>

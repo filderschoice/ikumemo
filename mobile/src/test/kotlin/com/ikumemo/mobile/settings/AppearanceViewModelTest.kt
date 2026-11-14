@@ -17,6 +17,7 @@ import com.ikumemo.mobile.designsystem.BackgroundScrim
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
+import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
 import com.ikumemo.mobile.testing.MainDispatcherRule
 import com.ikumemo.mobile.testing.TURBINE_TIMEOUT
@@ -104,6 +105,42 @@ class AppearanceViewModelTest {
             }
 
             assertEquals(Appearance(), prefs.appearance.first())
+        }
+
+    @Test
+    fun wallpaperThemeIsSavedAsItsOwnValue() =
+        runTest {
+            viewModel.appearance.test(timeout = TURBINE_TIMEOUT) {
+                viewModel.onEvent(AppearanceEvent.SelectTheme(ThemeChoice.Wallpaper))
+                awaitUntil { it.theme == ThemeChoice.Wallpaper }
+                cancelAndIgnoreRemainingEvents()
+            }
+            // BL-176: 既存のキーに新しい値を足すだけで、プリセットの値の意味は変えない
+            assertEquals("wallpaper", dataStore.data.first()[stringPreferencesKey("appearance_theme")])
+            assertEquals(ThemeChoice.Wallpaper, AppearancePrefs(dataStore).appearance.first().theme)
+        }
+
+    @Test
+    fun wallpaperReadsAsDefaultWhereDynamicColorIsUnavailable() =
+        runTest {
+            prefs.setTheme(ThemeChoice.Wallpaper)
+
+            val older = AppearancePrefs(dataStore, wallpaperAvailable = false)
+
+            assertEquals(ThemeChoice.DEFAULT, older.appearance.first().theme)
+            // 保存値は書き換えない（端末を Android 12 以降へ上げたら、おまかせに戻る）
+            assertEquals("wallpaper", dataStore.data.first()[stringPreferencesKey("appearance_theme")])
+        }
+
+    @Test
+    fun savedPresetIsReadTheSameWhetherOrNotDynamicColorIsAvailable() =
+        runTest {
+            dataStore.edit { it[stringPreferencesKey("appearance_theme")] = "gentle" }
+
+            listOf(true, false).forEach { available ->
+                val theme = AppearancePrefs(dataStore, wallpaperAvailable = available).appearance.first().theme
+                assertEquals(ThemePreset.GENTLE, theme)
+            }
         }
 
     private fun jpeg(name: String): Uri {

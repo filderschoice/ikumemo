@@ -9,7 +9,7 @@ import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.InkColor
 import com.ikumemo.mobile.designsystem.TextSizeSetting
-import com.ikumemo.mobile.designsystem.ThemePreset
+import com.ikumemo.mobile.designsystem.ThemeChoice
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 sealed interface AppearanceEvent {
     data class SelectTheme(
-        val theme: ThemePreset,
+        val theme: ThemeChoice,
     ) : AppearanceEvent
 
     data class SelectDarkMode(

@@ -10,6 +10,7 @@ import com.ikumemo.mobile.data.Appearance
 import com.ikumemo.mobile.designsystem.DarkMode
 import com.ikumemo.mobile.designsystem.IkumemoTheme
 import com.ikumemo.mobile.designsystem.TextSizeSetting
+import com.ikumemo.mobile.designsystem.ThemeChoice
 import com.ikumemo.mobile.designsystem.ThemePreset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -64,6 +65,32 @@ class AppearanceContentTest {
         assertTrue("文字の大きさがテーマの見本より上", textSize < theme)
         assertTrue("テーマの見本が暗い画面より上", theme < darkMode)
         assertTrue("暗い画面が背景の写真より上", darkMode < background)
+    }
+
+    @Test
+    fun wallpaperCardIsOfferedWhereDynamicColorIsAvailable() {
+        val events = mutableStateListOf<AppearanceEvent>()
+        composeRule.setContent {
+            IkumemoTheme {
+                AppearanceContent(appearance = Appearance(), onEvent = { events += it }, wallpaperAvailable = true)
+            }
+        }
+
+        composeRule.onNodeWithTag(AppearanceTestTags.theme(ThemeChoice.Wallpaper)).performScrollTo().performClick()
+
+        assertEquals(listOf(AppearanceEvent.SelectTheme(ThemeChoice.Wallpaper)), events.toList())
+    }
+
+    @Test
+    fun wallpaperCardIsHiddenBeforeAndroid12() {
+        composeRule.setContent {
+            IkumemoTheme {
+                AppearanceContent(appearance = Appearance(), onEvent = {}, wallpaperAvailable = false)
+            }
+        }
+
+        composeRule.onNodeWithTag(AppearanceTestTags.theme(ThemeChoice.Wallpaper)).assertDoesNotExist()
+        composeRule.onNodeWithTag(AppearanceTestTags.theme(ThemePreset.SIMPLE)).assertExists()
     }
 
     private fun topOf(tag: String): Float = composeRule.onNodeWithTag(tag).fetchSemanticsNode().positionInRoot.y
