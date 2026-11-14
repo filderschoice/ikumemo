@@ -5,6 +5,25 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 23:00
+  summary: BL-175 のプリセット 4 色の見直しに伴い、スクリーンショットの正解画像を記録し直す
+  details:
+    関連ID:
+      - BL-175
+    変更内容: >-
+      MainScreensScreenshotTest の memo・calendar・reminder を 1 画面ずつ記録し直した（各画面 24 枚のうち、ポップ・やさしい・クールの 3 テーマ
+      × 明暗 × 文字の大きさ 3 段階 = 18 枚、計 54 枚が変わった。シンプルは変化なし）。ポップの extra_large（文字が最大）の memo を縮小せず読み、
+      背景が FFF4EC のコーラルオレンジ系になり、文字・ボタンの崩れが無いことを確かめた。
+    変更ファイル:
+      - mobile/screenshots/memo/
+      - mobile/screenshots/calendar/
+      - mobile/screenshots/reminder/
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.memo*"（calendar・reminder も同様）、
+      続けて -Proborazzi.test.verify=true で 3 画面を 1 画面ずつ
+    検証結果: >-
+      成功 - 記録し直しの 3 回と verify の 3 回すべて終了コード 0（フル検証は未実施）
 - date: 2026-11-14 22:54
   summary: プリセットテーマ 4 種の背景・面・アクセントを色の系統で分ける
   details:
