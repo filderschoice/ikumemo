@@ -21,6 +21,15 @@ class QuantityTextTest {
     }
 
     @Test
+    fun keepsKanjiWhenNotFollowedByCounter() {
+        assertEquals("十分", QuantityText.normalize("十分"))
+        assertEquals("一部", QuantityText.normalize("一部"))
+        assertEquals("一杯", QuantityText.normalize("一杯"))
+        assertEquals("二本ずつ", QuantityText.normalize("二本ずつ"))
+        assertEquals("2本", QuantityText.normalize("２本"))
+    }
+
+    @Test
     fun keepsHalfWidthDigitsAndUnits() {
         assertEquals("1パック", QuantityText.normalize("1パック"))
         assertEquals("1.5L", QuantityText.normalize(" 1.5L "))

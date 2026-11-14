@@ -5,6 +5,27 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 22:30
+  summary: 数量の欄の漢数字の変換を、助数詞が続くときだけにする
+  details:
+    関連ID:
+      - BL-172
+    変更内容: >-
+      BL-172（オーナーの指示で起票せずに完了）。QuantityText.normalize が先頭の漢数字を無条件に算用数字へ変えており、
+      「十分」が「10分」になるなどの誤変換があった。先頭の漢数字の後ろが空か、QuantityParser の助数詞の一覧（counters を internal にして共有）と
+      完全に一致するときだけ変換する（二本 → 2本、三 → 3、十個 → 10個、百二十g → 120g。十分・一部・一杯・二本ずつ は変えない）。
+      全角数字の半角化は従来どおり全体に効く。保存済みのデータ、音声の QuantityParser の挙動、欄のキーボードは変えない。
+      未変更で報告する点は、「〇」だけの入力が 0 になること。
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityText.kt
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityParser.kt
+      - core/src/test/kotlin/com/ikumemo/core/voice/QuantityTextTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*QuantityTextTest" --tests "*RecordRepositoryTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）
 - date: 2026-11-14 22:00
   summary: Baseline Profile を実機の Macrobenchmark で作り直し、コールドスタートを計測する
   details:
