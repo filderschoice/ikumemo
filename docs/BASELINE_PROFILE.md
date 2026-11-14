@@ -51,3 +51,6 @@ PLAN §8 の目標は中級機で 1.5 秒以内（中級機の確認は BL-171�
 - 計測側のモジュールは `targetProjectPath` で `:mobile` を指すだけで、`:mobile` の APK にはマージされない。minSdk を 26 へ下げても、
   生成できる端末が増えるわけではなく、Android 8（API 26・27）の端末ではプロファイルを作れない
 - 実機での再生成・再計測は行っていない（文書の根拠のみ。要件の最新は developer.android.com の Baseline Profiles の「Create Baseline Profiles」を参照）
+- 2026-11-15 に <https://developer.android.com/topic/performance/baselineprofiles/create-baselineprofile> で照合済みの点:
+  接続した端末で生成する場合は「ルート化済み、または API 33 以上」が要件（Macrobenchmark 1.2.0-alpha06 以降）。
+  生成の下限 API 28 は同ページに記載が無く未照合（AGP の Baseline Profile 既定値としての記述）
