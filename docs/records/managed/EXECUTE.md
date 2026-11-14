@@ -5,6 +5,24 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 15:20
+  summary: 文字が大きいときの期限の画面の最近買った物の行で、ボタンを品名の下の行へ回す
+  details:
+    変更内容: >-
+      BL-169。RecentSection.kt の RecentRow で、文字の倍率（LocalDensity の fontScale、端末の設定とアプリ内の着せ替えを掛けた後の値）が 1.5 以上のとき、
+      品名と買った日を 1 行目、「期限なし」「期限を決める」を右寄せの 2 行目に並べる。font_scale 2.0 の「とても大きい」で品名に幅が残る。
+      1.5 未満（標準・大・とても大きいに端末標準の組み合わせ）の並びは変えないため、スクリーンショットの正解画像は記録し直していない。
+      テストは ReminderContentTest に、標準ではボタンが品名の右、2.0 倍では品名の下に並ぶことを足した（Robolectric は文字幅を正しく測れないため、1 行に収まるかは実機で確かめる）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/reminder/RecentSection.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/reminder/ReminderContentTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ReminderContentTest"
+    検証結果: >-
+      成功（軽い検証）- ktlint・detekt・コンパイル・指定したテストが成功。Android Lint・全テスト・assembleDebug のフル検証は未実施。
+      スクリーンショットテストと実機の確認は未実施（BL-151 で期限の画面を確かめ直す）
 - date: 2026-11-14 15:05
   summary: 下タブを押したときに、タブの上に積んだ設定が復元されて残る不具合を直す
   details:

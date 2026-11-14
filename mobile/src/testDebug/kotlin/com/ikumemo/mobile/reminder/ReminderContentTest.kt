@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
@@ -16,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.unit.Density
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
@@ -57,10 +59,15 @@ class ReminderContentTest {
     private fun show(
         state: ReminderUiState = ReminderSamples.state(),
         hasBackgroundImage: Boolean = false,
+        fontScale: Float = 1f,
     ) {
         composeRule.setContent {
+            val density = LocalDensity.current
             IkumemoTheme {
-                CompositionLocalProvider(LocalHasBackgroundImage provides hasBackgroundImage) {
+                CompositionLocalProvider(
+                    LocalHasBackgroundImage provides hasBackgroundImage,
+                    LocalDensity provides Density(density.density, fontScale),
+                ) {
                     ReminderContent(
                         state = state,
                         onEvent = { events += it },
@@ -119,6 +126,25 @@ class ReminderContentTest {
         composeRule.onNodeWithTag(ReminderTestTags.setDue(2)).performScrollTo().performClick()
 
         assertEquals(listOf<ReminderEvent>(ReminderEvent.OpenDue(DueTarget(2, "牛乳"))), events.toList())
+    }
+
+    @Test
+    fun recentRowKeepsButtonsBesideTheNameAtNormalTextSize() {
+        show(ReminderSamples.state(recent = listOf(ReminderSamples.recent(id = 2, name = "チョコレート"))))
+
+        val name = composeRule.onNodeWithText("チョコレート").performScrollTo().fetchSemanticsNode().boundsInRoot
+        val button = composeRule.onNodeWithTag(ReminderTestTags.setDue(2)).fetchSemanticsNode().boundsInRoot
+        assertTrue("標準の文字ではボタンは品名の右に並ぶ", button.left >= name.right)
+    }
+
+    @Test
+    fun recentRowMovesButtonsBelowTheNameAtLargeTextSize() {
+        show(ReminderSamples.state(recent = listOf(ReminderSamples.recent(id = 2, name = "チョコレート"))), fontScale = 2f)
+
+        val name = composeRule.onNodeWithText("チョコレート").performScrollTo().fetchSemanticsNode().boundsInRoot
+        val noDue = composeRule.onNodeWithTag(ReminderTestTags.noDue(2)).fetchSemanticsNode().boundsInRoot
+        val setDue = composeRule.onNodeWithTag(ReminderTestTags.setDue(2)).fetchSemanticsNode().boundsInRoot
+        assertTrue("文字が大きいときはボタンを品名の下へ回す", noDue.top >= name.bottom && setDue.top >= name.bottom)
     }
 
     @Test
