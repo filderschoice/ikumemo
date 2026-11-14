@@ -58,7 +58,7 @@ class RecordRepositoryTest {
 
             records.updateRecord(
                 first,
-                RecordEdit(LocalDate.of(2026, 9, 21), storeId = null, quantity = " 2本 ", note = "特売", photoUri = null),
+                RecordEdit(LocalDate.of(2026, 9, 21), storeId = null, quantity = " ２本 ", note = "特売", photoUri = null),
             )
 
             val edited = requireNotNull(records.getRecord(first))
@@ -156,7 +156,7 @@ class RecordRepositoryTest {
 
             val recordId =
                 records.addRecord(
-                    NewRecord(" ぎゅうにゅう ", LocalDate.of(2026, 9, 21), store, " 2本 ", "", photoUri = null),
+                    NewRecord(" ぎゅうにゅう ", LocalDate.of(2026, 9, 21), store, " 二本 ", "", photoUri = null),
                 )
 
             val record = requireNotNull(records.getRecord(requireNotNull(recordId)))

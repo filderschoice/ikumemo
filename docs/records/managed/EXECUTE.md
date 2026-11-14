@@ -5,6 +5,32 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 14:57
+  summary: 手で入れた数量の全角数字と先頭の漢数字を、保存時に半角の算用数字へそろえる
+  details:
+    変更内容: >-
+      オーナー指示（2026-11-14、数量の欄は単位を残し、数字を半角にする）により、core/voice/QuantityText.kt に normalize を足した。
+      前後の空白を除き、全角の数字を半角にし、先頭の漢数字（KanjiNumber、〜999）を算用数字にする。単位やそれ以外の文字は残し、空なら null。
+      ShoppingRepository の addItem・updateItem と RecordRepository の addRecord・updateRecord で、これまでの trim と空なら null の処理を置き換えた。
+      欄は自由入力のまま（キーボードの種類は変えない）。バックアップの読み込みは変えていない。
+      テストは QuantityTextTest を足し、RecordRepositoryTest の数量の入力を全角数字・漢数字に変えて「2本」で保存されることを確かめる。
+      あわせて、オーケストレーションによる実機の人手検証（BL-008・BL-118・BL-148・BL-151・BL-153）の結果を BACKLOG へ追記し、
+      見つかった不具合 2 件を BL-168・BL-169 として起票した
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityText.kt
+      - core/src/test/kotlin/com/ikumemo/core/voice/QuantityTextTest.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/RecordRepository.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/RecordRepositoryTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*QuantityTextTest" --tests "*RecordRepositoryTest"
+      --tests "*ShoppingListViewModelTest" --tests "*VoiceInputViewModelTest"、./gradlew :mobile:installDebug（Pixel 8 Pro）
+    検証結果: >-
+      成功（軽い検証）- 1 回目は detekt の ReturnCount で失敗し、関数を分けて 2 回目で ktlint・detekt・コンパイル・指定したテストが成功した。
+      Android Lint・全テスト・assembleDebug のフル検証は未実施。実機へのインストールは成功したが、数量の欄の実機での入力は未確認
 - date: 2026-11-14 13:32
   summary: 配布元 copilot-rules 0.30.0 の秘密情報スキャンと記録ファイル検証フックを取り込む
   details:
