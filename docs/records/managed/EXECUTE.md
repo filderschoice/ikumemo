@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 13:32
+  summary: 配布元 copilot-rules 0.30.0 の秘密情報スキャンと記録ファイル検証フックを取り込む
+  details:
+    変更内容: >-
+      オーナー判断（2026-11-14）により、scripts/scan-secrets.py を配布元 0.30.0 版へ置き換え、ikumemo 固有のファイル名規則
+      （keystore.properties・secrets.properties）を FILE_NAME_RULES へ移した。既定の検査対象はステージ済みの差分になり、
+      --include-unstaged（作業ツリーと未追跡）、--range（コミット範囲）、--require-changes（対象が空なら終了コード2）が使える。
+      Slack・JWT・接続文字列などの規則が増え、ダミー値の除外と行ごとの許可の目印は無くなった（現在は使っていない）。
+      置き換え前に配布元版で全履歴の範囲を検査し、検出が0件であることを確かめた。
+      scripts/quality-gates.py の秘密情報スキャンは、これまでと同じ作業ツリーを検査するよう --include-unstaged 付きで呼ぶ。
+      オーナー判断により記録ファイル検証の PostToolUse フック .claude/hooks/validate-records-after-edit.py を置き、
+      .claude/settings.json の hooks.PostToolUse へ登録した（既存の PreToolUse の guard-git-hook と permissions は変えていない）。
+      DESIGN.md の品質ゲートと settings の記述を更新した。文書側の取り込みは CHANGELOG.md に記録した
+    変更ファイル:
+      - scripts/scan-secrets.py
+      - scripts/quality-gates.py
+      - .claude/hooks/validate-records-after-edit.py
+      - .claude/settings.json
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --skip-gradle、python scripts/quality-gates.py --only secrets、
+      配布元版の scan-secrets.py による全履歴の範囲の検査、移した規則とフックの入力別の終了コードの確認
+    検証結果: >-
+      成功 - markdownlint・records・user-guide・secrets がすべて成功した。keystore.properties・secrets.properties・.jks が検出され、
+      .env.example は検出されないことを確かめた。フックは記録ファイルの編集で検証を流して0、それ以外の編集では何もせず0を返した
+      （Gradle の5ゲートはコードを変えていないため流していない。実セッションでのフックの発火は次のセッションから）
 - date: 2026-11-13 11:24
   summary: 記録の画面の品名検索の欄に、編集シートと同じマイクを付けて話した品名で探せるようにする
   details:
