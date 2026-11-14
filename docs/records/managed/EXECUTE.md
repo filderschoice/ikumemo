@@ -5,6 +5,25 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 22:26
+  summary: 下タブの切り替えで 2 段積んだ画面からの復帰と外部起動の経路をテストで固定する
+  details:
+    関連ID:
+      - BL-173
+    変更内容: >-
+      BL-173（点検の要修正への対応で、オーナーの指示により起票せずに完了）。BL-168 の navigateToTab の popBackStack ループに次のテストが無かった。
+      (a) 設定の下の画面（設定、着せ替え）まで 2 段積んだ状態から下タブを押すと、そのタブの一覧まで戻ること。
+      (b) 設定の下の画面を開いた状態から、ウィジェット・ショートカット相当の外部起動（おしらせを開く要求）が来ても、pop の途中の画面を経由して
+      outsideRoute が外れず、おしらせのガイドが出ないこと。(b) は実際に起きるかを確かめたが起きなかった
+      （pop と navigate は同じフレーム内で終わり、再構成の前に最終の画面だけが観測されるため）。修正は入れずテストで固定した。
+      製品コードと下タブの見た目は変えていない。
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/BottomTabSettingsTest.kt
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*BottomTabSettingsTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）
 - date: 2026-11-14 22:30
   summary: 数量の欄の漢数字の変換を、助数詞が続くときだけにする
   details:
