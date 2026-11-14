@@ -5,6 +5,23 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 00:25
+  summary: 見本の色の保存値 seed の 16 進の検証を半角の 0-9・a-f・A-F だけにする
+  details:
+    関連ID:
+      - BL-181
+    変更内容: >-
+      ThemeChoice.fromStorageKey の seed:#RRGGBB の検証が isDigit を使い全角数字なども通していたため、半角の 0-9・a-f・A-F だけを通すようにした。
+      それ以外を含む値は従来の不正値と同じく既定のポップに戻り、半角の大文字・小文字の値は従来どおり読める。仕様はオーナーの回答（半角に絞る）による
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeChoiceTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeChoiceTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（ThemeChoiceTest に全角数字・全角英字・範囲外の英字・半角の大文字小文字のテストを追加。フル検証・Android Lint・assembleDebug は未実施。見た目の変更は無い）
 - date: 2026-11-15 00:19
   summary: データの書き出しのテーマを、画面用に置き換える前の保存値で書くようにする
   details:

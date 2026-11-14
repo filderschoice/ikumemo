@@ -71,7 +71,7 @@ sealed interface ThemeChoice {
 
         private fun seedOf(key: String): Seed? {
             val hex = key.removePrefix(SEED_PREFIX)
-            val valid = hex.length == RGB_DIGITS && hex.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+            val valid = hex.length == RGB_DIGITS && hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }
             return if (valid) seed(hex.toLong(radix = 16)) else null
         }
     }

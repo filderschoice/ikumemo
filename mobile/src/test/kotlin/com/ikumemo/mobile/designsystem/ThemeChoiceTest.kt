@@ -33,6 +33,17 @@ class ThemeChoiceTest {
     }
 
     @Test
+    fun seedKeyAcceptsOnlyHalfWidthHex() {
+        val expected = ThemeChoice.seed(0xAB12EFL)
+        assertEquals(expected, ThemeChoice.fromStorageKey("seed:#AB12EF"))
+        assertEquals(expected, ThemeChoice.fromStorageKey("seed:#ab12ef"))
+        // 全角の数字・英字は不正値として既定に戻す
+        assertEquals(ThemeChoice.DEFAULT, ThemeChoice.fromStorageKey("seed:#１２３４５６"))
+        assertEquals(ThemeChoice.DEFAULT, ThemeChoice.fromStorageKey("seed:#ＡB12EF"))
+        assertEquals(ThemeChoice.DEFAULT, ThemeChoice.fromStorageKey("seed:#12345G"))
+    }
+
+    @Test
     fun dynamicColorNeedsAndroid12() {
         assertFalse(DynamicColor.isAvailable(sdkInt = 30))
         assertTrue(DynamicColor.isAvailable(sdkInt = 31))
