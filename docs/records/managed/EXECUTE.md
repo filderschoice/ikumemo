@@ -5,6 +5,24 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 00:37
+  summary: 数量が「〇」だけのとき 0 にせず元の文字のまま残す
+  details:
+    関連ID:
+      - BL-185
+    変更内容: >-
+      手入力の数量の正規化（QuantityText.normalize）で、先頭の漢数字が「〇」だけ（〇〇も含む）で助数詞が続かないとき 0 になっていた経路を直し、元の文字のまま残すようにした。
+      「〇個」など助数詞付き（0個）、「〇分」など助数詞でない語（そのまま）、ほかの漢数字・算用数字の扱いは変えていない。
+      音声入力は助数詞が続かない語を数量に分けないため、この経路だけが原因だった。使い方の説明に該当する記述は無い
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/voice/QuantityText.kt
+      - core/src/test/kotlin/com/ikumemo/core/voice/QuantityTextTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*QuantityTextTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug は未実施）
 - date: 2026-11-15 00:27
   summary: おまかせ（壁紙の色）の配色の分岐を Android の版ごとに単体テストで確かめられるようにする
   details:

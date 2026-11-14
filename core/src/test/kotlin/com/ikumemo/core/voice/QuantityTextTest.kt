@@ -26,6 +26,10 @@ class QuantityTextTest {
         assertEquals("一部", QuantityText.normalize("一部"))
         assertEquals("一杯", QuantityText.normalize("一杯"))
         assertEquals("二本ずつ", QuantityText.normalize("二本ずつ"))
+        assertEquals("〇", QuantityText.normalize("〇"))
+        assertEquals("〇〇", QuantityText.normalize("〇〇"))
+        assertEquals("〇分", QuantityText.normalize("〇分"))
+        assertEquals("0個", QuantityText.normalize("〇個"))
         assertEquals("2本", QuantityText.normalize("２本"))
     }
 
