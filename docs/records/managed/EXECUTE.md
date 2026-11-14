@@ -5,6 +5,31 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 22:00
+  summary: Baseline Profile を実機の Macrobenchmark で作り直し、コールドスタートを計測する
+  details:
+    変更内容: >-
+      BL-100。:baselineprofile モジュールで USB 接続の Pixel 8 Pro（Android 17）から規則を生成し（mobile/src/release/generated/baselineProfiles/）、
+      旧 mobile/src/main/baseline-prof.txt（7 行の広い規則）を削除して置き換えた。前回の startActivityAndWait の失敗（Unable to confirm activity launch completion）は、
+      アプリのクラッシュではなく（logcat で Displayed +151ms を確認）、benchmark-macro 1.3.4 が Android 17 に未対応なためで、androidx.baselineprofile・benchmark-macro を 1.4.1 に上げて解消した。
+      規則あり計測は対象アプリの profileinstaller が 1.4.0 未満だと API 34 以降で失敗するため、profileinstaller を 1.3.1 から 1.4.1 に上げた。
+      計測（Pixel 8 Pro、コールドスタート 10 回、timeToInitialDisplayMs）は規則なし 中央値 186.3ms（最小 163.3・最大 240.8）、規則あり 中央値 182.3ms（最小 162.3・最大 202.9）。
+      上位機のため差は小さい。中級機での 1.5 秒以内の確認は BL-171（人手検証）。計測用に入れた com.ikumemo.mobile と baselineprofile は端末から消えている。
+    変更ファイル:
+      - gradle/libs.versions.toml
+      - mobile/build.gradle.kts
+      - mobile/src/main/baseline-prof.txt
+      - mobile/src/release/generated/baselineProfiles/baseline-prof.txt
+      - mobile/src/release/generated/baselineProfiles/startup-prof.txt
+      - docs/BASELINE_PROFILE.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ANDROID_SERIAL=39181FDJG008MY ./gradlew :mobile:generateBaselineProfile、同 :baselineprofile:connectedBenchmarkReleaseAndroidTest、
+      python scripts/quality-gates.py（フル検証）
+    検証結果: >-
+      成功 - 生成・計測とも成功。フル検証は ktlint・detekt・Android Lint・単体テスト・assembleDebug・記録ファイル・使い方・秘密情報が成功。Markdown 静的解析は行長の指摘を直して再実行し成功
 - date: 2026-11-14 15:57
   summary: 背景の写真とペンの色しろで、明るいテーマの面の中の文字が白になって読めない不具合を直す
   details:
