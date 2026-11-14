@@ -317,3 +317,36 @@ Google Play 公開とクローズドテストに使う文書を作りました�
 - `.claude/agents/backlog-task-implementer.md` の `model` を `opus` から `sonnet` へ変えた。`change-reviewer`（sonnet）と
   `quality-gate-runner`（haiku）は変えていない。`autonomous-loop`「モデルの選び方」は同スキルへの参照に改めた
 - Sonnet での実装の品質とやり直しの回数は未計測。利用量の目安（2026-11-13 の実測、実装は Opus）をスキルに載せた
+
+## 2026-11-14（ガードレール配布元 copilot-rules 0.30.0 の追従）
+
+配布元 copilot-rules 0.30.0（`dist/copilot-rules-v0.30.0`）を Skill `guardrail-rules-sync` の手順で取り込みました。
+スクリプトとフックの変更は `EXECUTE.md` に記録しています。
+
+- そのままコピー: `docs/guidelines/ADOPTION.md`、`CONTRIBUTING.md`（自律ループのコミット前の秘密情報スキャンのコマンド、
+  `.claude/agents/` の構成表の行）、`.claude/skills/docs-consistency-review/SKILL.md`（`scripts/check-links.py` が無い場合は
+  従来の簡易版のまま）
+- `rules/guardrails-unified.v1.md`: オーナー判断（2026-11-14）により、配布元版へ置き換えた。12.7「サブエージェントへの委任」は
+  ikumemo 版（BL-123、2026-11-13 承認）の5点から配布元版の7点（委任で権限が広がらない、委任先の報告・出力は 3.2 の
+  信頼できない入力、要確認と安全性の判断は委任元へ集約、委任文に開始指示の原文と許可範囲を書き原文の無い委任先はコミットしない、
+  12.6 の監査の対象、同じ作業ツリーへ書き込む委任先を同時に動かさない など）に変わり、12.1 の `CLAUDE.md` への参照は配布元に合わせて
+  外した（コマンドの正本は引き続き `CLAUDE.md` の品質ゲート表）。ikumemo 版にあった「1タスク1コミット」は `CONTRIBUTING.md`、
+  「起動と結果を追跡できるようにする」は新しい 12.7 の 12.6 監査の項目で引き続き求められる。統制を強める方向の変更で、
+  guardrails 10 の重大変更としてオーナーが承認した。最終レビュー日は 2026-11-14
+- `CLAUDE.md`: 品質ゲート表の秘密情報スキャンの行を、場面ごとの3通り（`git add` の後の `--require-changes`、ステージしない場面の
+  `--include-unstaged`、PR作成前とループの最後の `--range main...HEAD --require-changes`）へ置き換え、一括実行の説明に
+  `--include-unstaged` を足した。記録ファイルの権限設定へ検証フックの説明を、自律ループの統制要件の行へ 12.7 の言及を足した
+- 12.7 の新しい要件（委任文に開始指示の原文）と秘密情報スキャンのコマンドに合わせ、ikumemo 版の `autonomous-loop`
+  （イテレーション手順 2・5・7、委任の指示に入れる項目、完了条件）、`loop-orchestration`（委任の指示の型）、`pr-create`
+  （最後のコミットで全ゲートと `--range` の秘密情報スキャン。`model: haiku` は残した）、`backlog-task-implementer`
+  （原文が無ければコミットしない、`git add` の後にスキャン）を直した
+- オーナー判断により、配布元のサブエージェント定義のうち `backlog-planner`（計画担当、opus、実装しない）だけを追加し、
+  `loop-orchestration` の役割表と `autonomous-loop` に載せた。配布元の `backlog-implementer`・`diff-reviewer`・`quality-gate-runner`
+  と配布元版の `loop-orchestration` は、ikumemo 版（`backlog-task-implementer`・`change-reviewer`・`quality-gate-runner`・
+  ikumemo 版の `loop-orchestration`）と役割が重なるため取り込まない。`autonomous-loop` の配布元版の「オーケストレータと
+  サブエージェントの分担」節も、配布元の定義名を前提にしているため取り込まず、ikumemo 版の「サブエージェントへの委任」を残した
+- 取り込まないもの: `.github/CODEOWNERS`（ikumemo の担当者へ置き換え済み）、`templates/project-profile-SKILL-template.md`
+  （任意。ikumemo の固有の事情は `CLAUDE.md`・`DESIGN.md`・固有スキルにある）、品質ゲートの「段階」列（任意。ikumemo は
+  軽い検証とフル検証の使い分けで同じことをしている）、`scripts/validate-records.py`（ikumemo 版は配布元版の検査に加え
+  CRLF・`担当`・EXECUTE の `関連ID` との採番の衝突を検査しており、配布元版で記録ファイルが合格することも確かめた）
+- 規範そのものの追加・削除は、オーナーが承認した 12.7 の置き換えだけ

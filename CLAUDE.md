@@ -29,11 +29,11 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 | Markdown の静的解析 | `npx markdownlint-cli2 "**/*.md" --config .markdownlint-cli2.yaml` | `Summary: 0 issues`、かつ出力の `Linting: N files` が `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致（対象漏れの検出） |
 | 記録ファイルの検証 | `python scripts/validate-records.py`（PyYAMLが必要） | 終了コード0 |
 | 使い方の Web 版 | `python scripts/make-user-guide.py --check` | 終了コード0（`docs/USER_GUIDE.md` がアプリ内の使い方の正本 `mobile/src/main/assets/help/` と一致。正本を直したら `python scripts/make-user-guide.py` で作り直す） |
-| 秘密情報スキャン | `python scripts/scan-secrets.py` | 終了コード0（作業ツリーの変更・未追跡のファイルに秘密鍵・API キー・トークン・署名のパスワードが無く、署名鍵・資格情報のファイルが Git の対象外。guardrails 12.1 のコミット前のスキャン） |
+| 秘密情報スキャン | ステージ済みの変更がある場面（コミット前）は `git add` の後に `python scripts/scan-secrets.py --require-changes`、ステージしない場面（対話実行・Copilot・一括実行）は `python scripts/scan-secrets.py --include-unstaged`、PR作成前・ループの最後は `python scripts/scan-secrets.py --range main...HEAD --require-changes`（標準ライブラリのみ。未コミットの変更とコミット範囲の両方を確かめるときは2回に分けて実行する。ファイルの削除だけをコミットする場面は検査対象が空になるため `--require-changes` を外す） | 終了コード0（検出時は値を出さずにファイル・行・規則名を表示し1。`--require-changes` 付きで検査対象が空のとき、git の実行に失敗したときは2。guardrails 12.1 のコミット前のスキャン） |
 | 一括実行 | `python scripts/quality-gates.py` | 終了コード0（上の全ゲートを順に流す。下記） |
 
 - `python scripts/quality-gates.py` は上の表と同じコマンドを順に流す（`./gradlew --stop` → Gradle の5ゲートを1回の呼び出しで
-  → markdownlint（件数の照合まで）→ 記録ファイル → 使い方の Web 版 → 秘密情報スキャン）。ゲートの定義の正本は上の表で、
+  → markdownlint（件数の照合まで）→ 記録ファイル → 使い方の Web 版 → 秘密情報スキャン（`--include-unstaged`））。ゲートの定義の正本は上の表で、
   表を変えたらスクリプトの `GRADLE_GATES`・`OTHER_GATES` も合わせる。出力は成功したゲートが1行、失敗したゲートは原因の抜粋だけ
   （全文は `build/quality-gates/*.log`）、最後に合否の表。文書だけの変更は `--skip-gradle`、一部だけは `--only ktlint,detekt`
   （名前は `--list`）。Git Bash・PowerShell のどちらからでも `python` で起動できる
@@ -58,6 +58,9 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 
 `docs/records/managed/` 配下の3ファイルは `.claude/settings.json` の `permissions.allow` により権限プロンプトなしで
 編集できます（妥当性はコミット前の差分確認と `FORMAT.md` 準拠で担保する）。それ以外の編集は確認を挟みます。
+3ファイルを編集すると、`.claude/settings.json` の `hooks` に登録した PostToolUse フック
+（`.claude/hooks/validate-records-after-edit.py`）が `scripts/validate-records.py` を実行します。検証に失敗したと
+伝えられたら、一連の編集を終えた時点で `FORMAT.md` に沿って直します（フックは編集を取り消しません）。
 
 <!-- 配布バンドルの .claude/settings.json は記録ファイル関連の許可のみを含む。本リポジトリ固有の許可を追加する
 場合は、確認を挟まずに編集させてよい範囲かを判断してから permissions.allow へ追記する。 -->
@@ -72,8 +75,9 @@ Claude Code 固有の差分と追加規約です。全エージェント共通�
 - **適用条件（MUST）**: ユーザーが開始を明示的に指示していること。指示されたスコープ内でのみ有効で、
   ループ終了と同時に通常の対話モードへ戻る。満たさない場合は `git add` / `git commit` を実行してはならない
 - **起動方法（MUST）**: Skill `autonomous-loop` を起動し、その手順に従う。手順を記憶や推測で代用しない
-- 統制要件（禁止操作・停止条件・秘密情報の取り扱い）は常時読み込みの `rules/guardrails-unified.v1.md`
-  セクション12、ブランチ・コミット規約は `CONTRIBUTING.md`「自律ループ実行モードのブランチ・コミット規約」が正本
+- 統制要件（禁止操作・停止条件・秘密情報の取り扱い。サブエージェントへの委任時は 12.7）は常時読み込みの
+  `rules/guardrails-unified.v1.md` セクション12、ブランチ・コミット規約は `CONTRIBUTING.md`「自律ループ実行モードの
+  ブランチ・コミット規約」が正本
 
 ## 保守
 

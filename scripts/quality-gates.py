@@ -11,7 +11,7 @@
    `git ls-files --cached --others --exclude-standard "*.md"` の件数と一致すること）
 4. `python scripts/validate-records.py`
 5. `python scripts/make-user-guide.py --check`
-6. `python scripts/scan-secrets.py`（コミット前の秘密情報スキャン）
+6. `python scripts/scan-secrets.py --include-unstaged`（秘密情報スキャン。作業ツリーの変更と未追跡のファイル）
 
 出力は、成功したゲートは 1 行、失敗したゲートは原因の分かる抜粋だけ（全文は build/quality-gates/ のログ）、
 最後にゲートごとの合否と所要時間の表。呼び出したエージェントの文脈を圧迫しないよう、出力を短く保つ。
@@ -276,7 +276,7 @@ def run_other(gate: str) -> tuple[bool, float, list[str]]:
         return run_python(gate, ["scripts/validate-records.py"])
     if gate == "user-guide":
         return run_python(gate, ["scripts/make-user-guide.py", "--check"])
-    return run_python(gate, ["scripts/scan-secrets.py"])
+    return run_python(gate, ["scripts/scan-secrets.py", "--include-unstaged"])
 
 
 def report(gate: str, ok: bool, seconds: float, lines: list[str]) -> None:

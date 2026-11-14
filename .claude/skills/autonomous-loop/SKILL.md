@@ -29,15 +29,18 @@ description: 自律ループ実行モード（Loop Engineering）の実行手順
 1件のタスクにつき以下を1サイクルとして実行し、次のタスクへ進みます。
 
 1. `BACKLOG.md` から次のタスクを選択する（選択規則は後述）
-2. 対象タスクの `状態` を `進行中` へ更新する
+2. 対象タスクの `状態` を `進行中` へ更新する（そのイテレーションで完了し、同じコミットで BACKLOG から削除するタスクは
+   省いてよい。途中で止める・複数のコミットにまたがる・完了条件が残って `進行中` のまま残す場合は更新する）
 3. 変更を実施する
 4. 軽い検証を流す（`python scripts/quality-gates.py --quick --tests "*<関係するテストクラス>"`、文書だけの変更は `--skip-gradle`）。
    いつ何を流すかの正本は `CLAUDE.md`「本リポジトリの品質ゲート定義」。全ゲート（フル検証）はループの最後と止める前に流す
-5. 失敗した場合は修正し再実行する。同一原因で3回連続して解消できない場合はループを停止する
+5. 失敗した場合は修正し再実行する。同一原因で3回連続して解消できない場合はループを停止する（ループの最後のフル検証で
+   見つかった失敗も同じ。amend・rebase は禁止のため、修正は新しいコミットとして積む）
 6. 記録ファイルを更新する（`BACKLOG.md` の完了項目を削除し、コード修正を伴う場合は `EXECUTE.md` へ
    追記、設計方針が変わった場合は `DESIGN.md` を更新、ドキュメント・ルールのみの変更は `CHANGELOG.md`）
-7. `git status` と `git diff` で差分を確認し、`python scripts/scan-secrets.py` を `git add` の前に流して資格情報の混入がないこと
-   （終了コード0）を確かめる。個人情報の混入は差分を読んで確かめる
+7. `git status` と `git diff` で差分を確認し、`git add` の後に `python scripts/scan-secrets.py --require-changes` を流して
+   資格情報の混入がないこと（終了コード0）を確かめる（guardrails 12.1。検査対象が空なら2になり、ステージ漏れを合格と
+   取り違えない）。個人情報の混入はスクリプトの対象外のため、差分を読んで確かめる
 8. 作業ブランチへコミットする（1イテレーション1コミット、本文に対象タスクの `id` を列挙）
 
 ## サブエージェントへの委任（MUST）
@@ -57,14 +60,18 @@ Skill `loop-orchestration` が正本です。
 - **ゲート実行担当の定義**: ループの最後や止める前のフル検証は、`.claude/agents/quality-gate-runner.md`
   （subagent_type `quality-gate-runner`、`haiku`）に任せると、全ゲートの成否の表と失敗の要約だけが返る。修正はしないため、
   失敗は実装担当へ渡して直させる。実装担当が Gradle を流している間は呼ばない（直列で進める）
+- **計画担当の定義**: 第1イテレーションのタスク分解（現状調査・BACKLOG への起票・要確認と人手検証の振り分け）を委ねる場合は、
+  `.claude/agents/backlog-planner.md`（subagent_type `backlog-planner`、`opus`、実装しない）を使う。編集するのは `BACKLOG.md` と
+  `CHANGELOG.md` だけで、検証は `--skip-gradle` 相当の文書のゲートに限る
 - **点検担当の定義**: 実装担当の完了後・コミット前（範囲に「未コミット」を指定）、または委任先がコミットした後
   （既定の直近 1 コミット）に `.claude/agents/change-reviewer.md`
   （subagent_type `change-reviewer`、`sonnet`、編集しない）へ範囲と `id` を渡すと、完了条件・記録の書き分け・暗黙の仕様変更・
   アプリの作法・秘密情報・テストの観点の指摘が「重大／要修正／提案」の 3 段で返る。直すときは実装担当へ渡し、別のコミットにする
 - **委任の指示に必ず入れる項目**:
+  - ユーザーの自律ループ開始指示の原文（抜粋）と許可範囲（guardrails 12.7。原文の無い委任先は `git add` / `git commit` をしない）
   - 対象の `id` は1件だけで、仕様は `BACKLOG.md` の該当タスクであること
   - 禁止操作（guardrails 12.2）
-  - 検証は軽い検証（`--quick --tests`、コードを触らないタスクは `--skip-gradle`）、秘密情報は `python scripts/scan-secrets.py`。
+  - 検証は軽い検証（`--quick --tests`、コードを触らないタスクは `--skip-gradle`）、秘密情報は `git add` の後に `python scripts/scan-secrets.py --require-changes`。
     フル検証はオーケストレータが担当へ明示して流させる
   - 検証とコミットを1つのコマンドで繋がないこと
   - 同じ原因の失敗が3回続いたら、コミットせずに止めること
@@ -136,7 +143,8 @@ Skill `loop-orchestration` が正本です。
 以下をすべて満たした時点でループを終了し、ユーザーへ報告します。
 
 - `BACKLOG.md` に `区分: 人手検証` と `状態: 要確認` 以外の未完了タスクが存在しない
-- 最後のイテレーションの後にフル検証（`python scripts/quality-gates.py`、引数なし）を1回流し、すべて成功している
+- 最後のイテレーションの後にフル検証（`python scripts/quality-gates.py`、引数なし）を1回流し、すべて成功している。
+  あわせて `python scripts/scan-secrets.py --range main...HEAD --require-changes` でループのコミット全体を検査し、終了コード0を確かめる
 - `DESIGN.md` が実施済み内容と整合している
 
 停止条件（禁止操作への到達、品質ゲートの同一原因3回連続失敗、実行可能タスクの枯渇など）に該当した場合も

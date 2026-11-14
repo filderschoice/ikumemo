@@ -262,7 +262,9 @@
 - 品質ゲートは `CLAUDE.md`「本リポジトリの品質ゲート定義」が正本（ktlintCheck・detekt・lintDebug・
   testDebugUnitTest :core:test・assembleDebug、markdownlint、記録ファイルの検証、使い方の Web 版、秘密情報スキャン）。
   `scripts/quality-gates.py` が表と同じコマンドを順に流して合否を短くまとめ、`scripts/scan-secrets.py` がコミット前の
-  秘密情報スキャン（変更行と未追跡のファイル、署名鍵のファイル名。値は表示しない）を行う。自律ループの各イテレーションは
+  秘密情報スキャン（配布元 copilot-rules 0.30.0 版に ikumemo 固有のファイル名 `keystore.properties`・`secrets.properties` を足したもの。
+  既定はステージ済みの差分、`--include-unstaged` で作業ツリーと未追跡、`--range main...HEAD` でコミット範囲を検査し、
+  `--require-changes` で検査対象が空のときを不合格にする。値は表示しない）を行う。一括実行は `--include-unstaged` で流す。自律ループの各イテレーションは
   `--quick --tests` の軽い検証（ktlint・detekt・コンパイル・指定したテストだけ）、フル検証はループの最後と止める前に流す。時間のかかるテストは
   `@Category(SlowTest::class)` を付け、`-PslowTests` の時だけ流す。Gradle のビルドキャッシュを使う
 - `.claude/settings.json` は、記録ファイル 3 つの編集に加え、品質ゲートのコマンド（`./gradlew` の各ゲートと `--stop`、
@@ -274,7 +276,9 @@
   `bash -c` の中も見る。引用符の中の語は 1 語として扱い、引数の中の git と bash のヒアドキュメントの本文は見ないため、
   コミットメッセージや grep の検索語の push では止めない）。
   フックは止めるときだけ終了コード 2 と日本語の理由を返し、入力が読めないなどフック自身の異常では終了コード 0 で通す。
-  判定の例は `python scripts/guard-git-hook.py --self-test` で確かめる
+  判定の例は `python scripts/guard-git-hook.py --self-test` で確かめる。
+  PostToolUse フック `.claude/hooks/validate-records-after-edit.py`（配布元 0.30.0）は、記録ファイル 3 つを Edit・Write した直後に
+  `scripts/validate-records.py` を流し、失敗を終了コード 2 で Claude へ返す（編集は取り消さない。検証できない環境では終了コード 1 で妨げない）
 
 ### 運用制約
 

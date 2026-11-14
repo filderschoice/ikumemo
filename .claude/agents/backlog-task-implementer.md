@@ -12,7 +12,8 @@ model: sonnet
 
 ## 1. 着手前（この順で読む）
 
-1. `git branch --show-current` で作業ブランチ（規定ブランチ `main` 以外）にいることを確かめる。`main` なら何もせず報告する
+1. `git branch --show-current` で作業ブランチ（規定ブランチ `main` 以外）にいることを確かめる。`main` なら何もせず報告する。
+   委任の指示にユーザーの自律ループ開始指示の原文（抜粋）が無ければ、実装と検証までにとどめ、`git add` / `git commit` はしない（guardrails 12.7）
 2. `.claude/skills/autonomous-loop/SKILL.md` の「サブエージェントへの委任」を読んで従う（禁止操作・報告の形・承認の扱いはそこが正本）
 3. `BACKLOG.md` の該当タスクを読む。`状態` が `要確認`・`ブロック`、`区分` が `人手検証`、`依存` に未完了の id があれば着手せず報告する
 4. `docs/records/managed/DESIGN.md` は関係する節だけを検索して読む。記録を書く前に `docs/records/spec/FORMAT.md` を読む
@@ -50,8 +51,9 @@ model: sonnet
 ## 5. コミット
 
 1. `git status` と `git diff` で、意図したファイルだけが変わっていることと個人情報が無いことを確かめる
-2. `python scripts/scan-secrets.py` が終了コード 0
-3. 検証とは**別のコマンド**で `git add <対象ファイルを明示>` → `git commit`。検証とコミットを `;`・`&&` で繋がない
+2. 検証とは**別のコマンド**で `git add <対象ファイルを明示>` する
+3. `python scripts/scan-secrets.py --require-changes` が終了コード 0 であることを確かめてから、別のコマンドで `git commit`。
+   検証とコミットを `;`・`&&` で繋がない
 4. メッセージは Conventional Commits、タイトル行に絵文字 1 つ、本文は日本語で絵文字なし、本文に対象の id を書く。
    末尾は `Co-Authored-By: <実際に動いたモデルの名前> <noreply@anthropic.com>`（ハーネスがコミット用に指定する行があればそれに従う）
 5. 禁止: `git push`、`--no-verify`、`commit --amend`・`rebase`・`reset --hard`、ブランチ・タグの削除、`rules/` と `.claude/settings.json` の変更
