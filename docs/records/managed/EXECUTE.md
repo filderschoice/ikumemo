@@ -5,6 +5,31 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-14 22:54
+  summary: プリセットテーマ 4 種の背景・面・アクセントを色の系統で分ける
+  details:
+    関連ID:
+      - BL-175
+    変更内容: >-
+      4 種とも背景と面がほぼ白でアクセントだけが違い、ポップとやさしいはピンク系、クールとシンプルは暗い無彩色寄りで近く見えていた。
+      ポップはコーラルオレンジ（背景 FFF4EC、アクセント B5381C、副色アンバー）、やさしいはセージグリーン（背景 EEF5EB、アクセント 4A6B4F、
+      副色にくすみピンク）、クールは青みの背景（EDF2FD）で紺のまま、シンプルは白黒のまま（青の副色）とし、明るい・暗いの両方の色を直した。
+      ポップの角の丸みをやさしいと別にした（16・28・36 dp）。背景と面は従来どおり同じ色にし、面の中の文字は BL-170 の onSurface のまま変えない。
+      storageKey・表示名・ThemePreset の構造は変えていない。ウィジェットは WidgetColors がパレットを読むため変更なしで新しい配色に従う。
+      テーマごとのパレットを 1 か所（ThemePreset）に並べる形のままなので、BL-176・BL-177 は同じ IkumemoPalette を返す生成を足せばよい。
+      ThemeDistinctTest で、色付き 3 種の背景とアクセントの色相差が 40 度以上、シンプルの背景が無彩色、角の丸みが全テーマで別であることを確かめ、
+      既存の ThemeContrastTest（全ペア 4.5:1 以上）・InkColorTest・PhotoInkTest も通った。
+      見た目が変わるため、スクリーンショットテストは流していない。記録し直しが必要なのは MainScreensScreenshotTest の memo・calendar・reminder
+      （全画面。テーマの背景と面の色が変わるため）。
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemePreset.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeDistinctTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeDistinctTest" --tests "*ThemeContrastTest" --tests "*InkColorTest" --tests "*PhotoInkTest" --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - 軽い検証（フル検証は未実施）。スクリーンショットテストは未実施（記録し直しが必要）
 - date: 2026-11-14 22:46
   summary: 背景の写真の上に直接置く文字（副題・見出し・チップ・ボタン）をペンの色にする
   details:
