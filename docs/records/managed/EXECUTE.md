@@ -5,6 +5,24 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 00:27
+  summary: おまかせ（壁紙の色）の配色の分岐を Android の版ごとに単体テストで確かめられるようにする
+  details:
+    関連ID:
+      - BL-182
+    変更内容: >-
+      ThemeChoice.palette(context, darkTheme) に既定引数 sdkInt（既定は Build.VERSION.SDK_INT）と wallpaperColors（既定は端末の壁紙の配色）を足し、版の判定と壁紙の配色の取得を差し替えられるようにした。
+      本番の呼び出し側は引数を渡さないため挙動は変わらない。ThemeChoiceTest に、Android 11 以前（30）は壁紙の配色を呼ばず既定のポップの配色になること、
+      Android 12 以降（31）は壁紙の配色（明るい・暗いの両方）になることを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/ThemeChoice.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/ThemeChoiceTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ThemeChoiceTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug は未実施。見た目の変更は無い）
 - date: 2026-11-15 00:25
   summary: 見本の色の保存値 seed の 16 進の検証を半角の 0-9・a-f・A-F だけにする
   details:

@@ -97,17 +97,26 @@ fun ThemeChoice.availableOr(
 fun ThemeChoice.palette(
     context: Context,
     darkTheme: Boolean,
+    sdkInt: Int = Build.VERSION.SDK_INT,
+    wallpaperColors: (Context, Boolean) -> IkumemoPalette = ::deviceWallpaperPalette,
 ): IkumemoPalette =
     when (this) {
         is ThemePreset -> palette(darkTheme)
         is ThemeChoice.Seed -> palette(darkTheme)
         ThemeChoice.Wallpaper ->
-            if (DynamicColor.isAvailable()) {
-                wallpaperPalette(context, darkTheme)
+            if (DynamicColor.isAvailable(sdkInt)) {
+                wallpaperColors(context, darkTheme)
             } else {
                 ThemePreset.DEFAULT.palette(darkTheme)
             }
     }
+
+/** 端末の壁紙の色の配色。呼ぶのは [DynamicColor.isAvailable] を確かめた後だけ（単体テストでは差し替える）。 */
+private fun deviceWallpaperPalette(
+    context: Context,
+    darkTheme: Boolean,
+): IkumemoPalette =
+    if (DynamicColor.isAvailable()) wallpaperPalette(context, darkTheme) else ThemePreset.DEFAULT.palette(darkTheme)
 
 @RequiresApi(Build.VERSION_CODES.S)
 private fun wallpaperPalette(

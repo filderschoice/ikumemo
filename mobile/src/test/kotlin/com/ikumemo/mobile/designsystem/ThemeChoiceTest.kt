@@ -1,12 +1,19 @@
 package com.ikumemo.mobile.designsystem
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /** BL-176 の完了条件のうち、保存値の読み方と「おまかせ」を選べる条件（Android 12 以降）。 */
+@RunWith(RobolectricTestRunner::class)
 class ThemeChoiceTest {
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+
     @Test
     fun presetKeysStayAsBefore() {
         // 保存済みのプリセットの選択が変わらないよう、従来の値をそのまま読む
@@ -58,5 +65,33 @@ class ThemeChoiceTest {
         ThemePreset.entries.forEach { preset ->
             assertEquals(preset, preset.availableOr(fallback, wallpaperAvailable = false))
         }
+    }
+
+    @Test
+    fun wallpaperPaletteUsesDefaultBeforeAndroid12() {
+        var called = false
+        val palette =
+            ThemeChoice.Wallpaper.palette(context, darkTheme = false, sdkInt = 30) { _, _ ->
+                called = true
+                WALLPAPER_MARK
+            }
+        assertFalse(called)
+        assertEquals(ThemePreset.DEFAULT.palette(false), palette)
+    }
+
+    @Test
+    fun wallpaperPaletteUsesWallpaperColorsFromAndroid12() {
+        listOf(false, true).forEach { dark ->
+            val palette =
+                ThemeChoice.Wallpaper.palette(context, darkTheme = dark, sdkInt = 31) { _, isDark ->
+                    assertEquals(dark, isDark)
+                    WALLPAPER_MARK
+                }
+            assertEquals(WALLPAPER_MARK, palette)
+        }
+    }
+
+    private companion object {
+        val WALLPAPER_MARK = ThemePreset.DEFAULT.palette(false).copy(primary = 0x12345678L)
     }
 }
