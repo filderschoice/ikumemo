@@ -154,17 +154,6 @@
     Markdown の静的解析が合格する
   依存: []
   根拠: 文言の正本は STORE_LISTING.md と使い方（mobile/src/main/assets/help/）で、それに合わせるだけの変更のため自動のタスクにした。公開（push）は BL-219
-- id: BL-212
-  区分: 品質ゲート
-  タスク内容: >-
-    README.md を現状に合わせる。「開発の状況」をリポジトリ公開済み・ご意見フォーム受付中・クローズドテストの準備中に直し、
-    紹介ページ（https://filderschoice.github.io/ikumemo/）へのリンクを足す。プロジェクト構成の表へ site/（紹介ページと転送ページ）・docs/store/images/・
-    baselineprofile/ を、関連ドキュメントへ site/README.md・docs/BASELINE_PROFILE.md を足す
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: README.md の構成表と関連ドキュメントが実在のファイルと一致し、Markdown の静的解析が合格する
-  依存: []
 - id: BL-150
   区分: 人手検証
   タスク内容: >-
