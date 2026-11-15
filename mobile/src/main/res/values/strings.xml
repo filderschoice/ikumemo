@@ -14,6 +14,7 @@
     <string name="voice_listening">聞いています</string>
     <string name="voice_partial">「%1$s」</string>
     <string name="voice_add_all">追加する</string>
+    <string name="voice_add_and_continue">追加して、つづけて話す</string>
     <string name="voice_add_count">%1$dつ追加する</string>
     <string name="voice_restore_card">戻す</string>
     <string name="voice_retry">もう一度話す</string>

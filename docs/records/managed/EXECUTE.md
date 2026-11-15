@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 10:45
+  summary: 話して追加の確認カードに「追加して、つづけて話す」を足す（案 d）
+  details:
+    関連ID:
+      - BL-191
+    変更内容: >-
+      オーナーが 2026-11-15 に案 (d) を選んだ（自動再開 (a) には進まない）。確認カードの「追加する」はそのまま残し、下に「追加して、つづけて話す」（48dp 以上）を足した。
+      押すと VoiceInputEvent.AddAllAndContinue で確認中の品を追加し、Added を経ずに start() で Listening へ戻る。シートは閉じず、止め方は既存どおり（シートを閉じる・5 秒無音で NotHeard）。
+      確認してから追加する原則（R-01・R-42）は保つ。確認カードの部品はウィジェットの VoiceSheetActivity と共用のため、ウィジェット経由でも同じに動き、追加後に Activity は閉じない（既定値で共用のまま）。
+      使い方（help/voice.md）と DESIGN.md の R-30・R-31 の行へ反映。見た目が変わるため、確認カードが写るスクリーンショットは記録し直しが要る（本コミットでは流していない）。
+      実機の連続確認は BL-192 へ足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceConfirmCards.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/voice.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputViewModelTest" --tests "*VoiceInputContentTest" --tests "*VoiceSheetActivityTest"、python scripts/make-user-guide.py、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。確認カードが写るスクリーンショットは無く、記録し直しは不要。実機は未確認）
 - date: 2026-11-15 10:43
   summary: 話して追加を 1 回完了したあと続けて使えない不具合を直す（古い追加済みの状態が残る・recognizer の使い回し）
   details:

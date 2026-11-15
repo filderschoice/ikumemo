@@ -198,6 +198,7 @@ fun Context.openAppSettings() {
 object VoiceTestTags {
     const val PARTIAL = "voice_partial"
     const val ADD_ALL = "voice_add_all"
+    const val ADD_AND_CONTINUE = "voice_add_and_continue"
     const val GUIDANCE = "voice_guidance"
 
     fun card(key: Int) = "voice_card_$key"

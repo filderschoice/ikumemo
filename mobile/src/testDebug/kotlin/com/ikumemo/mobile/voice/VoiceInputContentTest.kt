@@ -65,6 +65,18 @@ class VoiceInputContentTest {
     }
 
     @Test
+    fun addAndContinueButtonAddsAndListensAgain() {
+        engine.autoResults = listOf("牛乳")
+        composeRule.runOnIdle { viewModel.onEvent(VoiceInputEvent.Start) }
+
+        composeRule.awaitTag(VoiceTestTags.card(0))
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_AND_CONTINUE).performClick()
+
+        composeRule.awaitCondition { engine.startCount == 2 }
+        check(runBlocking { repository.observeItems().first() }.map { it.displayName } == listOf("牛乳"))
+    }
+
+    @Test
     fun twoCardsAreShownAndAdded() {
         engine.autoResults = listOf("牛乳2本とたまご")
         composeRule.runOnIdle { viewModel.onEvent(VoiceInputEvent.Start) }

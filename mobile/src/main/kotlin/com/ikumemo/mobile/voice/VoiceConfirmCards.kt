@@ -59,6 +59,13 @@ internal fun ConfirmCards(
             },
         )
     }
+    OutlinedButton(
+        onClick = { onEvent(VoiceInputEvent.AddAllAndContinue) },
+        enabled = includedCount > 0,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(VoiceTestTags.ADD_AND_CONTINUE),
+    ) {
+        Text(stringResource(R.string.voice_add_and_continue))
+    }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
         TextButton(onClick = onTypeInstead, modifier = Modifier.heightIn(min = 48.dp)) {
             Text(stringResource(R.string.voice_type_instead))

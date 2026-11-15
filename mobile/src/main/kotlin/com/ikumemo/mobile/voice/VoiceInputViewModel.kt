@@ -70,6 +70,9 @@ sealed interface VoiceInputEvent {
 
     data object AddAll : VoiceInputEvent
 
+    /** 確認中の品を追加し、シートを閉じずに次の聞き取りを始める（BL-191、案 (d)）。追加は確認してから行う（R-42）。 */
+    data object AddAllAndContinue : VoiceInputEvent
+
     /** 追加の結果（[VoiceInputState.Added]）を画面が受け取った。次に開くときに古い結果が残らないよう Idle へ戻す（BL-190）。 */
     data object AddedHandled : VoiceInputEvent
 }
@@ -112,7 +115,8 @@ class VoiceInputViewModel(
                         it
                     }
                 }
-            VoiceInputEvent.AddAll -> addAll()
+            VoiceInputEvent.AddAll -> addAll(continueListening = false)
+            VoiceInputEvent.AddAllAndContinue -> addAll(continueListening = true)
             VoiceInputEvent.AddedHandled ->
                 mutableState.update { if (it is VoiceInputState.Added) VoiceInputState.Idle else it }
         }
@@ -173,14 +177,14 @@ class VoiceInputViewModel(
         mutableState.value = VoiceInputState.Confirm(cards)
     }
 
-    private fun addAll() {
+    private fun addAll(continueListening: Boolean) {
         val confirm = mutableState.value as? VoiceInputState.Confirm ?: return
         viewModelScope.launch {
             val added =
                 confirm.cards
                     .filter { it.included && it.name.isNotBlank() }
                     .count { repository.addItem(it.name, it.quantity) is AddItemResult.Added }
-            mutableState.value = VoiceInputState.Added(added)
+            if (continueListening) start() else mutableState.value = VoiceInputState.Added(added)
         }
     }
 
