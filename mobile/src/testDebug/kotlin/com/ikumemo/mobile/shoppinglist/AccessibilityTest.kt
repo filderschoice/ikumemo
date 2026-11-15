@@ -133,7 +133,7 @@ class AccessibilityTest {
     fun feedbackQuestionAnnouncesOpenStateAndAction() {
         composeRule.setContent {
             IkumemoTheme {
-                FeedbackContent(deviceInfo = "端末", onCopyDeviceInfo = {}, onOpenGitHub = {})
+                FeedbackContent(deviceInfo = "端末", onCopyDeviceInfo = {}, onOpenForm = {}, onOpenGitHub = {})
             }
         }
         val question = composeRule.onNodeWithTag(FeedbackTestTags.faq(0))

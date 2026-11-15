@@ -5,6 +5,81 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 21:13
+  summary: 転送ページのフォームの URL を、リンクの href の 1 か所にまとめた（BL-086 の点検の指摘への対応）
+  details:
+    関連ID:
+      - BL-086
+    変更内容: >-
+      点検で、site/feedback/index.html のフォームの URL が script の定数と JavaScript が無いとき用のリンクの 2 か所にあり、
+      BL-086 の完了条件「転送先 URL が 1 か所の設定で差し替えられる」を満たしていないと指摘された。
+      script がリンク（id="form-link"）の href を読んで FORM_URL にするよう変え、URL をリンクの href だけに書く形にした。
+      事前入力の欄の entry 番号（FORM_ENTRY_INFO）は別の設定として script に残した。site/README.md と docs/FEEDBACK.md の差し替え手順も合わせた。
+      BL-206 の記録で持ち越した「スクリーンショットテストにご意見画面があれば記録し直し」は、点検で該当するテストが無いことを確かめた（記録し直しは不要）
+    変更ファイル:
+      - site/feedback/index.html
+      - site/README.md
+      - docs/FEEDBACK.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --skip-gradle、python scripts/scan-secrets.py --require-changes
+    検証結果: >-
+      成功 - 文書のゲートと秘密情報スキャンは成功。転送ページの動作（href からの読み取りと事前入力）はブラウザで確かめておらず未確認で、BL-207 の人手検証で確かめる
+- date: 2026-11-15 21:11
+  summary: ご意見・ご要望の画面にご意見フォームで送るボタンを足し、GitHub を従にした
+  details:
+    関連ID:
+      - BL-206
+    変更内容: >-
+      ご意見・ご要望の画面で、フォームで送るボタンを先に目立つ形（Button）で置き、GitHub で送るは下の OutlinedButton にした。画面の説明文はフォームと GitHub それぞれに合う文へ分けた。
+      ボタンは転送ページ https://filderschoice.github.io/ikumemo/feedback/ にクエリ info（版・Android の版・機種名）を Uri.Builder でエンコードして付け、外部のブラウザで開く。
+      URL の組み立ては feedbackFormUrl に分けた。Google フォームの URL と entry 番号はアプリに書かず、INTERNET 権限も足していない。
+      使い方（help/feedback.md）・docs/USER_GUIDE.md・SUPPORT.md・FEEDBACK.md を新しいボタンに合わせた。公開前は 404 になる（BL-207 で公開）。
+      見た目が変わったため、スクリーンショットテストにご意見画面があれば記録し直しが要る（本タスクでは記録し直していない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ExternalLink.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/FeedbackScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/feedback.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/ExternalLinkTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AboutContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/AccessibilityTest.kt
+      - docs/USER_GUIDE.md
+      - docs/SUPPORT.md
+      - docs/FEEDBACK.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests AboutContentTest --tests AccessibilityTest --tests ExternalLinkTest
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定 3 クラスのテスト・markdownlint・記録ファイル・使い方の Web 版・秘密情報スキャンが成功。Android Lint・全テスト・assembleDebug・スクリーンショットテストは流していない（軽い検証）
+- date: 2026-11-15 21:10
+  summary: アプリ紹介ページ（site/）とご意見フォームへの転送ページ（site/feedback/）を作った
+  details:
+    関連ID:
+      - BL-086
+    変更内容: >-
+      sesami-wear の site/ を雛形に、HTML と CSS だけの紹介ページ（文言は STORE_LISTING.md と PLAN §1.2 から。ストアのリンクは「準備中」）と app.json・仮アイコン・README を作った。
+      転送ページはクエリ info を decode 済みの値から encodeURIComponent で作り直し、フォームの entry.10635078 に付けて location.replace で移る。
+      info が無ければ事前入力なしのフォームへ移り、JavaScript が無い場合はリンクから開ける。フォームの URL と entry 番号は script 先頭の定数 2 つに集約し、
+      info はページに表示せず URL の組み立てにだけ使う。アクセス解析・外部スクリプト・外部フォント・Cookie は使っていない。
+      公開手順（git subtree push と Pages の設定）とフォームの差し替え方を site/README.md に、転送ページの説明を docs/FEEDBACK.md に書いた。
+      ブラウザでの動作確認と公開は BL-207（人手検証）
+    変更ファイル:
+      - site/index.html
+      - site/feedback/index.html
+      - site/style.css
+      - site/app.json
+      - site/assets/icon.svg
+      - site/.nojekyll
+      - site/README.md
+      - docs/FEEDBACK.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --skip-gradle
+    検証結果: >-
+      成功 - markdownlint・記録ファイル・使い方の Web 版・秘密情報スキャンが成功（Gradle 系は対象外）。ブラウザでの表示と転送の確認は流していない（BL-207）
 - date: 2026-11-15 17:46
   summary: BL-205 の点検の指摘を直し、古いコメントを実装に合わせ、短い表記の境界値テストと 350dp の根拠を残した
   details:
