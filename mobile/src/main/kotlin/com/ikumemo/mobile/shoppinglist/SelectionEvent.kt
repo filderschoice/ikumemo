@@ -2,6 +2,7 @@ package com.ikumemo.mobile.shoppinglist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -42,8 +43,13 @@ internal fun Set<Long>?.after(event: SelectionEvent): Set<Long>? =
 /** 上の帯の「えらんで消す」（BL-194）。押すと各行にチェックが付く。 */
 @Composable
 internal fun SelectStartButton(onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.SELECT_START)) {
-        Text(stringResource(R.string.memo_select_start))
+    // 文字が最大のとき見出しが折り返さないよう、幅に上限を置いて文字側を 2 行まで折り返す（BL-201）
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.widthIn(max = 128.dp).heightIn(min = 48.dp).testTag(TestTags.SELECT_START),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+    ) {
+        Text(stringResource(R.string.memo_select_start), maxLines = 2)
     }
 }
 

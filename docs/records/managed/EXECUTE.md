@@ -5,6 +5,25 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 14:40
+  summary: 文字が「とても大きい」のとき、見出し「買い物メモ」が「買い物メ／モ」と 2 行に折り返す回帰を、「えらんで消す」の幅に上限を置いて直した
+  details:
+    関連ID:
+      - BL-201
+    変更内容: >-
+      BL-194 で見出し行へ「えらんで消す」の文字ボタンを足した後、文字が最大のとき、ボタンが文字の幅いっぱいまで取って見出しの幅が足りなくなり、見出しが折り返していた。
+      SelectStartButton の幅に上限 128dp を置き、横の余白を 12dp から 8dp に減らし、文字を 2 行まで折り返せるようにした（高さの下限 48dp は維持、設定ボタンは触らない）。
+      案の根拠 1 は、見出しを 1 行に固定して縮めると文字が欠けるため、押せる範囲を保てて文字が欠けない「ボタン側を折り返す」を選んだ。
+      根拠 2 は、標準の文字ではボタンの文字が約 84dp で上限の内側に収まり、見た目が変わらないこと。大きいの文字も収まる見込みだが未確認（スクリーンショットで確かめる）。
+      既存の SelectModeScreenTest が通ることを確かめた。メモ画面のスクリーンショット（特に cool_dark_extra_large）の確認・記録し直しはオーケストレータが行う。実機での見え方は BL-198 に確認点を足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SelectionEvent.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SelectModeScreenTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。スクリーンショットのテストは未実施
 - date: 2026-11-15 14:20
   summary: メモ画面で、送るアイコンを足した後に 1 行で収まる店名のお店チップが 2 行へ折り返す回帰を直した
   details:
