@@ -57,7 +57,8 @@ import kotlinx.coroutines.delay
  * 選んだお店と品名の縦一覧を出す。追加・「買った」・編集はせず、押すとアプリの該当画面を開く（D-18・R-40）。
  */
 class MemoListWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(NARROW_SMALL, SMALL, NARROW_LARGE, LARGE))
+    override val sizeMode =
+        SizeMode.Responsive(setOf(TWO_CELL_SMALL, NARROW_SMALL, SMALL, TWO_CELL_LARGE, NARROW_LARGE, LARGE))
 
     override suspend fun provideGlance(
         context: Context,
@@ -77,6 +78,13 @@ class MemoListWidget : GlanceAppWidget() {
     }
 
     companion object {
+        /** 幅 2 マスの候補の幅。3 マスは 180dp 付近なので、COMPACT_BELOW 未満だけを 2 マスとみなす。 */
+        private val TWO_CELL_WIDTH = 120.dp
+        val COMPACT_BELOW = 150.dp
+
+        /** 幅 2 マス相当（BL-203）。見出しだけを短い表記にする判定用で、行の並べ方は NARROW_* と同じ。 */
+        val TWO_CELL_SMALL = DpSize(TWO_CELL_WIDTH, 110.dp)
+        val TWO_CELL_LARGE = DpSize(TWO_CELL_WIDTH, 180.dp)
         val NARROW_SMALL = DpSize(180.dp, 110.dp)
         val SMALL = DpSize(250.dp, 110.dp)
         val NARROW_LARGE = DpSize(180.dp, 180.dp)
@@ -99,6 +107,7 @@ fun MemoListContent(
     val context = LocalContext.current
     val size = LocalSize.current
     val wide = size.width >= MemoListWidget.SMALL.width
+    val compact = size.width < MemoListWidget.COMPACT_BELOW
     val large = size.height >= MemoListWidget.LARGE.height
     Column(
         modifier =
@@ -109,7 +118,7 @@ fun MemoListContent(
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.OPEN_MEMO))),
     ) {
-        MemoHeader(state, colors, refreshing, wide)
+        MemoHeader(state, colors, refreshing, compact)
         // 見出しの下の太めの線（メモ帳の上端）
         Rule(colors.primary, HEADER_RULE)
         when {
@@ -126,7 +135,7 @@ private fun MemoHeader(
     state: MemoWidgetState,
     colors: WidgetColors,
     refreshing: Boolean,
-    wide: Boolean,
+    compact: Boolean,
 ) {
     val context = LocalContext.current
     val dueSoon = state.dueSoonCount > 0
@@ -140,11 +149,11 @@ private fun MemoHeader(
             style = TextStyle(color = colors.onBackground, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
-        // 幅が狭いとき（2 マス）は短い表記にし、期限が近い件があるときは件数の表記を省いて、
+        // 幅 2 マス相当（COMPACT_BELOW 未満）のときは短い表記にし、期限が近い件があるときは件数の表記を省いて、
         // 期限が近い件数を優先して見せる（BL-203）
-        if (wide || !dueSoon) {
-            Spacer(GlanceModifier.width(if (wide) 8.dp else 4.dp))
-            MemoCount(context, state.items.size, wide, colors)
+        if (!compact || !dueSoon) {
+            Spacer(GlanceModifier.width(if (compact) 4.dp else 8.dp))
+            MemoCount(context, state.items.size, compact, colors)
         }
         if (dueSoon) {
             Box(
@@ -153,14 +162,14 @@ private fun MemoHeader(
                     GlanceModifier
                         .defaultWeight()
                         .height(TAP_HEIGHT)
-                        .padding(start = if (wide) 8.dp else 4.dp)
+                        .padding(start = if (compact) 4.dp else 8.dp)
                         .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.TAB_REMINDER)))
                         .semantics { contentDescription = dueSoonDescription },
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Text(
                     context.getString(
-                        if (wide) R.string.widget_memo_due_soon else R.string.widget_memo_due_soon_short,
+                        if (compact) R.string.widget_memo_due_soon_short else R.string.widget_memo_due_soon,
                         state.dueSoonCount,
                     ),
                     style = TextStyle(color = colors.primary, fontWeight = FontWeight.Medium),
@@ -173,17 +182,17 @@ private fun MemoHeader(
     }
 }
 
-/** 見出しのメモの件数。幅が狭いときは「🛒N」と短くし、読み上げは「メモ N件」にする。 */
+/** 見出しのメモの件数。幅 2 マス相当のときは「🛒N」と短くし、読み上げは「メモ N件」にする。 */
 @Composable
 private fun MemoCount(
     context: Context,
     count: Int,
-    wide: Boolean,
+    compact: Boolean,
     colors: WidgetColors,
 ) {
     val description = context.getString(R.string.widget_memo_count_description, count)
     Text(
-        context.getString(if (wide) R.string.widget_memo_count else R.string.widget_memo_count_short, count),
+        context.getString(if (compact) R.string.widget_memo_count_short else R.string.widget_memo_count, count),
         style = TextStyle(color = colors.onBackground),
         maxLines = 1,
         modifier = GlanceModifier.semantics { contentDescription = description },

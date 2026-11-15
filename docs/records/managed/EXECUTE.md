@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 15:45
+  summary: 幅 3 マスのメモ一覧ウィジェットを従来の全文の見出しに戻し、短い表記は幅 2 マス相当だけにした（BL-203 の点検の指摘）
+  details:
+    関連ID:
+      - BL-203
+      - BL-202
+    変更内容: >-
+      BL-203 の短い表記の判定が wide（幅 250dp 以上）の否定だったため、Responsive の候補が 180 と 250dp の 2 段では約 180〜249dp（幅 3 マス）も短い表記になっていた。
+      2026-11-14 の実機（Pixel 8 Pro・Nova）では 3×2 で全文が収まっていたため、Responsive の候補へ幅 120dp（TWO_CELL_SMALL・TWO_CELL_LARGE）を足し、
+      見出しの短い表記は LocalSize の幅が 150dp 未満（COMPACT_BELOW）のときだけにした。
+      根拠は、ランチャーの一般的な寸法で 2 マスが約 110〜140dp、3 マスが約 180dp 前後であること（2 マスの実寸は未確認のため、中間の 150dp を閾値にした。実機確認は BL-106）。
+      行の並べ方・品名の数・数量の位置は従来の wide（250dp 以上）の判定のままで変えていない。
+      テストは、幅 2 マス相当で期限が近いときに「🛒」が出ないこと、幅 180・200・250dp で全文（「🛒メモ 5件」「🔔期限が近い 2件」）が出て「🔔2」が出ないことを足した。
+      BL-202 の記録は変えていない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。memo のスクリーンショットの verify は差分なし（61719a8 の後、オーケストレータが実施）。Android Lint・全テスト・assembleDebug・実機確認は流していない
 - date: 2026-11-15 15:38
   summary: 幅 2 マスのメモ一覧ウィジェットで、期限が近い件数を「🔔N」と短くして見えるようにした
   details:

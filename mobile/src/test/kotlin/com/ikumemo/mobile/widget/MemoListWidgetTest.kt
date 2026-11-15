@@ -122,18 +122,32 @@ class MemoListWidgetTest {
     @Test
     fun narrowShowsShortDueSoonWithSpokenDescription() {
         // 幅 2 マスでは「🔔N」と短くして件数が見えるようにし、読み上げは「期限が近い N件」（BL-203）
-        render(fiveItems, MemoListWidget.NARROW_SMALL) {
+        render(fiveItems, MemoListWidget.TWO_CELL_SMALL) {
             onNode(hasTextEqualTo("🔔2")).assertExists()
             onNode(hasContentDescriptionEqualTo("期限が近い 2件")).assertExists()
             onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
             onAllNodes(hasText("期限が近い")).assertCountEquals(0)
+            // 期限が近い件があるときはメモの件数を省く
+            onAllNodes(hasText("🛒")).assertCountEquals(0)
+        }
+    }
+
+    @Test
+    fun threeCellWidthKeepsTheFullHeaderText() {
+        // 幅 3 マス相当（180・200dp）と 250dp では従来の全文のまま（BL-203 の点検で直した）
+        listOf(MemoListWidget.NARROW_SMALL, DpSize(200.dp, 110.dp), MemoListWidget.SMALL).forEach { size ->
+            render(fiveItems, size) {
+                onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
+                onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
+                onAllNodes(hasTextEqualTo("🔔2")).assertCountEquals(0)
+            }
         }
     }
 
     @Test
     fun narrowShowsShortCountWhenNothingIsDueSoon() {
         val noDue = fiveItems.copy(dueSoonCount = 0)
-        render(noDue, MemoListWidget.NARROW_LARGE) {
+        render(noDue, MemoListWidget.TWO_CELL_LARGE) {
             onNode(hasTextEqualTo("🛒5")).assertExists()
             onNode(hasContentDescriptionEqualTo("メモ 5件")).assertExists()
             onAllNodes(hasText("🔔")).assertCountEquals(0)
