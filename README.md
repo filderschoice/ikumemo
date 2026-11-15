@@ -129,6 +129,7 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 - [docs/FEEDBACK.md](docs/FEEDBACK.md): ご意見の受け付けと運用の手順（オーナー向け）
 - [docs/store/PRIVACY_POLICY.md](docs/store/PRIVACY_POLICY.md) / [docs/store/STORE_LISTING.md](docs/store/STORE_LISTING.md):
   プライバシーポリシー（公開版）とストア掲載文の正本
+- [docs/store/images/](docs/store/images/): ストア掲載用の画像（`icon-512.png` はテスト `StoreIconExportTest` で書き出す。手順は STORE_LISTING.md）
 - [CHANGELOG.md](CHANGELOG.md): リポジトリの運用ルール・ドキュメントの変更履歴
 - [CLAUDE.md](CLAUDE.md) / [.github/copilot-instructions.md](.github/copilot-instructions.md): AI エージェントの実行ルール
 

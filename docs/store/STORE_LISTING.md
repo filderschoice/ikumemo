@@ -84,7 +84,10 @@ Play Console で直した場合は、このファイルも同じ内容に直し�
 ## アプリアイコン
 
 512 × 512 の PNG。アダプティブアイコン（`mobile/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`）と同じ絵柄で
-`docs/store/images/icon-512.png` へ書き出す（書き出しは BL-214、採否は BL-218。未作成）。
+`docs/store/images/icon-512.png` へ書き出し済み（採否は BL-218）。背景色（`ic_launcher_background`）の上に前景を重ね、
+ランチャーで見える中央 72dp を 512px に拡大した。四隅まで背景色で塗ってあり、角の丸めは Play が行う。
+再作成は Robolectric のテスト `StoreIconExportTest`（遅いテスト扱い）で、
+`./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreIconExportTest*"` を流す。
 
 ## フィーチャーグラフィック
 

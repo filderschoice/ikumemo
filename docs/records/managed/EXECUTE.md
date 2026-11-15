@@ -5,6 +5,28 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 22:12
+  summary: ストア用アプリアイコン（512 × 512 の PNG）をアダプティブアイコンから書き出すテストを足し、icon-512.png を作った
+  details:
+    関連ID:
+      - BL-214
+    変更内容: >-
+      Robolectric のテスト StoreIconExportTest（遅いテスト扱い）で、背景色 ic_launcher_background の上に ic_launcher_foreground を重ね、
+      ランチャーで見える中央 72dp を 512px に拡大して docs/store/images/icon-512.png へ書き出す。新しい依存は足していない。
+      四隅が背景色であること（角の丸めは Play が行う）と吹き出しの白をテストで確かめる。
+      STORE_LISTING.md のアイコン欄に書き出し方と再実行のコマンドを書き、README の構成表に docs/store/images/ を足した
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/StoreIconExportTest.kt
+      - docs/store/images/icon-512.png
+      - docs/store/STORE_LISTING.md
+      - README.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreIconExportTest*"、python scripts/quality-gates.py --quick --tests "*StoreIconExportTest*"
+    検証結果: >-
+      成功 - 書き出しのテストは成功し、出力画像を目視で確かめた（吹き出しとかごが中央、四隅は背景色）。軽い検証は ktlint・detekt・コンパイルが成功し、test は遅いテスト（-PslowTests 無しでは除外）のため「No tests found」で失敗した（想定どおり）。
+      Android Lint・全テスト・assembleDebug は流していない
 - date: 2026-11-15 21:13
   summary: 転送ページのフォームの URL を、リンクの href の 1 か所にまとめた（BL-086 の点検の指摘への対応）
   details:
