@@ -5,6 +5,29 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 14:15
+  summary: 背景の写真の膜が明るいとき、状態バーとナビゲーションバーのアイコンを暗い色にして読めるようにした
+  details:
+    関連ID:
+      - BL-187
+    変更内容: >-
+      designsystem/SystemBarIcons.kt を足した。純粋な関数で、膜の色と濃さ（BackgroundScrim.effectiveAlpha）を中間の灰色（0.5）の写真の上に重ねた背景の相対輝度を求め、
+      0.179（白と黒のアイコンのコントラストが等しくなる輝度）より明るければ暗いアイコンにする。写真が無いときはアプリのテーマに合わせる（暗いテーマは白、明るいテーマは暗い色）。
+      SystemBarIconsEffect（SideEffect）が WindowCompat の insets controller で状態バー・ナビゲーションバーのアイコンの明暗を設定し、AppThemeHost が showBackground のときだけ呼ぶ
+      （他のアプリの上に出す音声入力シートは触らない）。これで端末のダークモードとアプリのテーマが食い違うときも読める。
+      単体テスト SystemBarIconsTest で、明るい膜（くろ・あお・あか、明るい・暗いテーマ）は暗いアイコン、暗い膜（しろ）は白、おまかせはテーマの背景に従うこと、膜が最も薄いときの判定を確かめた。
+      写真の中身は読まないため、極端な写真では外れうる。実機での確認は BL-199（人手検証）へ起票した。スクリーンショットは流していない（アイコンの色は Robolectric の画像に写らない見込み。記録し直しが要る画面は無い見込み）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/SystemBarIcons.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/SystemBarIconsTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SystemBarIconsTest" --tests "*InkColorTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機の確認は未実施（BL-199）
 - date: 2026-11-15 13:55
   summary: メモ一覧ウィジェットを幅 2 マスまで縮めても更新ボタンが欠けないよう、期限が近い件数の見出しだけを縮める作りにした
   details:

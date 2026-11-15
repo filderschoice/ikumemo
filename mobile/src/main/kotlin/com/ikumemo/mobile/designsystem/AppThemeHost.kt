@@ -3,6 +3,7 @@ package com.ikumemo.mobile.designsystem
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -34,6 +35,19 @@ fun AppThemeHost(
         textSize = value.textSize,
     ) {
         val image = value.backgroundImage?.takeIf { showBackground }
+        if (showBackground) {
+            // 他のアプリの上に出す音声入力シート（showBackground が false）のバーは触らない
+            SystemBarIconsEffect(
+                if (image == null) {
+                    SystemBarIcons.useDarkIconsWithoutImage(darkTheme)
+                } else {
+                    SystemBarIcons.useDarkIconsOnScrim(
+                        scrim = value.ink.scrimColor ?: MaterialTheme.colorScheme.background,
+                        alpha = BackgroundScrim.effectiveAlpha(value.scrimLevel, darkTheme),
+                    )
+                },
+            )
+        }
         if (image == null) {
             content()
         } else {
