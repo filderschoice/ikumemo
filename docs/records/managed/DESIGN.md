@@ -294,8 +294,11 @@
 
 ### 運用制約
 
-- CI（GitHub Actions）と Dependabot は導入しない。Gradle の依存脆弱性スキャンも導入しない（sesami-wear に合わせた
-  オーナー判断、2026-10-24）。ローカルの品質ゲートが唯一のゲート
+- CI（GitHub Actions）と Dependabot の定期の版上げ（`dependabot.yml`）は導入しない。Gradle の依存脆弱性スキャンも導入しない
+  （sesami-wear に合わせたオーナー判断、2026-10-24）。ローカルの品質ゲートが唯一のゲート
+- GitHub 側の Dependabot の脆弱性アラートとセキュリティ更新は、リポジトリの公開時に sesami-wear と同じく有効にした
+  （オーナー判断、2026-11-15）。ただし GitHub の依存グラフは Gradle の依存を読めておらず（sesami-wear も同じ）、実質は動いていない。
+  アラートが届いたら Skill `dependabot-alert-triage` で扱う
 - 外部からの Pull Request は受け付けない（オーナー判断、`CONTRIBUTING.local.md`）
 - ライセンスは Apache-2.0。リポジトリ直下の `LICENSE` は apache.org 配布の本文と同一（付録の著作権行は雛形のまま）で、
   著作権表示は `NOTICE` に書く。各ソースファイル先頭へのライセンスヘッダーは付けない（PLAN §7）
