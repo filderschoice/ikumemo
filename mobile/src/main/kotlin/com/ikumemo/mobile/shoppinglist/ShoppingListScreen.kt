@@ -50,6 +50,7 @@ import com.ikumemo.mobile.R
 import com.ikumemo.mobile.ScreenRequest
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.UndoableAction
+import com.ikumemo.mobile.designsystem.photoTextButtonColors
 import com.ikumemo.mobile.guide.GuideId
 import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
@@ -436,6 +437,8 @@ private fun AddButtons(
             TextButton(
                 onClick = { onEvent(ShoppingListEvent.OpenAddByText) },
                 modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.ADD_BY_TEXT),
+                // 暗いテーマで写真を置いたとき、固定の薄い青が膜に溶けないよう、ペンの色にする（BL-188）
+                colors = photoTextButtonColors(),
             ) {
                 Icon(Icons.Rounded.Keyboard, contentDescription = null)
                 Text(stringResource(R.string.memo_add_by_text), modifier = Modifier.padding(start = 8.dp))

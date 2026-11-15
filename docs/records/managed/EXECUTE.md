@@ -5,6 +5,27 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 14:03
+  summary: 暗いテーマで背景の写真を置いたとき、メモ画面の「文字で追加」の文字色をペンの色にして読めるようにした
+  details:
+    関連ID:
+      - BL-188
+    変更内容: >-
+      ShoppingListScreen の「文字で追加」の文字ボタンに photoTextButtonColors() を指定した。固定のテーマ色（暗いテーマでは薄い青の primary）が、ペンの色くろ・あおの明るい膜に溶けていたため、
+      写真の上ではペンの色（暗い色）にする。写真が無いとき・おまかせ（ペンの色なし）は従来どおりテーマ色。
+      単体テスト PhotoTextButtonContrastTest で、暗いテーマの全プリセット、ペンの色（おまかせ・くろ・あお・しろ）、膜の濃さ（既定・最大）、明るい写真と暗い写真（灰色 0.9 と 0.1 を仮定、
+      BL-187 の SystemBarIcons.backgroundLuminance で膜を重ねた背景の明るさを求める）のすべてで、文字と背景の比が 4.5 対 1 以上になることを確かめた。
+      あか（暗い写真・既定の濃さで約 3.7 対 1）は完了条件の外で、BL-189 の対象。実機の確認は BL-199 に確認点として足した。
+      見た目はメモ画面の文字ボタンの色だけ（写真ありの組み合わせ）で、スクリーンショットのテストは写真なしのため記録し直しは要らない見込み（流していない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoTextButtonContrastTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoTextButtonContrastTest" --tests "*PhotoInkTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機の確認は未実施（BL-199）
 - date: 2026-11-15 14:15
   summary: 背景の写真の膜が明るいとき、状態バーとナビゲーションバーのアイコンを暗い色にして読めるようにした
   details:
