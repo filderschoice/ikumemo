@@ -3,6 +3,7 @@ package com.ikumemo.mobile.designsystem
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -34,6 +35,19 @@ fun AppThemeHost(
         textSize = value.textSize,
     ) {
         val image = value.backgroundImage?.takeIf { showBackground }
+        if (showBackground) {
+            // 他のアプリの上に出す音声入力シート（showBackground が false）のバーは触らない
+            SystemBarIconsEffect(
+                if (image == null) {
+                    SystemBarIcons.useDarkIconsWithoutImage(darkTheme)
+                } else {
+                    SystemBarIcons.useDarkIconsOnScrim(
+                        scrim = value.ink.scrimColor ?: MaterialTheme.colorScheme.background,
+                        alpha = BackgroundScrim.effectiveAlpha(value.scrimLevel, darkTheme),
+                    )
+                },
+            )
+        }
         if (image == null) {
             content()
         } else {
@@ -48,11 +62,12 @@ fun AppThemeHost(
                 // ペンの色は、写真の上に直接置く文字（LocalContentColor）だけに効かせる（BL-170）。
                 // テーマの surface と background は同じ色のため、onBackground を差し替えると
                 // Surface の既定の文字色（contentColorFor）が先に background に当たり、面の中の文字までペンの色になる。
-                // 面の中の文字は ReadablePanel などが onSurface を明示して戻す
+                // 面の中の文字は ReadablePanel などが onSurface を明示して戻す。
+                // おまかせ（ink が null）のときは、ここに面が無く既定の黒になるため onBackground を渡す（BL-204）
                 CompositionLocalProvider(
                     LocalHasBackgroundImage provides true,
                     LocalPhotoInk provides ink,
-                    LocalContentColor provides (ink ?: LocalContentColor.current),
+                    LocalContentColor provides resolvePhotoInk(ink, MaterialTheme.colorScheme.onBackground),
                     content = content,
                 )
             }

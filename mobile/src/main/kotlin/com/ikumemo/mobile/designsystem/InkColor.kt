@@ -15,7 +15,7 @@ enum class InkColor(
     AUTO("auto", null, null),
     BLACK("black", 0xFF1B1B1F, LIGHT_SCRIM),
     BLUE("blue", 0xFF1A3FA0, LIGHT_SCRIM),
-    RED("red", 0xFFB3261E, LIGHT_SCRIM),
+    RED("red", 0xFF851812, LIGHT_SCRIM),
     WHITE("white", 0xFFFFFFFF, DARK_SCRIM),
     ;
 

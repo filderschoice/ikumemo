@@ -5,6 +5,499 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 17:46
+  summary: BL-205 の点検の指摘を直し、古いコメントを実装に合わせ、短い表記の境界値テストと 350dp の根拠を残した
+  details:
+    関連ID:
+      - BL-205
+    変更内容: >-
+      MemoListWidget.kt の古いコメント（COMPACT_BELOW 未満だけを 2 マスとみなす等）を compactHeader の判定を参照する書き方へ直した（挙動は変えていない）。
+      単体テストに、compactHeader の境界値（149・150・349・350dp × 期限が近い件の有無）と、高さ 180dp の候補（NARROW_LARGE・LARGE）で期限が近い件があると「🔔2」になるテストを足し、
+      入力を WIDE_SMALL・WIDE_LARGE に替えた 2 つのテストに 4 マス相当と分かるコメントを足した。
+      350dp の境目は変えない。根拠は、4 マスが 350dp 未満の端末では全文がもともと収まらず「期限が近い…」で数字が切れるため、「🔔N」にする方が件数が見えること
+      （実機 Pixel 8 Pro では 3 マス約 300dp で全文が切れ、4 マス約 410dp で収まった）。この限界を DESIGN.md の W-02 行と BL-106 の残りに書いた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・実機確認は流していない
+- date: 2026-11-15 17:40
+  summary: メモ一覧ウィジェットで、期限が近い件があるとき幅 2・3 マスでも期限が近い件数が見えるようにした
+  details:
+    関連ID:
+      - BL-205
+    変更内容: >-
+      実機で幅 2 マス（約 205dp）は NARROW（180dp）が選ばれて短い表記に入らず、幅 3 マス（約 300dp）は SMALL（250dp）で件数の数字が切れていた。
+      Responsive の候補へ幅 350dp の WIDE_SMALL・WIDE_LARGE を足して幅 4 マス（約 410dp）と区別し、見出しを短い表記にする判定を
+      compactHeader(width, dueSoon) にした。幅 150dp 未満は従来どおり常に短く、期限が近い件があるときは幅 350dp 未満も「🔔N」にする（メモの件数は省く）。
+      期限が近い件が無いときの表示と幅 4 マスの全文は変えていない。DESIGN.md の W-02 行を実装に合わせて直した。
+      単体テストで、幅 180・200・250dp で「🔔2」と更新ボタンが残ること、350dp で全文、期限が近い件が無いと 180・250dp は全文のままを確かめた。
+      スクリーンショットテストは流していない（ウィジェットは対象外とみられるが未確認）。実機確認は BL-106 の残りに追記した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・スクリーンショットテスト・実機確認は流していない
+- date: 2026-11-15 17:33
+  summary: 暗いテーマで背景の写真を置いたおまかせ（ペンの色なし）のとき、写真の上に直接置いた文字が黒になる不具合を直した
+  details:
+    関連ID:
+      - BL-204
+    変更内容: >-
+      AppThemeHost.kt の写真ありの分岐で、LocalContentColor を ink が null のとき onBackground にした（resolvePhotoInk を再利用）。
+      従来は既定の黒のままで、暗い膜の上の案内文・お店チップ・設定の項目名が読めなかった。
+      面の中の文字は ReadablePanel などが onSurface を明示しているため変わらず、ペンの色ありの見え方も変えていない。
+      明るいテーマ × おまかせでも onBackground になる（明るいテーマの onBackground は暗い色のため、見え方の差は黒から暗い色への微差。実機確認は BL-199 の残りで人手検証）。
+      テストは、全テーマ・明暗で onBackground が background に対し 4.5:1 以上であり、おまかせでは onBackground が選ばれることを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoInkTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoInkTest" --tests "*PhotoTextButtonColorsTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・スクリーンショットテスト・実機確認は流していない
+- date: 2026-11-15 15:45
+  summary: 幅 3 マスのメモ一覧ウィジェットを従来の全文の見出しに戻し、短い表記は幅 2 マス相当だけにした（BL-203 の点検の指摘）
+  details:
+    関連ID:
+      - BL-203
+      - BL-202
+    変更内容: >-
+      BL-203 の短い表記の判定が wide（幅 250dp 以上）の否定だったため、Responsive の候補が 180 と 250dp の 2 段では約 180〜249dp（幅 3 マス）も短い表記になっていた。
+      2026-11-14 の実機（Pixel 8 Pro・Nova）では 3×2 で全文が収まっていたため、Responsive の候補へ幅 120dp（TWO_CELL_SMALL・TWO_CELL_LARGE）を足し、
+      見出しの短い表記は LocalSize の幅が 150dp 未満（COMPACT_BELOW）のときだけにした。
+      根拠は、ランチャーの一般的な寸法で 2 マスが約 110〜140dp、3 マスが約 180dp 前後であること（2 マスの実寸は未確認のため、中間の 150dp を閾値にした。実機確認は BL-106）。
+      行の並べ方・品名の数・数量の位置は従来の wide（250dp 以上）の判定のままで変えていない。
+      テストは、幅 2 マス相当で期限が近いときに「🛒」が出ないこと、幅 180・200・250dp で全文（「🛒メモ 5件」「🔔期限が近い 2件」）が出て「🔔2」が出ないことを足した。
+      BL-202 の記録は変えていない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。memo のスクリーンショットの verify は差分なし（61719a8 の後、オーケストレータが実施）。Android Lint・全テスト・assembleDebug・実機確認は流していない
+- date: 2026-11-15 15:38
+  summary: 幅 2 マスのメモ一覧ウィジェットで、期限が近い件数を「🔔N」と短くして見えるようにした
+  details:
+    関連ID:
+      - BL-203
+    変更内容: >-
+      MemoListWidget.kt の MemoHeader に wide（LocalSize の幅が SMALL 以上か）を渡し、狭いときは期限が近い件数を「🔔N」、メモの件数を「🛒N」と短くした。
+      幅が狭く期限が近い件があるときは、メモの件数を省いて「🔔N」を優先する（既定値。件数は下の品名の並びでも分かるため）。
+      期限が近い件の欄は contentDescription で「期限が近い N件」、メモの件数は「メモ N件」と読み上げる。更新ボタンは残したまま。
+      幅の広い表示の文言は変えていない。単体テストで狭いサイズの表記と読み上げを確かめた。実機確認は BL-106 に残した。
+      ウィジェットは Roborazzi の対象外のため、記録し直す正解画像は無い
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・実機確認は流していない
+- date: 2026-11-15 15:28
+  summary: 背景の写真とペンの色があるとき、メモが空のときの「使い方を見る」をペンの色で描くようにした
+  details:
+    関連ID:
+      - BL-202
+    変更内容: >-
+      ShoppingListScreen.kt の EmptyMemo の使い方ボタン（EMPTY_HELP）と、音声入力の無い端末向けの使い方ボタン（NO_VOICE_HELP）に
+      colors = photoTextButtonColors() を付けた（BL-188 で「文字で追加」だけに付けて漏れていた）。
+      写真とペンの色があるときはペンの色、無いときは既定の文字ボタンの色になることを PhotoTextButtonColorsTest で確かめた。
+      DESIGN.md の F-61 に使い方ボタンも加えた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/designsystem/PhotoTextButtonColorsTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoTextButtonColorsTest" --tests "*PhotoTextButtonContrastTest" --tests "*ShoppingListScreenTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・スクリーンショットは流していない
+- date: 2026-11-15 14:37
+  summary: 点検の指摘に合わせ、使い方の膜の濃さの説明と DESIGN の F-61 を BL-188・189 の実装に揃えた
+  details:
+    関連ID:
+      - BL-188
+      - BL-189
+    変更内容: >-
+      BL-189 で明るい画面の膜も選んだ濃さより 0.1 濃くしたのに、使い方（背景の写真）が「暗い画面では自動で濃くなります」のままだったため、
+      「実際の膜は、写真の上の文字が読めるよう選んだ濃さより少し濃くなります（暗い画面ではさらに濃くなります）」に直し、docs/USER_GUIDE.md を作り直した。
+      DESIGN.md の F-61 に、写真の上の「文字で追加」をペンの色で描くこと（BL-188、photoTextButtonColors）を足した。
+      BL-199 に、明るいテーマの膜の +0.1 がおまかせ・くろ・しろにも掛かるため、おまかせ・くろでも写真が透けて見えることの確認点を足した
+    変更ファイル:
+      - mobile/src/main/assets/help/background.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/make-user-guide.py の後に python scripts/quality-gates.py --skip-gradle
+    検証結果: >-
+      成功 - 文書系のゲート（markdownlint・記録・使い方の Web 版・秘密情報）が成功。Gradle 系は文言だけの変更のため流していない
+- date: 2026-11-15 14:28
+  summary: メモ画面のスクリーンショット（24 枚）を、BL-194・196・200・201 で意図して変えた見た目に合わせて記録し直した
+  details:
+    関連ID:
+      - BL-194
+      - BL-196
+      - BL-200
+      - BL-201
+    変更内容: >-
+      メモ画面の見出し行に「えらんで消す」（BL-194）、お店チップの行の右端に送るアイコン（BL-196）が加わったため、memo の正解画像 24 枚を記録し直した。
+      比べる過程で、お店チップが標準の文字でも 2 行に折り返す回帰（BL-200 で修正）と、文字が最大のとき見出しが折り返す回帰（BL-201 で修正）を見つけ、直してから記録した。
+      記録後の差分は「えらんで消す」と送るアイコンだけで、見出しとお店チップは標準・大きい・とても大きいのいずれも 1 行に収まることを画像で確かめた。
+      BL-187〜189 は背景の写真があるときだけ見た目が変わり、スクリーンショットのテストは写真なしのため、calendar・reminder は比べるだけで一致した
+    変更ファイル:
+      - mobile/screenshots/memo/（24 枚）
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.memo*" の後、
+      -Proborazzi.test.verify=true で memo・calendar・reminder を 1 画面ずつ
+    検証結果: >-
+      成功 - 記録し直した memo と、比べるだけの calendar・reminder がいずれも終了コード 0
+- date: 2026-11-15 14:23
+  summary: 文字が「とても大きい」のとき、見出し「買い物メモ」が「買い物メ／モ」と 2 行に折り返す回帰を、「えらんで消す」の幅に上限を置いて直した
+  details:
+    関連ID:
+      - BL-201
+    変更内容: >-
+      BL-194 で見出し行へ「えらんで消す」の文字ボタンを足した後、文字が最大のとき、ボタンが文字の幅いっぱいまで取って見出しの幅が足りなくなり、見出しが折り返していた。
+      SelectStartButton の幅に上限 128dp を置き、横の余白を 12dp から 8dp に減らし、文字を 2 行まで折り返せるようにした（高さの下限 48dp は維持、設定ボタンは触らない）。
+      案の根拠 1 は、見出しを 1 行に固定して縮めると文字が欠けるため、押せる範囲を保てて文字が欠けない「ボタン側を折り返す」を選んだ。
+      根拠 2 は、標準の文字ではボタンの文字が約 84dp で上限の内側に収まり、見た目が変わらないこと。大きいの文字も収まる見込みだが未確認（スクリーンショットで確かめる）。
+      既存の SelectModeScreenTest が通ることを確かめた。メモ画面のスクリーンショット（特に cool_dark_extra_large）の確認・記録し直しはオーケストレータが行う。実機での見え方は BL-198 に確認点を足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SelectionEvent.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SelectModeScreenTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。スクリーンショットのテストは未実施
+- date: 2026-11-15 14:17
+  summary: メモ画面で、送るアイコンを足した後に 1 行で収まる店名のお店チップが 2 行へ折り返す回帰を直した
+  details:
+    関連ID:
+      - BL-200
+    変更内容: >-
+      BL-196 でお店チップの行へ送るアイコンを足したとき、fill=false の重み付きチップと重み付きの Spacer が余りの幅を半分ずつ分け、
+      行に空きがあっても店名が「○○スーパ／ー で買う」と折り返していた。チップを重み 1 の Box（左寄せ）で包み、アイコン（重み無し）を先に測らせて残りの幅をすべて Box へ渡す形にした。
+      チップは Box の中で中身の幅になり、アイコンは右端に残る。文字「とても大きい」で幅が足りないときの折り返しは従来どおり。
+      既存の ShareScreenTest・ShoppingListScreenTest が通ることを確かめた。見た目は変わる（チップが 1 行に戻る）ため、メモ画面のスクリーンショットの記録し直しはオーケストレータが行う。
+      実機での見え方（大きい文字でチップとアイコンが重ならないか）は BL-198 に既に確認点がある
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShareButton.kt
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShareScreenTest" --tests "*ShoppingListScreenTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。スクリーンショットのテストは未実施
+- date: 2026-11-15 14:10
+  summary: 暗い写真の上で、ペンの色あか・あおの文字が背景の灰色に埋もれないよう、あかを暗い赤にし、明るいテーマの膜を少し濃くした
+  details:
+    関連ID:
+      - BL-189
+    変更内容: >-
+      InkColor.RED の文字色を #B3261E から #851812 に変えた（青 #1A3FA0 は据え置き）。BackgroundScrim に LIGHT_BOOST（0.1）を足し、明るいテーマでも膜の実際の濃さを選んだ濃さ＋0.1
+      にした（既定 0.6 は 0.7。上限 MAX_EFFECTIVE 0.95 は共通）。暗いテーマは従来どおり 0.15 を足す。単体テスト InkOnPhotoContrastTest を足し、暗い写真（灰色 0.1）と明るい写真（0.9）、
+      明るい・暗いテーマ、膜の濃さ（既定・最大）、くろ・あお・あか・しろの組み合わせで、文字と膜を重ねた背景の比が 4.5 対 1 以上であることを確かめた（しろ＋明るい写真は従来から対象外）。
+      PhotoTextButtonContrastTest のあかの除外を外し、BL-187 の SystemBarIconsTest・BL-188・BL-108 の InkColorTest・PhotoInkTest も通ることを確かめた。AppearanceViewModelTest の明るいテーマの膜の期待値を 0.7 に直した。
+      膜の濃さのスライダーが最小（0.3）で暗い写真のときは 4.5 対 1 を保証しない（既定と最大が対象）。実機の確認は BL-199 に足した。
+      見た目が変わるのは写真を置いた画面（明るいテーマの膜が濃くなる、あかの文字が暗くなる）。スクリーンショットのテストは写真なしの見込みで、記録し直しは要らない見込み（流していない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/BackgroundScrim.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/InkColor.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/InkOnPhotoContrastTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoTextButtonContrastTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*InkOnPhotoContrastTest" --tests "*PhotoTextButtonContrastTest" --tests "*SystemBarIconsTest" --tests "*InkColorTest" --tests "*PhotoInkTest" --tests "*AppearanceViewModelTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機の確認は未実施（BL-199）
+- date: 2026-11-15 14:03
+  summary: 暗いテーマで背景の写真を置いたとき、メモ画面の「文字で追加」の文字色をペンの色にして読めるようにした
+  details:
+    関連ID:
+      - BL-188
+    変更内容: >-
+      ShoppingListScreen の「文字で追加」の文字ボタンに photoTextButtonColors() を指定した。固定のテーマ色（暗いテーマでは薄い青の primary）が、ペンの色くろ・あおの明るい膜に溶けていたため、
+      写真の上ではペンの色（暗い色）にする。写真が無いとき・おまかせ（ペンの色なし）は従来どおりテーマ色。
+      単体テスト PhotoTextButtonContrastTest で、暗いテーマの全プリセット、ペンの色（おまかせ・くろ・あお・しろ）、膜の濃さ（既定・最大）、明るい写真と暗い写真（灰色 0.9 と 0.1 を仮定、
+      BL-187 の SystemBarIcons.backgroundLuminance で膜を重ねた背景の明るさを求める）のすべてで、文字と背景の比が 4.5 対 1 以上になることを確かめた。
+      あか（暗い写真・既定の濃さで約 3.7 対 1）は完了条件の外で、BL-189 の対象。実機の確認は BL-199 に確認点として足した。
+      見た目はメモ画面の文字ボタンの色だけ（写真ありの組み合わせ）で、スクリーンショットのテストは写真なしのため記録し直しは要らない見込み（流していない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoTextButtonContrastTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoTextButtonContrastTest" --tests "*PhotoInkTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機の確認は未実施（BL-199）
+- date: 2026-11-15 14:15
+  summary: 背景の写真の膜が明るいとき、状態バーとナビゲーションバーのアイコンを暗い色にして読めるようにした
+  details:
+    関連ID:
+      - BL-187
+    変更内容: >-
+      designsystem/SystemBarIcons.kt を足した。純粋な関数で、膜の色と濃さ（BackgroundScrim.effectiveAlpha）を中間の灰色（0.5）の写真の上に重ねた背景の相対輝度を求め、
+      0.179（白と黒のアイコンのコントラストが等しくなる輝度）より明るければ暗いアイコンにする。写真が無いときはアプリのテーマに合わせる（暗いテーマは白、明るいテーマは暗い色）。
+      SystemBarIconsEffect（SideEffect）が WindowCompat の insets controller で状態バー・ナビゲーションバーのアイコンの明暗を設定し、AppThemeHost が showBackground のときだけ呼ぶ
+      （他のアプリの上に出す音声入力シートは触らない）。これで端末のダークモードとアプリのテーマが食い違うときも読める。
+      単体テスト SystemBarIconsTest で、明るい膜（くろ・あお・あか、明るい・暗いテーマ）は暗いアイコン、暗い膜（しろ）は白、おまかせはテーマの背景に従うこと、膜が最も薄いときの判定を確かめた。
+      写真の中身は読まないため、極端な写真では外れうる。実機での確認は BL-199（人手検証）へ起票した。スクリーンショットは流していない（アイコンの色は Robolectric の画像に写らない見込み。記録し直しが要る画面は無い見込み）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/SystemBarIcons.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/SystemBarIconsTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SystemBarIconsTest" --tests "*InkColorTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機の確認は未実施（BL-199）
+- date: 2026-11-15 13:55
+  summary: メモ一覧ウィジェットを幅 2 マスまで縮めても更新ボタンが欠けないよう、期限が近い件数の見出しだけを縮める作りにした
+  details:
+    関連ID:
+      - BL-186
+    変更内容: >-
+      見出しの行で、期限が近い件数の箱に重み（defaultWeight）を付け、残りの幅を受け持たせた。幅が足りないときは、この文字だけが省略され、
+      右端の更新ボタン（固定の 48dp）は常に残る。期限が近い件数が無いときは従来どおり空きの Spacer に重みを付ける。3 マス以上では収まるため見た目は変わらない。
+      単体テストに、幅 2 マス相当（110dp）で更新ボタンと期限が近い件数の見出しが両方あることを足した（Glance の単体テストは文字の省略まで測れないため、実機での確認は BL-106 に確認点として足した）。
+      見た目はウィジェットだけで、メモ・記録・期限の画面は変えていないためスクリーンショットの記録し直しは要らない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機での幅 2 マスの確認は未実施（BL-106）
+- date: 2026-11-15 13:05
+  summary: LINE などで共有された文を共有シートの「いくメモに追加」から受け取り、チェック付きの一覧で確かめてメモへ取り込めるようにした
+  details:
+    関連ID:
+      - BL-197
+    変更内容: >-
+      core に SharedTextParser を足した。先頭行が「🛒いくメモ」の文は行頭「・」の行を 1 行 1 品物として、最後の半角空白の後ろが数量らしいときだけ数量に戻す（BL-196 の送る文が元の品物と数量に戻る）。
+      ほかの行は行頭の記号（・ - * • ☐ 1. (1) ① など、1.5L は外さない）を外し、品名と数字の間の空白を詰めてから VoiceTextParser の区切りと数量の取り出しを使う（小数点では分けない）。正規化した品名が同じ物は最初の 1 つだけ残す。
+      受け取る文は信頼できない外部入力として、1 万文字・200 行・100 品物・品名 60 文字・数量 20 文字で打ち切り（サロゲートペアの途中では切らない）、制御文字と向きを変える書式文字を除く。
+      ShareReceiveActivity（exported、ACTION_SEND の text/plain だけを受け付け、ほかの Intent・extra は読まずに閉じる。壊れた extra は空として扱う。権限は足さない）と、
+      ShareImportViewModel・ShareImportSheet（チェック付きの一覧、既にメモにある物は最初から外す、追加後は Toast で閉じる、品物が無ければその旨を出す）を足した。受け取った文はログに出さない。LINE の SDK・外部通信は使わない。
+      ShareText の HEADER・BULLET は SharedTextParser の定数を参照するようにした。テスト用の待ち合わせ（ComposeWait）の受け手を ComposeTestRule へ広げた（ActivityScenario で使うため。既存の呼び出しはそのまま）。
+      使い方（send.md の見出しを「メモを LINE などで送る・取り込む」にして取り込みの説明を足した、index.md、USER_GUIDE.md）と DESIGN.md を反映。実機で LINE から取り込む確認は BL-198（人手検証）へ足した。
+      共有から開く新しいシートでメモ・記録・期限の画面は変えていないため、スクリーンショットの記録し直しは要らない見込み（流していない）
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/share/SharedTextParser.kt
+      - core/src/test/kotlin/com/ikumemo/core/share/SharedTextParserTest.kt
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareText.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareReceiveActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareImportViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareImportSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/send.md
+      - mobile/src/main/assets/help/index.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/share/ShareImportViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/share/ShareImportContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/share/ShareReceiveActivityTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/testing/ComposeWait.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SharedTextParserTest" --tests "*ShareImportViewModelTest" --tests "*ShareImportContentTest" --tests "*ShareReceiveActivityTest" --tests "*ShareTextTest" --tests "*HelpContentTest" --tests "*VoiceSheetActivityTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認で BL-198 に足した
+- date: 2026-11-15 12:40
+  summary: メモを LINE などへ送る「メモを送る」を足し、共有シートで一覧を文字にして送れるようにした
+  details:
+    関連ID:
+      - BL-196
+    変更内容: >-
+      お店チップの行の右端に送るアイコン（読み上げは「メモを送る」）を足した。置き場所は、上の帯が「買い物メモ」「えらんで消す」「設定」で大きい文字では窮屈になるため帯を避けた。
+      普段のモードで品物があるときだけ出し、空のメモ・えらんで消すモードの間は出さない。押すと ShareText.build で「🛒いくメモ」の下に「・品物 数量」を 1 行ずつ並べた文を作り、ACTION_SEND（text/plain）の chooser を開く。
+      取り込み（BL-197）が先頭行と行頭の「・」で元の品物と数量に戻せる形にした（品物・数量内の改行は空白に直す）。LINE の SDK・外部通信は使わない。開ける物が無い端末は Toast で知らせる。
+      使い方（send.md を新設、index.md、USER_GUIDE.md）と DESIGN.md を反映。実機で LINE へ送る確認は BL-198（人手検証）に起票した。
+      見た目が変わるため、スクリーンショットはメモ画面（memo）の記録し直しが要る見込み（このイテレーションでは流さず、区切りでまとめて扱う。calendar・reminder は変わらない見込み）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareText.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShareButton.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/send.md
+      - mobile/src/main/assets/help/index.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/share/ShareTextTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShareScreenTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShareTextTest" --tests "*ShareScreenTest" --tests "*SelectModeScreenTest" --tests "*ShoppingListScreenTest" --tests "*AccessibilityTest" --tests "*HelpContentTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・ShareTextTest・ShareScreenTest・HelpContentTest）と文書系ゲートが成功。ShoppingListScreenTest・SelectModeScreenTest・AccessibilityTest は 1 回前の流しで成功（その後の変更は StoreRow の移動と文書のみ）。フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認で BL-198 に起票
+- date: 2026-11-15 12:26
+  summary: メモ画面に「えらんで消す」モードを足し、チェックを入れた品物をまとめて「やめた」にして、まとめて元に戻せるようにした
+  details:
+    関連ID:
+      - BL-194
+    変更内容: >-
+      メモの上の帯の「えらんで消す」（メモが空でないとき）で各行にチェックが付く。行を押すとチェックの入れ外しで、編集シートは開かず、スワイプと ○ は止める（読み上げの操作の一覧も出さない）。
+      帯は「N件えらんでいます」と「えらぶのを終える」、画面の下は「N件を消す」（0 件の間は押せない）に替わり、戻る操作でもモードだけを終える。
+      ラベルは「やめた」と紛らわしい「やめる」を避けた（BL-133）。消すと ShoppingRepository.dismissAll（1 トランザクション）で選んだ項目をまとめて「やめた」にし、「やめた：N件」と元に戻すを出す。
+      UndoOffer を複数の操作を持てる形（actions）にして、1 回の元に戻すで消した順の逆に全件を戻す。チェックは ShoppingListUiState.selection（DB に入れない）で、もう無い項目は数えない。
+      操作は SelectionEvent（Start・Stop・Toggle）と DismissSelected。普段の左スワイプ（やめた）と BL-193 の確定条件は変えていない。使い方（swipe.md・undo.md、USER_GUIDE.md）と DESIGN.md を反映。
+      見た目が変わるため、スクリーンショットはメモ画面（memo）の記録し直しが要る見込み（このイテレーションでは流さず、区切りでまとめて扱う。calendar・reminder は変わらない見込み）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SelectionEvent.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/MemoGuideController.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/swipe.md
+      - mobile/src/main/assets/help/undo.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/SelectModeViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/SelectModeScreenTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SelectModeViewModelTest" --tests "*SelectModeScreenTest" --tests "*ShoppingListScreenTest" --tests "*ShoppingListViewModelTest" --tests "*ShoppingListGuideTest" --tests "*AccessibilityTest" --tests "*SwipeConfirmTest" --tests "*ShoppingRepositoryTest" --tests "*HelpContentTest"
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認で、BL-149 に確認点を足した）
+- date: 2026-11-15 12:11
+  summary: 話して追加の「追加して、つづけて話す」の後、聞き取り画面に追加した件数を出し、読み上げでも伝える
+  details:
+    関連ID:
+      - BL-195
+    変更内容: >-
+      VoiceInputState.Listening に addedCount を足し、AddAllAndContinue で追加した件数を次の Listening へ渡す（Start では 0）。
+      聞き取り画面は件数が 1 以上のとき「N件追加しました」を liveRegion（Polite）付きで出す。ウィジェットのシート（VoiceSheetActivity）も同じ VoiceInputSheet を使うため同じに出る。
+      「追加する」で閉じたときの知らせ（Added、Toast とメモ画面）は変えていない。使い方（voice.md、USER_GUIDE.md）と DESIGN.md を反映。
+      見た目が変わるため、スクリーンショットの記録し直しが要るか確認が必要（既存の正解画像は聞き取り画面を含まない見込みだが未確認）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/voice.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputViewModelTest" --tests "*VoiceInputContentTest" --tests "*VoiceInputSheetRepeatTest" --tests "*VoiceSheetActivityTest"
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認）
+- date: 2026-11-15 11:05
+  summary: メモの横スワイプを、速度だけでは確定せず幅の 40% 引いたときだけ確定にし、縦優勢は確定しない
+  details:
+    関連ID:
+      - BL-193
+    変更内容: >-
+      オーナーの指示（縦スクロールしようとすると削除のスワイプが検知される）への対応 A。material3 1.3.1 の SwipeToDismissBox は速度のしきい値を変えられず、
+      40% に届かなくても素早く払うと確定していた。確定の直前（confirmValueChange）に、行のずれが幅の 40% 以上かを確かめ、満たさなければ戻す。
+      あわせて指の動きの合計を Initial パスで観察（イベントは消費せず、一覧の縦スクロールは妨げない）し、縦が横より大きければ確定しない。実装の既定値は、
+      縦スクロールを奪わずに済む「確定の直前の判定」にした。確定の確認が続けて 2 回呼ばれるため、1 回の指の動きで 1 度だけ onBought・onDismissed を呼ぶ。
+      右へ買った・左へやめた・○・元に戻す・振動は変えていない。見た目は変わらない。DESIGN.md の R-05 の行へ反映。
+      C（えらんで消すモード）は BL-194 として起票。実機での誤操作の確認は BL-149 へ足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeGuard.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/SwipeConfirmTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SwipeConfirmTest" --tests "*ShoppingListScreenTest" --tests "*AccessibilityTest"、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。見た目は変わらない。実機は未確認）
+- date: 2026-11-15 10:45
+  summary: 話して追加の確認カードに「追加して、つづけて話す」を足す（案 d）
+  details:
+    関連ID:
+      - BL-191
+    変更内容: >-
+      オーナーが 2026-11-15 に案 (d) を選んだ（自動再開 (a) には進まない）。確認カードの「追加する」はそのまま残し、下に「追加して、つづけて話す」（48dp 以上）を足した。
+      押すと VoiceInputEvent.AddAllAndContinue で確認中の品を追加し、Added を経ずに start() で Listening へ戻る。シートは閉じず、止め方は既存どおり（シートを閉じる・5 秒無音で NotHeard）。
+      確認してから追加する原則（R-01・R-42）は保つ。確認カードの部品はウィジェットの VoiceSheetActivity と共用のため、ウィジェット経由でも同じに動き、追加後に Activity は閉じない（既定値で共用のまま）。
+      使い方（help/voice.md）と DESIGN.md の R-30・R-31 の行へ反映。見た目が変わるため、確認カードが写るスクリーンショットは記録し直しが要る（本コミットでは流していない）。
+      実機の連続確認は BL-192 へ足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceConfirmCards.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/voice.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputViewModelTest" --tests "*VoiceInputContentTest" --tests "*VoiceSheetActivityTest"、python scripts/make-user-guide.py、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。確認カードが写るスクリーンショットは無く、記録し直しは不要。実機は未確認）
+- date: 2026-11-15 10:43
+  summary: 話して追加を 1 回完了したあと続けて使えない不具合を直す（古い追加済みの状態が残る・recognizer の使い回し）
+  details:
+    関連ID:
+      - BL-190
+    変更内容: >-
+      原因は、追加後の VoiceInputState.Added が Idle へ戻らず、Activity に紐づく ViewModel に残ること。次に 🎤 でシートを開くと古い Added を拾って即 onAdded で閉じ、
+      聞き取り中が出なかった。VoiceInputEvent.AddedHandled を足し、VoiceInputSheet が Added を受け取ったら Idle へ戻す。
+      開いた時点で残っていた古い Added は onAdded へ渡さず Idle へ戻す。AndroidSpeechEngine.start は使い回す recognizer へ startListening する前に cancel する（BUSY の予防）。
+      水平展開（オーナー指示）。ウィジェットの VoiceSheetActivity は毎回新しい ViewModel と engine で、finish で ViewModel が破棄され（onCleared で engine.destroy）、状態も recognizer も残らない。
+      品名欄・探すのマイク（FieldDictation）は start のたびに先に engine.cancel() し、結果は 1 回きりの state.result で受けて消費するため、同じ原因は無い。
+      見た目・文言は変えていない。実機での連続 3 回は BL-192（人手検証）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/SpeechEngine.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputSheetRepeatTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputViewModelTest" --tests "*VoiceInputSheetRepeatTest" --tests "*VoiceInputContentTest" --tests "*VoiceSheetActivityTest" --tests "*ShoppingListScreenTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug は未実施。実機は未確認）
 - date: 2026-11-15 00:37
   summary: 数量が「〇」だけのとき 0 にせず元の文字のまま残す
   details:

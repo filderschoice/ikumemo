@@ -15,6 +15,7 @@ import com.ikumemo.mobile.settings.OperationViewModel
 import com.ikumemo.mobile.settings.ProductManageViewModel
 import com.ikumemo.mobile.settings.ReminderSettingsViewModel
 import com.ikumemo.mobile.settings.StoreManageViewModel
+import com.ikumemo.mobile.share.ShareImportViewModel
 import com.ikumemo.mobile.shoppinglist.ShoppingListViewModel
 import com.ikumemo.mobile.voice.FieldDictationViewModel
 import com.ikumemo.mobile.voice.VoiceInputViewModel
@@ -73,6 +74,7 @@ object AppViewModelFactory {
             }
             initializer { VoiceInputViewModel(container().shoppingRepository, container().speechEngineFactory()) }
             initializer { FieldDictationViewModel(container().speechEngineFactory()) }
+            initializer { ShareImportViewModel(container().shoppingRepository) }
         }
 
     private fun CreationExtras.container(): AppContainer =

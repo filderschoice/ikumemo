@@ -36,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,8 +67,12 @@ fun VoiceInputSheet(
     LaunchedEffect(Unit) {
         if (hasPermission) viewModel.onEvent(VoiceInputEvent.Start)
     }
+    // 開いた時点で残っていた古い Added は無視して Idle へ戻す。拾うと聞き取り中を出す前に閉じてしまう（BL-190）
+    val staleAdded = remember { viewModel.state.value as? VoiceInputState.Added }
     LaunchedEffect(state) {
-        (state as? VoiceInputState.Added)?.let { onAdded(it.count) }
+        val added = state as? VoiceInputState.Added ?: return@LaunchedEffect
+        if (added !== staleAdded) onAdded(added.count)
+        viewModel.onEvent(VoiceInputEvent.AddedHandled)
     }
     val close = {
         viewModel.onEvent(VoiceInputEvent.Cancel)
@@ -134,7 +141,7 @@ fun VoiceInputContent(
                     onPrimary = { onSheetAction(VoiceSheetAction.RequestPermission) },
                     onTypeInstead = onTypeInstead,
                 )
-            state is VoiceInputState.Listening -> Listening(state.partialText)
+            state is VoiceInputState.Listening -> Listening(state.partialText, state.addedCount)
             state is VoiceInputState.Confirm -> ConfirmCards(state.cards, onEvent, onTypeInstead)
             state is VoiceInputState.NotHeard ->
                 Guidance(
@@ -143,16 +150,31 @@ fun VoiceInputContent(
                     onPrimary = { onEvent(VoiceInputEvent.Start) },
                     onTypeInstead = onTypeInstead,
                 )
-            else -> Listening("")
+            else -> Listening("", 0)
         }
     }
 }
 
 @Composable
-private fun Listening(partialText: String) {
+private fun Listening(
+    partialText: String,
+    addedCount: Int,
+) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Icon(Icons.Rounded.Mic, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Text(stringResource(R.string.voice_listening), style = MaterialTheme.typography.titleMedium)
+    }
+    if (addedCount > 0) {
+        // 読み上げ用に liveRegion にする。追加後に Listening へ戻った時点で件数が伝わる（BL-195）
+        Text(
+            text = stringResource(R.string.voice_added_continue, addedCount),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier =
+                Modifier
+                    .testTag(VoiceTestTags.ADDED_COUNT)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
+        )
     }
     if (partialText.isNotEmpty()) {
         Text(
@@ -194,7 +216,9 @@ fun Context.openAppSettings() {
 object VoiceTestTags {
     const val PARTIAL = "voice_partial"
     const val ADD_ALL = "voice_add_all"
+    const val ADD_AND_CONTINUE = "voice_add_and_continue"
     const val GUIDANCE = "voice_guidance"
+    const val ADDED_COUNT = "voice_added_count"
 
     fun card(key: Int) = "voice_card_$key"
 }

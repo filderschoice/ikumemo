@@ -82,6 +82,55 @@ class VoiceInputViewModelTest {
             )
         }
 
+    /** BL-190。追加後に画面が結果を受け取ったら Idle へ戻り、続けて Start すると聞き取り中になる（連続 3 回）。 */
+    @Test
+    fun listensAgainAfterAddedIsHandled() =
+        runTest {
+            repeat(3) { round ->
+                viewModel.onEvent(VoiceInputEvent.Start)
+                assertEquals(VoiceInputState.Listening(), viewModel.state.value)
+                assertEquals(round + 1, engine.startCount)
+                engine.emit(SpeechEvent.Results(listOf("牛乳$round")))
+                awaitState { it is VoiceInputState.Confirm }
+                viewModel.onEvent(VoiceInputEvent.AddAll)
+                awaitState { it is VoiceInputState.Added }
+                viewModel.onEvent(VoiceInputEvent.AddedHandled)
+                assertEquals(VoiceInputState.Idle, viewModel.state.value)
+            }
+        }
+
+    /** BL-191。「追加して続けて話す」は追加したうえで Added を経ずに Listening へ戻り、3 回続けて使える。 */
+    @Test
+    fun addAndContinueAddsThenListensAgain() =
+        runTest {
+            viewModel.onEvent(VoiceInputEvent.Start)
+            repeat(3) { round ->
+                // 1 回目は件数なし、2 回目以降は直前に追加した 1 件が付く（BL-195）
+                assertEquals(VoiceInputState.Listening(addedCount = if (round == 0) 0 else 1), viewModel.state.value)
+                assertEquals(round + 1, engine.startCount)
+                engine.emit(SpeechEvent.Results(listOf("牛乳$round")))
+                awaitState { it is VoiceInputState.Confirm }
+                viewModel.onEvent(VoiceInputEvent.AddAllAndContinue)
+                awaitState { it is VoiceInputState.Listening && engine.startCount == round + 2 }
+            }
+            assertEquals(3, repository.observeItems().first().size)
+        }
+
+    /** BL-195。続けて話すに戻った Listening に追加件数が入り、全部外して追加すると 0 件（出さない）。Start で件数は消える。 */
+    @Test
+    fun addAndContinueCarriesAddedCountIntoListening() =
+        runTest {
+            viewModel.onEvent(VoiceInputEvent.Start)
+            engine.emit(SpeechEvent.Results(listOf("牛乳と卵")))
+            awaitState { it is VoiceInputState.Confirm }
+            viewModel.onEvent(VoiceInputEvent.AddAllAndContinue)
+            awaitState { it is VoiceInputState.Listening && engine.startCount == 2 }
+            assertEquals(VoiceInputState.Listening(addedCount = 2), viewModel.state.value)
+
+            viewModel.onEvent(VoiceInputEvent.Start)
+            assertEquals(VoiceInputState.Listening(), viewModel.state.value)
+        }
+
     @Test
     fun itemAlreadyInMemoIsMarkedAndExcludedByDefault() =
         runTest {

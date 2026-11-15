@@ -70,7 +70,8 @@ internal class MemoGuideController(
         when (event) {
             ShoppingListEvent.OpenVoice -> GuideId.G02_VOICE_BUTTON
             // 自分で項目を動かせたので、れんしゅうは要らない
-            is ShoppingListEvent.MarkBought, is ShoppingListEvent.Dismiss -> GuideId.G03_SWIPE_PRACTICE
+            is ShoppingListEvent.MarkBought, is ShoppingListEvent.Dismiss, ShoppingListEvent.DismissSelected ->
+                GuideId.G03_SWIPE_PRACTICE
             is ShoppingListEvent.Undo -> GuideId.G05_UNDO
             ShoppingListEvent.OpenStorePicker -> GuideId.G06_STORE_CHIP
             else -> null

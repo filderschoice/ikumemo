@@ -71,6 +71,24 @@
             android:taskAffinity="${applicationId}.voice"
             android:theme="@style/Theme.Ikumemo.VoiceSheet" />
 
+        <!--
+            共有シートの「いくメモに追加」（BL-197）。LINE などから共有された文を取り込む。共有シートに出すため exported=true。
+            受け付けるのは ACTION_SEND の text/plain だけ（ほかの Intent・extra は読まずに閉じる）。権限は足さない
+        -->
+        <activity
+            android:name=".share.ShareReceiveActivity"
+            android:exported="true"
+            android:label="@string/share_import_target"
+            android:theme="@style/Theme.Ikumemo.VoiceSheet">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <!-- ウィジェット W-01（OS からの更新を受けるため exported=true が必要） -->
         <receiver
             android:name=".widget.VoiceWidgetReceiver"

@@ -1,5 +1,6 @@
 package com.ikumemo.mobile.shoppinglist
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import com.ikumemo.mobile.R
 import com.ikumemo.mobile.ScreenRequest
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.UndoableAction
+import com.ikumemo.mobile.designsystem.photoTextButtonColors
 import com.ikumemo.mobile.guide.GuideId
 import com.ikumemo.mobile.guide.GuideOverlay
 import com.ikumemo.mobile.guide.LocalGuideTargets
@@ -177,6 +179,8 @@ fun ShoppingListContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val guideTargets = rememberGuideTargets()
+    // えらんで消すモードでは、戻る操作でモードだけを終える（BL-194）
+    BackHandler(enabled = state.selection != null) { onEvent(SelectionEvent.Stop) }
     MessageEffect(state.message, snackbarHostState) { onEvent(ShoppingListEvent.MessageShown) }
     UndoEffect(state.undo, snackbarHostState, onEvent)
     LaunchedEffect(state.highlightedItemId) {
@@ -189,22 +193,21 @@ fun ShoppingListContent(
     CompositionLocalProvider(LocalGuideTargets provides guideTargets) {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.memo_title)) },
-                    actions = { SettingsButton(onOpenSettings, TestTags.SETTINGS) },
-                    windowInsets = WindowInsets(0),
-                )
-                StoreChip(
-                    selectedStore = state.selectedStore,
-                    onClick = { onEvent(ShoppingListEvent.OpenStorePicker) },
-                    modifier = Modifier.padding(horizontal = 16.dp).guideTarget(GuideId.G06_STORE_CHIP, guideTargets),
-                )
+                MemoTopBar(state, onEvent, onOpenSettings)
+                StoreRow(state, onEvent, Modifier.guideTarget(GuideId.G06_STORE_CHIP, guideTargets))
                 if (state.loaded && state.items.isEmpty()) {
                     EmptyMemo(onOpenHelp = { onOpenHelp(HelpPages.VOICE) }, modifier = Modifier.weight(1f))
                 } else {
                     MemoList(state, listState, onEvent, Modifier.weight(1f))
                 }
-                AddButtons(voiceAvailable = voiceAvailable, onEvent = onEvent, onOpenHelp = onOpenHelp)
+                if (state.selection == null) {
+                    AddButtons(voiceAvailable = voiceAvailable, onEvent = onEvent, onOpenHelp = onOpenHelp)
+                } else {
+                    SelectDeleteBar(
+                        count = state.selection.size,
+                        onDelete = { onEvent(ShoppingListEvent.DismissSelected) },
+                    )
+                }
             }
             SnackbarHost(
                 snackbarHostState,
@@ -225,6 +228,38 @@ fun ShoppingListContent(
     }
 }
 
+/** 上の帯。えらんで消すモードでは、えらんだ件数と「やめる」を出す（BL-194）。 */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MemoTopBar(
+    state: ShoppingListUiState,
+    onEvent: (ShoppingListEvent) -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    val selection = state.selection
+    TopAppBar(
+        title = {
+            Text(
+                when {
+                    selection == null -> stringResource(R.string.memo_title)
+                    selection.isEmpty() -> stringResource(R.string.memo_select_hint)
+                    else -> stringResource(R.string.memo_select_title, selection.size)
+                },
+            )
+        },
+        actions = {
+            when {
+                selection != null -> SelectCancelButton { onEvent(SelectionEvent.Stop) }
+                else -> {
+                    if (state.items.isNotEmpty()) SelectStartButton { onEvent(SelectionEvent.Start) }
+                    SettingsButton(onOpenSettings, TestTags.SETTINGS)
+                }
+            }
+        },
+        windowInsets = WindowInsets(0),
+    )
+}
+
 /** メモの一覧。G-03 の間は一番上に「れんしゅう：にんじん」を出す（DB には入れない、R-54）。 */
 @Composable
 private fun MemoList(
@@ -235,8 +270,8 @@ private fun MemoList(
 ) {
     val targets = LocalGuideTargets.current
     val practiceName = stringResource(R.string.guide_practice_item)
-    val rows =
-        if (state.practice) listOf(MemoGuides.practiceItem(practiceName)) + state.items else state.items
+    val showPractice = state.practice && state.selection == null
+    val rows = if (showPractice) listOf(MemoGuides.practiceItem(practiceName)) + state.items else state.items
     LazyColumn(state = listState, modifier = modifier.fillMaxWidth().testTag(TestTags.MEMO_LIST)) {
         itemsIndexed(rows, key = { _, item -> item.id }) { index, item ->
             val practice = item.id == MemoGuides.PRACTICE_ITEM_ID
@@ -259,12 +294,19 @@ private fun MemoList(
                 CompositionLocalProvider(
                     LocalOperationSettings provides state.operation,
                     LocalBoughtButtonModifier provides boughtButton,
+                    LocalRowSelection provides state.selection?.let { RowSelection(item.id in it) },
                 ) {
                     SwipeableItemRow(
                         item = item,
                         highlighted = item.id == state.highlightedItemId,
                         // れんしゅう項目は編集しない
-                        onClick = { if (!practice) onEvent(ShoppingListEvent.OpenEditor(item.id)) },
+                        onClick = {
+                            when {
+                                practice -> Unit
+                                state.selection != null -> onEvent(SelectionEvent.Toggle(item.id))
+                                else -> onEvent(ShoppingListEvent.OpenEditor(item.id))
+                            }
+                        },
                         onBought = { onEvent(ShoppingListEvent.MarkBought(item.id)) },
                         onDismissed = { onEvent(ShoppingListEvent.Dismiss(item.id)) },
                     )
@@ -302,14 +344,21 @@ private fun UndoEffect(
 ) {
     val boughtFormat = stringResource(R.string.memo_bought_message)
     val dismissedFormat = stringResource(R.string.memo_dismissed_message)
+    val dismissedManyFormat = stringResource(R.string.memo_dismissed_many_message)
     val undoLabel = stringResource(R.string.memo_undo)
     val accessibilityManager = LocalAccessibilityManager.current
     LaunchedEffect(offer?.serial) {
         offer ?: return@LaunchedEffect
         val text =
             when (val action = offer.action) {
+                // 「えらんで消す」でまとめて消したときは件数で知らせる（BL-194）
+                is UndoableAction.Dismissed ->
+                    if (offer.actions.size > 1) {
+                        dismissedManyFormat.format(offer.actions.size)
+                    } else {
+                        dismissedFormat.format(action.item.displayName)
+                    }
                 is UndoableAction.Bought -> boughtFormat.format(action.item.displayName)
-                is UndoableAction.Dismissed -> dismissedFormat.format(action.item.displayName)
             }
         val timeout =
             accessibilityManager?.calculateRecommendedTimeoutMillis(
@@ -350,7 +399,12 @@ private fun EmptyMemo(
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
-        TextButton(onClick = onOpenHelp, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EMPTY_HELP)) {
+        TextButton(
+            onClick = onOpenHelp,
+            modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EMPTY_HELP),
+            // 写真とペンの色があるとき、テーマの色のままだと膜に溶けて読めない（BL-202）
+            colors = photoTextButtonColors(),
+        ) {
             Text(stringResource(R.string.help_open))
         }
     }
@@ -388,6 +442,8 @@ private fun AddButtons(
             TextButton(
                 onClick = { onEvent(ShoppingListEvent.OpenAddByText) },
                 modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.ADD_BY_TEXT),
+                // 暗いテーマで写真を置いたとき、固定の薄い青が膜に溶けないよう、ペンの色にする（BL-188）
+                colors = photoTextButtonColors(),
             ) {
                 Icon(Icons.Rounded.Keyboard, contentDescription = null)
                 Text(stringResource(R.string.memo_add_by_text), modifier = Modifier.padding(start = 8.dp))
@@ -403,6 +459,7 @@ private fun AddButtons(
             TextButton(
                 onClick = { onOpenHelp(HelpPages.NO_VOICE) },
                 modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.NO_VOICE_HELP),
+                colors = photoTextButtonColors(),
             ) {
                 Text(stringResource(R.string.help_open))
             }
@@ -436,6 +493,14 @@ object TestTags {
     const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
     const val SETTINGS = "settings"
+
+    /** メモを送る（共有シート、BL-196）。 */
+    const val SHARE = "memo_share"
+
+    /** 「えらんで消す」の入口・やめる・消す（BL-194）。 */
+    const val SELECT_START = "select_start"
+    const val SELECT_CANCEL = "select_cancel"
+    const val SELECT_DELETE = "select_delete"
     const val EMPTY_HELP = "empty_help"
     const val PRACTICE = "memo_practice"
     const val NO_VOICE_HELP = "no_voice_help"

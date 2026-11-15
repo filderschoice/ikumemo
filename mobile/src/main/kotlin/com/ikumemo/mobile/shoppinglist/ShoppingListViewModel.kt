@@ -100,6 +100,9 @@ sealed interface ShoppingListEvent {
         val itemId: Long,
     ) : ShoppingListEvent
 
+    /** えらんだ品物をまとめて「やめた」にする（BL-194）。まとめて「元に戻す」できる。 */
+    data object DismissSelected : ShoppingListEvent
+
     data class Undo(
         val serial: Long,
     ) : ShoppingListEvent
@@ -144,11 +147,19 @@ sealed interface HomeMessage {
     ) : HomeMessage
 }
 
-/** 「元に戻す」の表示（F-12）。[serial] は同じ品目を続けて操作したときも表示し直すための通し番号。 */
+/**
+ * 「元に戻す」の表示（F-12）。[serial] は同じ品目を続けて操作したときも表示し直すための通し番号。
+ * 「えらんで消す」では [actions] が複数になり、まとめて戻す（BL-194）。
+ */
 data class UndoOffer(
     val serial: Long,
-    val action: UndoableAction,
-)
+    val actions: List<UndoableAction>,
+) {
+    constructor(serial: Long, action: UndoableAction) : this(serial, listOf(action))
+
+    /** 1 件の操作のとき（まとめて消したときは先頭）の操作。 */
+    val action: UndoableAction get() = actions.first()
+}
 
 data class ShoppingListUiState(
     val items: List<ShoppingItemEntity> = emptyList(),
@@ -168,6 +179,8 @@ data class ShoppingListUiState(
     val guide: GuideId? = null,
     /** メモの一番上に「れんしゅう：にんじん」を出すか（G-03・R-54）。DB には入れない。 */
     val practice: Boolean = false,
+    /** 「えらんで消す」でチェックを入れた項目。null なら普段のモード（BL-194）。 */
+    val selection: Set<Long>? = null,
 )
 
 private data class LocalState(
@@ -175,6 +188,7 @@ private data class LocalState(
     val highlightedItemId: Long? = null,
     val message: HomeMessage? = null,
     val undo: UndoOffer? = null,
+    val selection: Set<Long>? = null,
 )
 
 /**
@@ -212,6 +226,8 @@ class ShoppingListViewModel(
                     highlightedItemId = state.highlightedItemId,
                     message = state.message,
                     undo = state.undo,
+                    // もう無い項目（ほかで買った・消した）のチェックは数えない
+                    selection = state.selection?.let { chosen -> items.map { it.id }.filter { it in chosen }.toSet() },
                     selectedStore = selectedStore,
                     stores = stores,
                     operation = operationSettings,
@@ -254,6 +270,7 @@ class ShoppingListViewModel(
             ShoppingListEvent.HighlightShown -> local.update { it.copy(highlightedItemId = null) }
             ShoppingListEvent.MessageShown -> local.update { it.copy(message = null) }
             is ShoppingListEvent.AddQueryChanged -> addQuery.value = event.text
+            is SelectionEvent -> local.update { it.copy(selection = it.selection.after(event)) }
             else -> return false
         }
         return true
@@ -273,8 +290,10 @@ class ShoppingListViewModel(
                 write { handle(repository.addItem(event.name)) }
             }
             is ShoppingListEvent.SaveEdit -> saveEdit(event)
-            is ShoppingListEvent.MarkBought -> writeUndoable { markBought(event.itemId) }
-            is ShoppingListEvent.Dismiss -> writeUndoable { repository.dismiss(event.itemId) }
+            is ShoppingListEvent.MarkBought -> writeUndoable { listOfNotNull(markBought(event.itemId)) }
+            is ShoppingListEvent.Dismiss -> writeUndoable { listOfNotNull(repository.dismiss(event.itemId)) }
+            ShoppingListEvent.DismissSelected ->
+                writeUndoable(endSelecting = true) { repository.dismissAll(local.value.selection.orEmpty()) }
             is ShoppingListEvent.Undo -> undo(event.serial)
             is ShoppingListEvent.SelectStore -> chooseStore { storeRepository.select(event.storeId) }
             is ShoppingListEvent.AddStore ->
@@ -309,15 +328,21 @@ class ShoppingListViewModel(
         write {
             val offer = local.value.undo?.takeIf { it.serial == serial } ?: return@write
             local.update { it.copy(undo = null) }
-            repository.undo(offer.action)
+            // 消した順の逆に戻す
+            offer.actions.asReversed().forEach { repository.undo(it) }
         }
 
-    private fun writeUndoable(block: suspend () -> UndoableAction?) =
-        write {
-            val action = block() ?: return@write
-            undoSerial += 1
-            local.update { it.copy(undo = UndoOffer(undoSerial, action)) }
+    /** 操作して「元に戻す」を出す。1 件も操作できなければ何もしない。[endSelecting] なら、えらんで消すモードも終える（BL-194）。 */
+    private fun writeUndoable(
+        endSelecting: Boolean = false,
+        block: suspend () -> List<UndoableAction>,
+    ) = write {
+        val actions = block().ifEmpty { return@write }
+        undoSerial += 1
+        local.update {
+            it.copy(selection = if (endSelecting) null else it.selection, undo = UndoOffer(undoSerial, actions))
         }
+    }
 
     private fun write(block: suspend () -> Unit) {
         viewModelScope.launch { writeLock.withLock { block() } }

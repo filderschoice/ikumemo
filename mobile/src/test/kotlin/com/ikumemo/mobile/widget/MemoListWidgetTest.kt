@@ -2,6 +2,7 @@ package com.ikumemo.mobile.widget
 
 import android.content.Context
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
 import androidx.glance.appwidget.testing.unit.hasStartActivityClickAction
 import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
@@ -12,6 +13,7 @@ import androidx.glance.testing.unit.hasTextEqualTo
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.MainActivity
 import com.ikumemo.mobile.designsystem.ThemePreset
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -50,7 +52,8 @@ class MemoListWidgetTest {
 
     @Test
     fun smallShowsHeaderAndFirstNamesInARow() =
-        render(fiveItems, MemoListWidget.SMALL) {
+        // 幅 4 マス相当（WIDE_SMALL）。期限が近い件があっても見出しは全文
+        render(fiveItems, MemoListWidget.WIDE_SMALL) {
             onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
             onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
             onNode(hasTextEqualTo("・牛乳 2本　・たまご 1パック　・食パン")).assertExists()
@@ -78,7 +81,8 @@ class MemoListWidgetTest {
 
     @Test
     fun rowOpensThatItemAndDueSoonOpensReminders() =
-        render(fiveItems, MemoListWidget.LARGE) {
+        // 幅 4 マス相当（WIDE_LARGE）。期限が近い件の見出しは全文
+        render(fiveItems, MemoListWidget.WIDE_LARGE) {
             onNode(hasStartActivityClickAction(MainActivity.itemIntent(context, 2))).assertExists()
             onNode(
                 hasStartActivityClickAction(MainActivity.intent(context, MainActivity.TAB_REMINDER))
@@ -105,6 +109,94 @@ class MemoListWidgetTest {
         }
         render(MemoWidgetState(), MemoListWidget.LARGE) {
             onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+        }
+    }
+
+    @Test
+    fun refreshButtonStaysAtTwoCellWidthWithDueSoon() {
+        // 幅 2 マス相当（BL-186）。期限が近い件数があっても更新ボタンと見出しは両方残る
+        val twoCells = DpSize(110.dp, 110.dp)
+        render(fiveItems, twoCells) {
+            onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+            onNode(hasTextEqualTo("🔔2")).assertExists()
+        }
+    }
+
+    @Test
+    fun narrowShowsShortDueSoonWithSpokenDescription() {
+        // 幅 2 マスでは「🔔N」と短くして件数が見えるようにし、読み上げは「期限が近い N件」（BL-203）
+        render(fiveItems, MemoListWidget.TWO_CELL_SMALL) {
+            onNode(hasTextEqualTo("🔔2")).assertExists()
+            onNode(hasContentDescriptionEqualTo("期限が近い 2件")).assertExists()
+            onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+            onAllNodes(hasText("期限が近い")).assertCountEquals(0)
+            // 期限が近い件があるときはメモの件数を省く
+            onAllNodes(hasText("🛒")).assertCountEquals(0)
+        }
+    }
+
+    @Test
+    fun threeCellWidthShowsShortDueSoonCountWithRefresh() {
+        // 幅 2・3 マス相当（180・200・250dp）。期限が近い件数の数字が欠けず、更新ボタンも残る（BL-205）
+        listOf(MemoListWidget.NARROW_SMALL, DpSize(200.dp, 110.dp), MemoListWidget.SMALL).forEach { size ->
+            render(fiveItems, size) {
+                onNode(hasTextEqualTo("🔔2")).assertExists()
+                onNode(hasContentDescriptionEqualTo("期限が近い 2件")).assertExists()
+                onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+                onAllNodes(hasText("期限が近い")).assertCountEquals(0)
+            }
+        }
+    }
+
+    @Test
+    fun compactHeaderBoundaries() {
+        // 150dp 未満は常に短い。期限が近い件があるときは 350dp 未満も短い
+        listOf(149.dp to true, 150.dp to false, 349.dp to false, 350.dp to false).forEach { (width, expectedNoDue) ->
+            assertEquals("期限なし $width", expectedNoDue, MemoListWidget.compactHeader(width, dueSoon = false))
+        }
+        listOf(149.dp to true, 150.dp to true, 349.dp to true, 350.dp to false).forEach { (width, expected) ->
+            assertEquals("期限あり $width", expected, MemoListWidget.compactHeader(width, dueSoon = true))
+        }
+    }
+
+    @Test
+    fun tallCandidatesBelowWideLargeShowShortDueSoon() {
+        // 高さ 180dp の候補でも、幅 4 マス相当（WIDE_LARGE）未満なら期限が近い件は短い表記
+        listOf(MemoListWidget.NARROW_LARGE, MemoListWidget.LARGE).forEach { size ->
+            render(fiveItems, size) {
+                onNode(hasTextEqualTo("🔔2")).assertExists()
+                onAllNodes(hasText("期限が近い")).assertCountEquals(0)
+            }
+        }
+    }
+
+    @Test
+    fun fourCellWidthKeepsTheFullHeaderText() {
+        render(fiveItems, MemoListWidget.WIDE_SMALL) {
+            onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
+            onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
+            onAllNodes(hasTextEqualTo("🔔2")).assertCountEquals(0)
+        }
+    }
+
+    @Test
+    fun threeCellWidthKeepsTheFullCountWhenNothingIsDueSoon() {
+        // 期限が近い件が無いときの表示は変えない（150dp 以上は全文）
+        val noDue = fiveItems.copy(dueSoonCount = 0)
+        listOf(MemoListWidget.NARROW_SMALL, MemoListWidget.SMALL).forEach { size ->
+            render(noDue, size) {
+                onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
+            }
+        }
+    }
+
+    @Test
+    fun narrowShowsShortCountWhenNothingIsDueSoon() {
+        val noDue = fiveItems.copy(dueSoonCount = 0)
+        render(noDue, MemoListWidget.TWO_CELL_LARGE) {
+            onNode(hasTextEqualTo("🛒5")).assertExists()
+            onNode(hasContentDescriptionEqualTo("メモ 5件")).assertExists()
+            onAllNodes(hasText("🔔")).assertCountEquals(0)
         }
     }
 

@@ -57,7 +57,10 @@ import kotlinx.coroutines.delay
  * 選んだお店と品名の縦一覧を出す。追加・「買った」・編集はせず、押すとアプリの該当画面を開く（D-18・R-40）。
  */
 class MemoListWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(NARROW_SMALL, SMALL, NARROW_LARGE, LARGE))
+    override val sizeMode =
+        SizeMode.Responsive(
+            setOf(TWO_CELL_SMALL, NARROW_SMALL, SMALL, WIDE_SMALL, TWO_CELL_LARGE, NARROW_LARGE, LARGE, WIDE_LARGE),
+        )
 
     override suspend fun provideGlance(
         context: Context,
@@ -77,10 +80,33 @@ class MemoListWidget : GlanceAppWidget() {
     }
 
     companion object {
+        /** 幅 2 マスの候補の幅。見出しを常に短くする幅の上限が COMPACT_BELOW（compactHeader を参照）。 */
+        private val TWO_CELL_WIDTH = 120.dp
+        val COMPACT_BELOW = 150.dp
+
+        /** 期限が近い件があるとき、見出しを全文で出す最小の幅（幅 4 マス相当）。 */
+        private val FULL_HEADER_MIN = 350.dp
+
+        /** 見出しを短い表記にするか。幅 2 マス相当は常に、期限が近い件があるときは幅 4 マス未満も短くする（BL-203・205）。 */
+        fun compactHeader(
+            width: Dp,
+            dueSoon: Boolean,
+        ): Boolean = width < COMPACT_BELOW || (dueSoon && width < FULL_HEADER_MIN)
+
+        /** 幅 2 マス相当（BL-203）。見出しだけを短い表記にする判定用で、行の並べ方は NARROW_* と同じ。 */
+        val TWO_CELL_SMALL = DpSize(TWO_CELL_WIDTH, 110.dp)
+        val TWO_CELL_LARGE = DpSize(TWO_CELL_WIDTH, 180.dp)
         val NARROW_SMALL = DpSize(180.dp, 110.dp)
         val SMALL = DpSize(250.dp, 110.dp)
         val NARROW_LARGE = DpSize(180.dp, 180.dp)
         val LARGE = DpSize(250.dp, 180.dp)
+
+        /**
+         * 幅 4 マス相当の候補（BL-205）。幅 3 マス（約 300dp）は SMALL/LARGE が選ばれ、4 マス（約 410dp）は
+         * これが選ばれる。期限が近い件があるとき、これ未満の幅では見出しを短い表記にして件数を見せる。
+         */
+        val WIDE_SMALL = DpSize(FULL_HEADER_MIN, 110.dp)
+        val WIDE_LARGE = DpSize(FULL_HEADER_MIN, 180.dp)
 
         /** 小さい表示で横に並べる品名の数（幅が狭いときは減らす）。 */
         fun namesInRow(wide: Boolean): Int = if (wide) WIDE_NAMES else NARROW_NAMES
@@ -99,6 +125,7 @@ fun MemoListContent(
     val context = LocalContext.current
     val size = LocalSize.current
     val wide = size.width >= MemoListWidget.SMALL.width
+    val compact = MemoListWidget.compactHeader(size.width, state.dueSoonCount > 0)
     val large = size.height >= MemoListWidget.LARGE.height
     Column(
         modifier =
@@ -109,7 +136,7 @@ fun MemoListContent(
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.OPEN_MEMO))),
     ) {
-        MemoHeader(state, colors, refreshing)
+        MemoHeader(state, colors, refreshing, compact)
         // 見出しの下の太めの線（メモ帳の上端）
         Rule(colors.primary, HEADER_RULE)
         when {
@@ -126,8 +153,11 @@ private fun MemoHeader(
     state: MemoWidgetState,
     colors: WidgetColors,
     refreshing: Boolean,
+    compact: Boolean,
 ) {
     val context = LocalContext.current
+    val dueSoon = state.dueSoonCount > 0
+    val dueSoonDescription = context.getString(R.string.widget_memo_due_soon_description, state.dueSoonCount)
     Row(
         modifier = GlanceModifier.fillMaxWidth().height(TAP_HEIGHT),
         verticalAlignment = Alignment.CenterVertically,
@@ -137,31 +167,54 @@ private fun MemoHeader(
             style = TextStyle(color = colors.onBackground, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
-        Spacer(GlanceModifier.width(8.dp))
-        Text(
-            context.getString(R.string.widget_memo_count, state.items.size),
-            style = TextStyle(color = colors.onBackground),
-            maxLines = 1,
-        )
-        if (state.dueSoonCount > 0) {
+        // 短い表記（compactHeader が真）のときは、期限が近い件があれば件数の表記を省いて、
+        // 期限が近い件数を優先して見せる（BL-203・205）
+        if (!compact || !dueSoon) {
+            Spacer(GlanceModifier.width(if (compact) 4.dp else 8.dp))
+            MemoCount(context, state.items.size, compact, colors)
+        }
+        if (dueSoon) {
             Box(
+                // 幅が狭いときは、この見出しの文字だけを縮めて更新ボタンを残す（BL-186）
                 modifier =
                     GlanceModifier
+                        .defaultWeight()
                         .height(TAP_HEIGHT)
-                        .padding(start = 8.dp)
-                        .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.TAB_REMINDER))),
+                        .padding(start = if (compact) 4.dp else 8.dp)
+                        .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.TAB_REMINDER)))
+                        .semantics { contentDescription = dueSoonDescription },
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Text(
-                    context.getString(R.string.widget_memo_due_soon, state.dueSoonCount),
+                    context.getString(
+                        if (compact) R.string.widget_memo_due_soon_short else R.string.widget_memo_due_soon,
+                        state.dueSoonCount,
+                    ),
                     style = TextStyle(color = colors.primary, fontWeight = FontWeight.Medium),
                     maxLines = 1,
                 )
             }
         }
-        Spacer(GlanceModifier.defaultWeight())
+        if (!dueSoon) Spacer(GlanceModifier.defaultWeight())
         RefreshButton(colors, refreshing)
     }
+}
+
+/** 見出しのメモの件数。幅 2 マス相当のときは「🛒N」と短くし、読み上げは「メモ N件」にする。 */
+@Composable
+private fun MemoCount(
+    context: Context,
+    count: Int,
+    compact: Boolean,
+    colors: WidgetColors,
+) {
+    val description = context.getString(R.string.widget_memo_count_description, count)
+    Text(
+        context.getString(if (compact) R.string.widget_memo_count_short else R.string.widget_memo_count, count),
+        style = TextStyle(color = colors.onBackground),
+        maxLines = 1,
+        modifier = GlanceModifier.semantics { contentDescription = description },
+    )
 }
 
 /** 更新ボタン。メモを足した直後に反映されないときのため、押すとその場で描き直す。 */
