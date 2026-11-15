@@ -5,24 +5,6 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
-- id: BL-207
-  区分: 人手検証
-  タスク内容: >-
-    BL-086 で作った site/ を GitHub Pages で公開し、アプリからご意見フォームまで実機で遷移できるか確かめる。
-    公開は sesami-wear と同じく、main へマージした後に `git subtree push --prefix site origin gh-pages` を実行し（push のため人が行う）、
-    リポジトリの Settings → Pages で公開元を gh-pages ブランチの / にする。
-    公開後、ブラウザで https://filderschoice.github.io/ikumemo/ と https://filderschoice.github.io/ikumemo/feedback/?info=TEST を開き、
-    後者がご意見フォームへ移って「アプリの版・Android の版・機種名」に TEST が入ること、ログインを求められないことを確かめる。
-    さらに BL-206 を入れた版の実機で「ご意見・ご要望」→ フォームで送るボタンを押し、ブラウザでフォームが開いて版・Android の版・機種名が入ることを確かめる
-    2026-11-15 にオーナーがリポジトリを公開し、gh-pages へ subtree push した。エージェントが API で Pages（gh-pages の /）を有効にし、
-    https://filderschoice.github.io/ikumemo/ が 200 を返すこと、転送ページに entry.10635078 があることを確かめた。
-    残りは、ブラウザで ?info=TEST を開いてフォームへ移り欄に TEST が入ることと、新しい版の実機でボタンからフォームが開くこと
-  優先度: P2
-  状態: 進行中
-  担当: ユーザー
-  完了条件: 紹介ページと転送ページが公開され、アプリのボタンからフォームが開いて版・Android の版・機種名が自動で入っている
-  依存: []
-  根拠: GitHub Pages の公開には gh-pages への push とリポジトリ設定の変更が要り、エージェントには許されていないため（guardrails 12.2）
 - id: BL-150
   区分: 人手検証
   タスク内容: >-
