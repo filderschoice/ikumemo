@@ -80,7 +80,7 @@ class MemoListWidget : GlanceAppWidget() {
     }
 
     companion object {
-        /** 幅 2 マスの候補の幅。3 マスは 180dp 付近なので、COMPACT_BELOW 未満だけを 2 マスとみなす。 */
+        /** 幅 2 マスの候補の幅。見出しを常に短くする幅の上限が COMPACT_BELOW（compactHeader を参照）。 */
         private val TWO_CELL_WIDTH = 120.dp
         val COMPACT_BELOW = 150.dp
 
@@ -167,8 +167,8 @@ private fun MemoHeader(
             style = TextStyle(color = colors.onBackground, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
-        // 幅 2 マス相当（COMPACT_BELOW 未満）のときは短い表記にし、期限が近い件があるときは件数の表記を省いて、
-        // 期限が近い件数を優先して見せる（BL-203）
+        // 短い表記（compactHeader が真）のときは、期限が近い件があれば件数の表記を省いて、
+        // 期限が近い件数を優先して見せる（BL-203・205）
         if (!compact || !dueSoon) {
             Spacer(GlanceModifier.width(if (compact) 4.dp else 8.dp))
             MemoCount(context, state.items.size, compact, colors)

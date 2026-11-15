@@ -5,6 +5,27 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 17:46
+  summary: BL-205 の点検の指摘を直し、古いコメントを実装に合わせ、短い表記の境界値テストと 350dp の根拠を残した
+  details:
+    関連ID:
+      - BL-205
+    変更内容: >-
+      MemoListWidget.kt の古いコメント（COMPACT_BELOW 未満だけを 2 マスとみなす等）を compactHeader の判定を参照する書き方へ直した（挙動は変えていない）。
+      単体テストに、compactHeader の境界値（149・150・349・350dp × 期限が近い件の有無）と、高さ 180dp の候補（NARROW_LARGE・LARGE）で期限が近い件があると「🔔2」になるテストを足し、
+      入力を WIDE_SMALL・WIDE_LARGE に替えた 2 つのテストに 4 マス相当と分かるコメントを足した。
+      350dp の境目は変えない。根拠は、4 マスが 350dp 未満の端末では全文がもともと収まらず「期限が近い…」で数字が切れるため、「🔔N」にする方が件数が見えること
+      （実機 Pixel 8 Pro では 3 マス約 300dp で全文が切れ、4 マス約 410dp で収まった）。この限界を DESIGN.md の W-02 行と BL-106 の残りに書いた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・実機確認は流していない
 - date: 2026-11-15 17:40
   summary: メモ一覧ウィジェットで、期限が近い件があるとき幅 2・3 マスでも期限が近い件数が見えるようにした
   details:

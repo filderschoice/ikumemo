@@ -13,6 +13,7 @@ import androidx.glance.testing.unit.hasTextEqualTo
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.mobile.MainActivity
 import com.ikumemo.mobile.designsystem.ThemePreset
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -51,6 +52,7 @@ class MemoListWidgetTest {
 
     @Test
     fun smallShowsHeaderAndFirstNamesInARow() =
+        // 幅 4 マス相当（WIDE_SMALL）。期限が近い件があっても見出しは全文
         render(fiveItems, MemoListWidget.WIDE_SMALL) {
             onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
             onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
@@ -79,6 +81,7 @@ class MemoListWidgetTest {
 
     @Test
     fun rowOpensThatItemAndDueSoonOpensReminders() =
+        // 幅 4 マス相当（WIDE_LARGE）。期限が近い件の見出しは全文
         render(fiveItems, MemoListWidget.WIDE_LARGE) {
             onNode(hasStartActivityClickAction(MainActivity.itemIntent(context, 2))).assertExists()
             onNode(
@@ -140,6 +143,28 @@ class MemoListWidgetTest {
                 onNode(hasTextEqualTo("🔔2")).assertExists()
                 onNode(hasContentDescriptionEqualTo("期限が近い 2件")).assertExists()
                 onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+                onAllNodes(hasText("期限が近い")).assertCountEquals(0)
+            }
+        }
+    }
+
+    @Test
+    fun compactHeaderBoundaries() {
+        // 150dp 未満は常に短い。期限が近い件があるときは 350dp 未満も短い
+        listOf(149.dp to true, 150.dp to false, 349.dp to false, 350.dp to false).forEach { (width, expectedNoDue) ->
+            assertEquals("期限なし $width", expectedNoDue, MemoListWidget.compactHeader(width, dueSoon = false))
+        }
+        listOf(149.dp to true, 150.dp to true, 349.dp to true, 350.dp to false).forEach { (width, expected) ->
+            assertEquals("期限あり $width", expected, MemoListWidget.compactHeader(width, dueSoon = true))
+        }
+    }
+
+    @Test
+    fun tallCandidatesBelowWideLargeShowShortDueSoon() {
+        // 高さ 180dp の候補でも、幅 4 マス相当（WIDE_LARGE）未満なら期限が近い件は短い表記
+        listOf(MemoListWidget.NARROW_LARGE, MemoListWidget.LARGE).forEach { size ->
+            render(fiveItems, size) {
+                onNode(hasTextEqualTo("🔔2")).assertExists()
                 onAllNodes(hasText("期限が近い")).assertCountEquals(0)
             }
         }
