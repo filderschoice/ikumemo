@@ -5,6 +5,27 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 14:37
+  summary: 点検の指摘に合わせ、使い方の膜の濃さの説明と DESIGN の F-61 を BL-188・189 の実装に揃えた
+  details:
+    関連ID:
+      - BL-188
+      - BL-189
+    変更内容: >-
+      BL-189 で明るい画面の膜も選んだ濃さより 0.1 濃くしたのに、使い方（背景の写真）が「暗い画面では自動で濃くなります」のままだったため、
+      「実際の膜は、写真の上の文字が読めるよう選んだ濃さより少し濃くなります（暗い画面ではさらに濃くなります）」に直し、docs/USER_GUIDE.md を作り直した。
+      DESIGN.md の F-61 に、写真の上の「文字で追加」をペンの色で描くこと（BL-188、photoTextButtonColors）を足した。
+      BL-199 に、明るいテーマの膜の +0.1 がおまかせ・くろ・しろにも掛かるため、おまかせ・くろでも写真が透けて見えることの確認点を足した
+    変更ファイル:
+      - mobile/src/main/assets/help/background.md
+      - docs/USER_GUIDE.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/make-user-guide.py の後に python scripts/quality-gates.py --skip-gradle
+    検証結果: >-
+      成功 - 文書系のゲート（markdownlint・記録・使い方の Web 版・秘密情報）が成功。Gradle 系は文言だけの変更のため流していない
 - date: 2026-11-15 14:28
   summary: メモ画面のスクリーンショット（24 枚）を、BL-194・196・200・201 で意図して変えた見た目に合わせて記録し直した
   details:
