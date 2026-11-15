@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+  ご意見フォームへの転送ページ。アプリは ?info=<URL エンコードした「アプリの版 X ／ Android Y ／ 機種 Z」> を付けてここを開く。
+  info を FORM_ENTRY_INFO の欄へ事前入力して Google フォームへ移る。info は URL の組み立てにだけ使い、ページには表示しない。
+  フォームを作り直したときは、下の script の FORM_URL と FORM_ENTRY_INFO（と noscript 用のリンク）だけを差し替える（アプリの更新は要らない）。
+  外部スクリプト・アクセス解析・Cookie は使わない。
+-->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <title>ご意見フォームへ移動します — いくメモ</title>
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <main class="container narrow">
+    <h1>ご意見フォームへ移動します</h1>
+    <p>自動で移動しない場合は、次のリンクを押してください。</p>
+    <p><a id="form-link" class="button primary" href="https://docs.google.com/forms/d/e/1FAIpQLSeOD2w-JhK_IRLpV6tEkaXbzhKkf52VCfsd9oPJenY3gt7Taw/viewform">ご意見フォームを開く</a></p>
+    <p class="meta"><a href="../">いくメモの紹介ページへ戻る</a></p>
+  </main>
+  <script>
+    (function () {
+      // 差し替えるのはこの 2 つだけ
+      var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeOD2w-JhK_IRLpV6tEkaXbzhKkf52VCfsd9oPJenY3gt7Taw/viewform";
+      var FORM_ENTRY_INFO = "entry.10635078";
+
+      var target = FORM_URL;
+      var info = new URLSearchParams(location.search).get("info");
+      if (info) {
+        target = FORM_URL + "?usp=pp_url&" + FORM_ENTRY_INFO + "=" + encodeURIComponent(info);
+      }
+      document.getElementById("form-link").href = target;
+      location.replace(target);
+    })();
+  </script>
+</body>
+</html>

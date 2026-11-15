@@ -5,6 +5,33 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 21:10
+  summary: アプリ紹介ページ（site/）とご意見フォームへの転送ページ（site/feedback/）を作った
+  details:
+    関連ID:
+      - BL-086
+    変更内容: >-
+      sesami-wear の site/ を雛形に、HTML と CSS だけの紹介ページ（文言は STORE_LISTING.md と PLAN §1.2 から。ストアのリンクは「準備中」）と app.json・仮アイコン・README を作った。
+      転送ページはクエリ info を decode 済みの値から encodeURIComponent で作り直し、フォームの entry.10635078 に付けて location.replace で移る。
+      info が無ければ事前入力なしのフォームへ移り、JavaScript が無い場合はリンクから開ける。フォームの URL と entry 番号は script 先頭の定数 2 つに集約し、
+      info はページに表示せず URL の組み立てにだけ使う。アクセス解析・外部スクリプト・外部フォント・Cookie は使っていない。
+      公開手順（git subtree push と Pages の設定）とフォームの差し替え方を site/README.md に、転送ページの説明を docs/FEEDBACK.md に書いた。
+      ブラウザでの動作確認と公開は BL-207（人手検証）
+    変更ファイル:
+      - site/index.html
+      - site/feedback/index.html
+      - site/style.css
+      - site/app.json
+      - site/assets/icon.svg
+      - site/.nojekyll
+      - site/README.md
+      - docs/FEEDBACK.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --skip-gradle
+    検証結果: >-
+      成功 - markdownlint・記録ファイル・使い方の Web 版・秘密情報スキャンが成功（Gradle 系は対象外）。ブラウザでの表示と転送の確認は流していない（BL-207）
 - date: 2026-11-15 17:46
   summary: BL-205 の点検の指摘を直し、古いコメントを実装に合わせ、短い表記の境界値テストと 350dp の根拠を残した
   details:
