@@ -31,8 +31,8 @@
 
 フォームを作り直したとき（アプリの更新は要りません）は、`feedback/index.html` の次を差し替えます。
 
-- `<script>` の先頭の定数 `FORM_URL`（フォームの URL）と `FORM_ENTRY_INFO`（事前入力の欄の `entry.<番号>`）
-- JavaScript が無いとき用の、`id="form-link"` のリンクの `href`（フォームの URL と同じ値）
+- `id="form-link"` のリンクの `href`（フォームの URL。ここだけに書き、`<script>` はこの値を読む）
+- `<script>` の定数 `FORM_ENTRY_INFO`（事前入力の欄の `entry.<番号>`）
 
 現在の値と調べ方は [docs/FEEDBACK.md](../docs/FEEDBACK.md) の「作成済みのフォーム」にあります。
 

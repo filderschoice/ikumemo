@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 21:13
+  summary: 転送ページのフォームの URL を、リンクの href の 1 か所にまとめた（BL-086 の点検の指摘への対応）
+  details:
+    関連ID:
+      - BL-086
+    変更内容: >-
+      点検で、site/feedback/index.html のフォームの URL が script の定数と JavaScript が無いとき用のリンクの 2 か所にあり、
+      BL-086 の完了条件「転送先 URL が 1 か所の設定で差し替えられる」を満たしていないと指摘された。
+      script がリンク（id="form-link"）の href を読んで FORM_URL にするよう変え、URL をリンクの href だけに書く形にした。
+      事前入力の欄の entry 番号（FORM_ENTRY_INFO）は別の設定として script に残した。site/README.md と docs/FEEDBACK.md の差し替え手順も合わせた。
+      BL-206 の記録で持ち越した「スクリーンショットテストにご意見画面があれば記録し直し」は、点検で該当するテストが無いことを確かめた（記録し直しは不要）
+    変更ファイル:
+      - site/feedback/index.html
+      - site/README.md
+      - docs/FEEDBACK.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --skip-gradle、python scripts/scan-secrets.py --require-changes
+    検証結果: >-
+      成功 - 文書のゲートと秘密情報スキャンは成功。転送ページの動作（href からの読み取りと事前入力）はブラウザで確かめておらず未確認で、BL-207 の人手検証で確かめる
 - date: 2026-11-15 21:11
   summary: ご意見・ご要望の画面にご意見フォームで送るボタンを足し、GitHub を従にした
   details:
