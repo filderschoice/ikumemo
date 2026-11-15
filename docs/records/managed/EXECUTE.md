@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 15:28
+  summary: 背景の写真とペンの色があるとき、メモが空のときの「使い方を見る」をペンの色で描くようにした
+  details:
+    関連ID:
+      - BL-202
+    変更内容: >-
+      ShoppingListScreen.kt の EmptyMemo の使い方ボタン（EMPTY_HELP）と、音声入力の無い端末向けの使い方ボタン（NO_VOICE_HELP）に
+      colors = photoTextButtonColors() を付けた（BL-188 で「文字で追加」だけに付けて漏れていた）。
+      写真とペンの色があるときはペンの色、無いときは既定の文字ボタンの色になることを PhotoTextButtonColorsTest で確かめた。
+      DESIGN.md の F-61 に使い方ボタンも加えた
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/designsystem/PhotoTextButtonColorsTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoTextButtonColorsTest" --tests "*PhotoTextButtonContrastTest" --tests "*ShoppingListScreenTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・スクリーンショットは流していない
 - date: 2026-11-15 14:37
   summary: 点検の指摘に合わせ、使い方の膜の濃さの説明と DESIGN の F-61 を BL-188・189 の実装に揃えた
   details:

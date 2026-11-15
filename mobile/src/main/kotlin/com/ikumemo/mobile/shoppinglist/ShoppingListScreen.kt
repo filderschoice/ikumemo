@@ -399,7 +399,12 @@ private fun EmptyMemo(
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
-        TextButton(onClick = onOpenHelp, modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EMPTY_HELP)) {
+        TextButton(
+            onClick = onOpenHelp,
+            modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.EMPTY_HELP),
+            // 写真とペンの色があるとき、テーマの色のままだと膜に溶けて読めない（BL-202）
+            colors = photoTextButtonColors(),
+        ) {
             Text(stringResource(R.string.help_open))
         }
     }
@@ -454,6 +459,7 @@ private fun AddButtons(
             TextButton(
                 onClick = { onOpenHelp(HelpPages.NO_VOICE) },
                 modifier = Modifier.heightIn(min = 48.dp).testTag(TestTags.NO_VOICE_HELP),
+                colors = photoTextButtonColors(),
             ) {
                 Text(stringResource(R.string.help_open))
             }
