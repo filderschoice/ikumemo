@@ -5,6 +5,38 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 12:26
+  summary: メモ画面に「えらんで消す」モードを足し、チェックを入れた品物をまとめて「やめた」にして、まとめて元に戻せるようにした
+  details:
+    関連ID:
+      - BL-194
+    変更内容: >-
+      メモの上の帯の「えらんで消す」（メモが空でないとき）で各行にチェックが付く。行を押すとチェックの入れ外しで、編集シートは開かず、スワイプと ○ は止める（読み上げの操作の一覧も出さない）。
+      帯は「N件えらんでいます」と「えらぶのを終える」、画面の下は「N件を消す」（0 件の間は押せない）に替わり、戻る操作でもモードだけを終える。
+      ラベルは「やめた」と紛らわしい「やめる」を避けた（BL-133）。消すと ShoppingRepository.dismissAll（1 トランザクション）で選んだ項目をまとめて「やめた」にし、「やめた：N件」と元に戻すを出す。
+      UndoOffer を複数の操作を持てる形（actions）にして、1 回の元に戻すで消した順の逆に全件を戻す。チェックは ShoppingListUiState.selection（DB に入れない）で、もう無い項目は数えない。
+      操作は SelectionEvent（Start・Stop・Toggle）と DismissSelected。普段の左スワイプ（やめた）と BL-193 の確定条件は変えていない。使い方（swipe.md・undo.md、USER_GUIDE.md）と DESIGN.md を反映。
+      見た目が変わるため、スクリーンショットはメモ画面（memo）の記録し直しが要る見込み（このイテレーションでは流さず、区切りでまとめて扱う。calendar・reminder は変わらない見込み）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SelectionEvent.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/MemoGuideController.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/ShoppingRepository.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/swipe.md
+      - mobile/src/main/assets/help/undo.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/shoppinglist/SelectModeViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/SelectModeScreenTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SelectModeViewModelTest" --tests "*SelectModeScreenTest" --tests "*ShoppingListScreenTest" --tests "*ShoppingListViewModelTest" --tests "*ShoppingListGuideTest" --tests "*AccessibilityTest" --tests "*SwipeConfirmTest" --tests "*ShoppingRepositoryTest" --tests "*HelpContentTest"
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認で、BL-149 に確認点を足した）
 - date: 2026-11-15 12:11
   summary: 話して追加の「追加して、つづけて話す」の後、聞き取り画面に追加した件数を出し、読み上げでも伝える
   details:

@@ -172,6 +172,16 @@ class ShoppingRepository(
             UndoableAction.Dismissed(item)
         }
 
+    /** 複数の項目をまとめて「やめた」にする（えらんで消す、BL-194）。もう無い項目は飛ばし、消せた分の操作を消した順に返す。 */
+    suspend fun dismissAll(itemIds: Collection<Long>): List<UndoableAction> =
+        db.withTransaction {
+            itemIds.mapNotNull { id ->
+                val item = itemDao.getById(id) ?: return@mapNotNull null
+                itemDao.delete(item)
+                UndoableAction.Dismissed(item)
+            }
+        }
+
     /** 直前の「買った」「やめた」を元に戻す（F-12）。メモの同じ位置へ戻し、「買った」の記録は消す。 */
     suspend fun undo(action: UndoableAction) {
         db.withTransaction {

@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -41,6 +43,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -51,6 +54,14 @@ import com.ikumemo.mobile.data.db.ShoppingItemEntity
 /** そうさの設定（○ の表示・振動）。メモ画面が渡す。 */
 val LocalOperationSettings = staticCompositionLocalOf { OperationSettings() }
 
+/** 「えらんで消す」モードのときの 1 行の状態（BL-194）。普段のモードでは null。 */
+data class RowSelection(
+    val checked: Boolean,
+)
+
+/** 行の「えらんで消す」の状態。メモ画面が行ごとに渡す。 */
+val LocalRowSelection = staticCompositionLocalOf<RowSelection?> { null }
+
 /** 行の ○ に足す Modifier（G-04 で照らす場所にするため、メモの一番上の行にだけ渡す）。 */
 val LocalBoughtButtonModifier = staticCompositionLocalOf<Modifier> { Modifier }
 
@@ -59,6 +70,7 @@ val LocalBoughtButtonModifier = staticCompositionLocalOf<Modifier> { Modifier }
  * しきい値（幅の 40%）に届いたときだけ確定し、速度だけでは確定しない（BL-193）。
  * しきい値を超えた瞬間に軽く振動させる（`performHapticFeedback` のため VIBRATE 権限は不要、R-05）。
  * ○ と振動は そうさ の設定で消せる（[LocalOperationSettings]）。
+ * 「えらんで消す」モード（[LocalRowSelection] が null でないとき、BL-194）では、スワイプと ○ の代わりにチェックを出し、行を押すと [onClick]（チェックの入れ外し）を呼ぶ。
  */
 @Composable
 fun SwipeableItemRow(
@@ -68,6 +80,8 @@ fun SwipeableItemRow(
     onBought: () -> Unit,
     onDismissed: () -> Unit,
 ) {
+    val selection = LocalRowSelection.current
+    val selecting = selection != null
     val currentOnBought by rememberUpdatedState(onBought)
     val currentOnDismissed by rememberUpdatedState(onDismissed)
     val haptics = LocalHapticFeedback.current
@@ -85,22 +99,28 @@ fun SwipeableItemRow(
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = { SwipeBackground(dismissState.dismissDirection) },
+        enableDismissFromStartToEnd = !selecting,
+        enableDismissFromEndToStart = !selecting,
         modifier =
             Modifier
                 .onSizeChanged { guard.widthPx = it.width.toFloat() }
                 .then(guard.observe())
                 .semantics {
                     customActions =
-                        listOf(
-                            CustomAccessibilityAction(boughtLabel) {
-                                currentOnBought()
-                                true
-                            },
-                            CustomAccessibilityAction(dismissedLabel) {
-                                currentOnDismissed()
-                                true
-                            },
-                        )
+                        if (selecting) {
+                            emptyList()
+                        } else {
+                            listOf(
+                                CustomAccessibilityAction(boughtLabel) {
+                                    currentOnBought()
+                                    true
+                                },
+                                CustomAccessibilityAction(dismissedLabel) {
+                                    currentOnDismissed()
+                                    true
+                                },
+                            )
+                        }
                 }.testTag(TestTags.item(item.id)),
     ) {
         ItemRowContent(
@@ -108,6 +128,7 @@ fun SwipeableItemRow(
             highlighted = highlighted,
             onClick = onClick,
             onBoughtClick = onBought,
+            selection = selection?.checked,
         )
     }
 }
@@ -177,6 +198,7 @@ private fun ItemRowContent(
     highlighted: Boolean,
     onClick: () -> Unit,
     onBoughtClick: () -> Unit,
+    selection: Boolean?,
 ) {
     val colors = MaterialTheme.colorScheme
     val background by animateColorAsState(
@@ -185,7 +207,7 @@ private fun ItemRowContent(
     )
     // 行の面は surface を塗るため、文字はペンの色（LocalContentColor）ではなく onSurface にする（BL-170）
     CompositionLocalProvider(LocalContentColor provides colors.onSurface) {
-        ItemRowBody(item, background, onClick, onBoughtClick)
+        ItemRowBody(item, background, onClick, onBoughtClick, selection)
     }
 }
 
@@ -195,18 +217,33 @@ private fun ItemRowBody(
     background: Color,
     onClick: () -> Unit,
     onBoughtClick: () -> Unit,
+    selection: Boolean?,
 ) {
+    // 「えらんで消す」では行全体がチェックの入れ外しになる（読み上げでは「チェックボックス・オン」と読まれる）
+    val tap =
+        if (selection == null) {
+            Modifier.clickable(onClick = onClick)
+        } else {
+            Modifier.toggleable(value = selection, role = Role.Checkbox, onValueChange = { onClick() })
+        }
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .heightIn(min = 56.dp)
                 .background(background)
-                .clickable(onClick = onClick)
+                .then(tap)
                 .padding(end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (LocalOperationSettings.current.showBoughtButton) {
+        if (selection != null) {
+            // 行全体が toggleable のため、チェック自体は押せなくする（二重に反応しない）
+            Checkbox(
+                checked = selection,
+                onCheckedChange = null,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp).heightIn(min = 48.dp),
+            )
+        } else if (LocalOperationSettings.current.showBoughtButton) {
             IconButton(
                 onClick = onBoughtClick,
                 modifier = LocalBoughtButtonModifier.current.testTag(TestTags.boughtButton(item.id)),

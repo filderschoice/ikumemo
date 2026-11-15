@@ -36,6 +36,12 @@
     <string name="memo_dismissed">やめた</string>
     <string name="memo_bought_message">買った：%1$s</string>
     <string name="memo_dismissed_message">やめた：%1$s</string>
+    <string name="memo_dismissed_many_message">やめた：%1$d件</string>
+    <string name="memo_select_start">えらんで消す</string>
+    <string name="memo_select_title">%1$d件えらんでいます</string>
+    <string name="memo_select_hint">消す物にチェックを入れてください</string>
+    <string name="memo_select_delete">%1$d件を消す</string>
+    <string name="memo_select_cancel">えらぶのを終える</string>
     <string name="memo_undo">元に戻す</string>
     <string name="memo_mark_bought_description">%1$sを買った</string>
     <string name="store_chip_unselected">買うお店を選ぶ</string>
