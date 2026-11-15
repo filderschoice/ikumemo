@@ -10,7 +10,7 @@
 | --- | --- |
 | `index.html` | 紹介ページ。文言は `docs/store/STORE_LISTING.md` と PLAN §1.2 から取っている |
 | `feedback/index.html` | ご意見フォームへの転送ページ |
-| `style.css` | 共通のスタイル（色はアプリの緑） |
+| `style.css` | 共通のスタイル（色はアプリのアイコンのコーラル系） |
 | `app.json` | アプリの概要（`schema: app-portfolio.v1`、sesami-wear と同じ形式） |
 | `assets/icon.svg` | アプリのアイコン（吹き出しとかご）。`ic_launcher_foreground.xml` のパスと背景色（`ic_launcher_background.xml`）を写したもの。アイコンを変えたら合わせて直す |
 | `.nojekyll` | GitHub Pages に Jekyll の変換をさせないための空ファイル |

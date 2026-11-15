@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 22:55
+  summary: UI デザイン設計書の生成スクリプトを直して UI_DESIGN.html を作り直した（94ffaf0 の記録の追記）
+  details:
+    関連ID:
+      - BL-222
+    変更内容: >-
+      コミット 94ffaf0 で、生成スクリプト scripts/ui-doc/gen_ui_doc.py を現状の実装に合わせて直し、docs/design/UI_DESIGN.html を再生成した。
+      下タブ名（メモ・記録・期限）、設定の並びと説明、えらんで消す、メモを送る、共有された文から追加、確認カードの外す・戻す・つづけて話す、
+      記録の今日ボタン、期限の時刻ボタン・期限なし・日付つきチップ、データの 3 区切り、ご意見フォーム、見本の色・文字の色・おまかせ、
+      ウィジェットの更新ボタンを反映した。アプリのコードは変えていない。
+      スクリプトの変更を伴うのに EXECUTE への記録が漏れていたため、点検の指摘（BL-225）で後から 1 件足した（日時は追記した時刻）
+    変更ファイル:
+      - scripts/ui-doc/gen_ui_doc.py
+      - docs/design/UI_DESIGN.html
+      - CHANGELOG.md
+      - docs/records/managed/BACKLOG.md
+    検証コマンド: python scripts/quality-gates.py --skip-gradle
+    検証結果: >-
+      成功 - 94ffaf0 の時点で markdownlint・記録ファイル・使い方の Web 版・秘密情報スキャンがすべて成功した。
+      見た目はヘッドレスブラウザでの目視（縮小した画像）のみで、実機は未確認
 - date: 2026-11-15 22:35
   summary: ストア用フィーチャーグラフィック（1024 × 500 の PNG）の案を書き出すテストを足し、feature-graphic.png を作った
   details:

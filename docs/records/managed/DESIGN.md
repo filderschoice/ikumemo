@@ -23,6 +23,7 @@
   紹介ページ `site/`（GitHub Pages、<https://filderschoice.github.io/ikumemo/>。ご意見フォームの転送ページ `site/feedback/`・アイコン SVG を含む。
   配色はアプリのアイコンのコーラル `#FF7A6B` に合わせ、文字と組む色は WCAG AA を満たす `#c4443a`・暗い画面は `#ff8f82`）、
   ストア用アイコン `docs/store/images/icon-512.png`（Robolectric の遅いテスト `StoreIconExportTest` で書き出す）も現状に揃えた。
+  ストア用フィーチャーグラフィックの案 `docs/store/images/feature-graphic.png`（遅いテスト `StoreFeatureGraphicExportTest` で書き出す）も作成済み。
   公開前の外部作業（Play Console の申告・実機での確認・クローズドテスト）は `BACKLOG.md` を参照する。
   書き出し・読み込み（F-72）と「データをすべて消す」（F-76）まで実装済みで、M0〜M8 の機能は出そろった。ほかの実装済みの要件は下の表のとおり
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
@@ -304,8 +305,10 @@
   （オーナー判断、2026-11-15）。ただし GitHub の依存グラフは Gradle の依存を読めておらず（sesami-wear も同じ）、実質は動いていない。
   アラートが届いたら Skill `dependabot-alert-triage` で扱う
 - プライバシーポリシー（`docs/store/PRIVACY_POLICY.md`）は、アプリ自体は通信せず、利用者が押した時だけ外部のページが開くこと、
-  ご意見フォームで送ると入力と版・Android の版・機種名が Google のフォームへ送られること、メモを送る・受け取る操作の扱いを書いている（BL-208）
-- Play Console のデータセーフティは「データの収集なし・共有なし」と申告する（オーナー判断、2026-11-15。根拠は `STORE_LISTING.md`）。
+  ご意見フォームのボタンを押すと版・Android の版・機種名がブラウザの開く URL に入って GitHub と Google に届き、ご意見の内容は
+  フォームで送信したときだけ届くこと、メモを送る・受け取る操作の扱いを書いている（BL-208・BL-225）
+- Play Console のデータセーフティは「データの収集なし・共有なし」と申告する（オーナー判断、2026-11-15。根拠は `STORE_LISTING.md`。
+  ボタンを押した時点で版などが届く事実を踏まえた再確認は BL-226 で要確認）。
   ストアのウェブサイトは紹介ページ <https://filderschoice.github.io/ikumemo/>。紹介ページとご意見フォームの転送ページは `site/` を
   GitHub Pages で公開し、公開手順は `site/README.md`。アクセス解析・外部スクリプト・外部フォント・Cookie は使わない
 - 外部からの Pull Request は受け付けない（オーナー判断、`CONTRIBUTING.local.md`）
