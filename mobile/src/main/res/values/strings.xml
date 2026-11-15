@@ -42,6 +42,9 @@
     <string name="memo_select_hint">消す物にチェックを入れてください</string>
     <string name="memo_select_delete">%1$d件を消す</string>
     <string name="memo_select_cancel">えらぶのを終える</string>
+    <string name="memo_share">メモを送る</string>
+    <string name="memo_share_title">メモを送る</string>
+    <string name="memo_share_failed">送るアプリが見つかりませんでした</string>
     <string name="memo_undo">元に戻す</string>
     <string name="memo_mark_bought_description">%1$sを買った</string>
     <string name="store_chip_unselected">買うお店を選ぶ</string>

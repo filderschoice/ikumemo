@@ -30,7 +30,7 @@ class HelpContentTest {
     @Test
     fun everyPageInIndexCanBeShown() {
         val chapters = repository.chapters()
-        // PLAN §2.12 の目次の章（「LINE などで送る」は未実装のため載せていない）
+        // PLAN §2.12 の目次の章（LINE などで送るは「メモに入れる」の send.md、BL-196）
         assertEquals(
             listOf("はじめに", "メモに入れる", "買ったとき", "見返す", "期限とお知らせ", "ホーム画面に置く", "見た目を変える", "困ったとき"),
             chapters.map { it.title },

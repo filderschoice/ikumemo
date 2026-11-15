@@ -193,11 +193,7 @@ fun ShoppingListContent(
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 MemoTopBar(state, onEvent, onOpenSettings)
-                StoreChip(
-                    selectedStore = state.selectedStore,
-                    onClick = { onEvent(ShoppingListEvent.OpenStorePicker) },
-                    modifier = Modifier.padding(horizontal = 16.dp).guideTarget(GuideId.G06_STORE_CHIP, guideTargets),
-                )
+                StoreRow(state, onEvent, Modifier.guideTarget(GuideId.G06_STORE_CHIP, guideTargets))
                 if (state.loaded && state.items.isEmpty()) {
                     EmptyMemo(onOpenHelp = { onOpenHelp(HelpPages.VOICE) }, modifier = Modifier.weight(1f))
                 } else {
@@ -488,6 +484,9 @@ object TestTags {
     const val EDIT_PHOTO = "edit_photo"
     const val SNACKBAR = "snackbar"
     const val SETTINGS = "settings"
+
+    /** メモを送る（共有シート、BL-196）。 */
+    const val SHARE = "memo_share"
 
     /** 「えらんで消す」の入口・やめる・消す（BL-194）。 */
     const val SELECT_START = "select_start"

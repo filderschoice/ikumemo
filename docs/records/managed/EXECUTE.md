@@ -5,6 +5,34 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 12:40
+  summary: メモを LINE などへ送る「メモを送る」を足し、共有シートで一覧を文字にして送れるようにした
+  details:
+    関連ID:
+      - BL-196
+    変更内容: >-
+      お店チップの行の右端に送るアイコン（読み上げは「メモを送る」）を足した。置き場所は、上の帯が「買い物メモ」「えらんで消す」「設定」で大きい文字では窮屈になるため帯を避けた。
+      普段のモードで品物があるときだけ出し、空のメモ・えらんで消すモードの間は出さない。押すと ShareText.build で「🛒いくメモ」の下に「・品物 数量」を 1 行ずつ並べた文を作り、ACTION_SEND（text/plain）の chooser を開く。
+      取り込み（BL-197）が先頭行と行頭の「・」で元の品物と数量に戻せる形にした（品物・数量内の改行は空白に直す）。LINE の SDK・外部通信は使わない。開ける物が無い端末は Toast で知らせる。
+      使い方（send.md を新設、index.md、USER_GUIDE.md）と DESIGN.md を反映。実機で LINE へ送る確認は BL-198（人手検証）に起票した。
+      見た目が変わるため、スクリーンショットはメモ画面（memo）の記録し直しが要る見込み（このイテレーションでは流さず、区切りでまとめて扱う。calendar・reminder は変わらない見込み）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareText.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShareButton.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShoppingListScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/send.md
+      - mobile/src/main/assets/help/index.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/share/ShareTextTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/ShareScreenTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShareTextTest" --tests "*ShareScreenTest" --tests "*SelectModeScreenTest" --tests "*ShoppingListScreenTest" --tests "*AccessibilityTest" --tests "*HelpContentTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・ShareTextTest・ShareScreenTest・HelpContentTest）と文書系ゲートが成功。ShoppingListScreenTest・SelectModeScreenTest・AccessibilityTest は 1 回前の流しで成功（その後の変更は StoreRow の移動と文書のみ）。フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認で BL-198 に起票
 - date: 2026-11-15 12:26
   summary: メモ画面に「えらんで消す」モードを足し、チェックを入れた品物をまとめて「やめた」にして、まとめて元に戻せるようにした
   details:
