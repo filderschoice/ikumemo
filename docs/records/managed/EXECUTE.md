@@ -5,6 +5,24 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 14:20
+  summary: メモ画面で、送るアイコンを足した後に 1 行で収まる店名のお店チップが 2 行へ折り返す回帰を直した
+  details:
+    関連ID:
+      - BL-200
+    変更内容: >-
+      BL-196 でお店チップの行へ送るアイコンを足したとき、fill=false の重み付きチップと重み付きの Spacer が余りの幅を半分ずつ分け、
+      行に空きがあっても店名が「○○スーパ／ー で買う」と折り返していた。チップを重み 1 の Box（左寄せ）で包み、アイコン（重み無し）を先に測らせて残りの幅をすべて Box へ渡す形にした。
+      チップは Box の中で中身の幅になり、アイコンは右端に残る。文字「とても大きい」で幅が足りないときの折り返しは従来どおり。
+      既存の ShareScreenTest・ShoppingListScreenTest が通ることを確かめた。見た目は変わる（チップが 1 行に戻る）ため、メモ画面のスクリーンショットの記録し直しはオーケストレータが行う。
+      実機での見え方（大きい文字でチップとアイコンが重ならないか）は BL-198 に既に確認点がある
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/ShareButton.kt
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*ShareScreenTest" --tests "*ShoppingListScreenTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。スクリーンショットのテストは未実施
 - date: 2026-11-15 14:10
   summary: 暗い写真の上で、ペンの色あか・あおの文字が背景の灰色に埋もれないよう、あかを暗い赤にし、明るいテーマの膜を少し濃くした
   details:

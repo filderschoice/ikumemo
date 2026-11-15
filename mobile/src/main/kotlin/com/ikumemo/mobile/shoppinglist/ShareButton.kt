@@ -1,8 +1,8 @@
 package com.ikumemo.mobile.shoppinglist
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -30,13 +30,16 @@ internal fun StoreRow(
     chipModifier: Modifier,
 ) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-        StoreChip(
-            selectedStore = state.selectedStore,
-            onClick = { onEvent(ShoppingListEvent.OpenStorePicker) },
-            modifier = chipModifier.weight(1f, fill = false),
-        )
+        // 送るアイコンを先に測らせ、残りの幅をすべてチップの枠へ渡す（枠の中でチップは中身の幅になる）。
+        // 以前は fill=false のチップと Spacer が余りを半分ずつ分け、1 行で収まる店名も折り返していた
+        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            StoreChip(
+                selectedStore = state.selectedStore,
+                onClick = { onEvent(ShoppingListEvent.OpenStorePicker) },
+                modifier = chipModifier,
+            )
+        }
         if (state.selection == null && ShareText.isShareable(state.items)) {
-            Spacer(Modifier.weight(1f))
             ShareButton(state.items)
         }
     }
