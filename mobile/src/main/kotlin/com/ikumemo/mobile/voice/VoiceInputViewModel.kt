@@ -69,6 +69,9 @@ sealed interface VoiceInputEvent {
     ) : VoiceInputEvent
 
     data object AddAll : VoiceInputEvent
+
+    /** 追加の結果（[VoiceInputState.Added]）を画面が受け取った。次に開くときに古い結果が残らないよう Idle へ戻す（BL-190）。 */
+    data object AddedHandled : VoiceInputEvent
 }
 
 /**
@@ -110,6 +113,8 @@ class VoiceInputViewModel(
                     }
                 }
             VoiceInputEvent.AddAll -> addAll()
+            VoiceInputEvent.AddedHandled ->
+                mutableState.update { if (it is VoiceInputState.Added) VoiceInputState.Idle else it }
         }
     }
 

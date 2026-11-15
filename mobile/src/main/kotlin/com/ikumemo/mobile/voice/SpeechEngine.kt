@@ -64,6 +64,8 @@ class AndroidSpeechEngine(
 
     override fun start(onEvent: (SpeechEvent) -> Unit) {
         val target = recognizer ?: SpeechRecognizer.createSpeechRecognizer(context).also { recognizer = it }
+        // 使い回す recognizer に前回の認識が残っていると BUSY で失敗するため、始める前に取り消す（BL-190）
+        target.cancel()
         target.setRecognitionListener(Listener(onEvent))
         target.startListening(
             Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {

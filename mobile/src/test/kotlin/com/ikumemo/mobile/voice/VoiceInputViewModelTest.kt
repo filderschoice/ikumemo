@@ -82,6 +82,23 @@ class VoiceInputViewModelTest {
             )
         }
 
+    /** BL-190。追加後に画面が結果を受け取ったら Idle へ戻り、続けて Start すると聞き取り中になる（連続 3 回）。 */
+    @Test
+    fun listensAgainAfterAddedIsHandled() =
+        runTest {
+            repeat(3) { round ->
+                viewModel.onEvent(VoiceInputEvent.Start)
+                assertEquals(VoiceInputState.Listening(), viewModel.state.value)
+                assertEquals(round + 1, engine.startCount)
+                engine.emit(SpeechEvent.Results(listOf("牛乳$round")))
+                awaitState { it is VoiceInputState.Confirm }
+                viewModel.onEvent(VoiceInputEvent.AddAll)
+                awaitState { it is VoiceInputState.Added }
+                viewModel.onEvent(VoiceInputEvent.AddedHandled)
+                assertEquals(VoiceInputState.Idle, viewModel.state.value)
+            }
+        }
+
     @Test
     fun itemAlreadyInMemoIsMarkedAndExcludedByDefault() =
         runTest {

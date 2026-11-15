@@ -64,8 +64,12 @@ fun VoiceInputSheet(
     LaunchedEffect(Unit) {
         if (hasPermission) viewModel.onEvent(VoiceInputEvent.Start)
     }
+    // 開いた時点で残っていた古い Added は無視して Idle へ戻す。拾うと聞き取り中を出す前に閉じてしまう（BL-190）
+    val staleAdded = remember { viewModel.state.value as? VoiceInputState.Added }
     LaunchedEffect(state) {
-        (state as? VoiceInputState.Added)?.let { onAdded(it.count) }
+        val added = state as? VoiceInputState.Added ?: return@LaunchedEffect
+        if (added !== staleAdded) onAdded(added.count)
+        viewModel.onEvent(VoiceInputEvent.AddedHandled)
     }
     val close = {
         viewModel.onEvent(VoiceInputEvent.Cancel)

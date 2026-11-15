@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 10:43
+  summary: 話して追加を 1 回完了したあと続けて使えない不具合を直す（古い追加済みの状態が残る・recognizer の使い回し）
+  details:
+    関連ID:
+      - BL-190
+    変更内容: >-
+      原因は、追加後の VoiceInputState.Added が Idle へ戻らず、Activity に紐づく ViewModel に残ること。次に 🎤 でシートを開くと古い Added を拾って即 onAdded で閉じ、
+      聞き取り中が出なかった。VoiceInputEvent.AddedHandled を足し、VoiceInputSheet が Added を受け取ったら Idle へ戻す。
+      開いた時点で残っていた古い Added は onAdded へ渡さず Idle へ戻す。AndroidSpeechEngine.start は使い回す recognizer へ startListening する前に cancel する（BUSY の予防）。
+      水平展開（オーナー指示）。ウィジェットの VoiceSheetActivity は毎回新しい ViewModel と engine で、finish で ViewModel が破棄され（onCleared で engine.destroy）、状態も recognizer も残らない。
+      品名欄・探すのマイク（FieldDictation）は start のたびに先に engine.cancel() し、結果は 1 回きりの state.result で受けて消費するため、同じ原因は無い。
+      見た目・文言は変えていない。実機での連続 3 回は BL-192（人手検証）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/SpeechEngine.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputSheetRepeatTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputViewModelTest" --tests "*VoiceInputSheetRepeatTest" --tests "*VoiceInputContentTest" --tests "*VoiceSheetActivityTest" --tests "*ShoppingListScreenTest"、記録の更新後に python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug は未実施。実機は未確認）
 - date: 2026-11-15 00:37
   summary: 数量が「〇」だけのとき 0 にせず元の文字のまま残す
   details:
