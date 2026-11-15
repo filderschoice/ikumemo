@@ -5,6 +5,44 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 13:05
+  summary: LINE などで共有された文を共有シートの「いくメモに追加」から受け取り、チェック付きの一覧で確かめてメモへ取り込めるようにした
+  details:
+    関連ID:
+      - BL-197
+    変更内容: >-
+      core に SharedTextParser を足した。先頭行が「🛒いくメモ」の文は行頭「・」の行を 1 行 1 品物として、最後の半角空白の後ろが数量らしいときだけ数量に戻す（BL-196 の送る文が元の品物と数量に戻る）。
+      ほかの行は行頭の記号（・ - * • ☐ 1. (1) ① など、1.5L は外さない）を外し、品名と数字の間の空白を詰めてから VoiceTextParser の区切りと数量の取り出しを使う（小数点では分けない）。正規化した品名が同じ物は最初の 1 つだけ残す。
+      受け取る文は信頼できない外部入力として、1 万文字・200 行・100 品物・品名 60 文字・数量 20 文字で打ち切り（サロゲートペアの途中では切らない）、制御文字と向きを変える書式文字を除く。
+      ShareReceiveActivity（exported、ACTION_SEND の text/plain だけを受け付け、ほかの Intent・extra は読まずに閉じる。壊れた extra は空として扱う。権限は足さない）と、
+      ShareImportViewModel・ShareImportSheet（チェック付きの一覧、既にメモにある物は最初から外す、追加後は Toast で閉じる、品物が無ければその旨を出す）を足した。受け取った文はログに出さない。LINE の SDK・外部通信は使わない。
+      ShareText の HEADER・BULLET は SharedTextParser の定数を参照するようにした。テスト用の待ち合わせ（ComposeWait）の受け手を ComposeTestRule へ広げた（ActivityScenario で使うため。既存の呼び出しはそのまま）。
+      使い方（send.md の見出しを「メモを LINE などで送る・取り込む」にして取り込みの説明を足した、index.md、USER_GUIDE.md）と DESIGN.md を反映。実機で LINE から取り込む確認は BL-198（人手検証）へ足した。
+      共有から開く新しいシートでメモ・記録・期限の画面は変えていないため、スクリーンショットの記録し直しは要らない見込み（流していない）
+    変更ファイル:
+      - core/src/main/kotlin/com/ikumemo/core/share/SharedTextParser.kt
+      - core/src/test/kotlin/com/ikumemo/core/share/SharedTextParserTest.kt
+      - mobile/src/main/AndroidManifest.xml
+      - mobile/src/main/kotlin/com/ikumemo/mobile/AppViewModelFactory.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareText.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareReceiveActivity.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareImportViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/share/ShareImportSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/send.md
+      - mobile/src/main/assets/help/index.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/share/ShareImportViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/share/ShareImportContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/share/ShareReceiveActivityTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/testing/ComposeWait.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SharedTextParserTest" --tests "*ShareImportViewModelTest" --tests "*ShareImportContentTest" --tests "*ShareReceiveActivityTest" --tests "*ShareTextTest" --tests "*HelpContentTest" --tests "*VoiceSheetActivityTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認で BL-198 に足した
 - date: 2026-11-15 12:40
   summary: メモを LINE などへ送る「メモを送る」を足し、共有シートで一覧を文字にして送れるようにした
   details:

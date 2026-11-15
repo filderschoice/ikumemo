@@ -45,6 +45,11 @@
     <string name="memo_share">メモを送る</string>
     <string name="memo_share_title">メモを送る</string>
     <string name="memo_share_failed">送るアプリが見つかりませんでした</string>
+    <string name="share_import_target">いくメモに追加</string>
+    <string name="share_import_title">共有された文から追加</string>
+    <string name="share_import_hint">メモに入れる物にチェックを付けてください</string>
+    <string name="share_import_empty">取り込める品物がありませんでした</string>
+    <string name="share_import_cancel">やめる</string>
     <string name="memo_undo">元に戻す</string>
     <string name="memo_mark_bought_description">%1$sを買った</string>
     <string name="store_chip_unselected">買うお店を選ぶ</string>
