@@ -5,7 +5,28 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
-- date: 2026-11-15 14:40
+- date: 2026-11-15 14:28
+  summary: メモ画面のスクリーンショット（24 枚）を、BL-194・196・200・201 で意図して変えた見た目に合わせて記録し直した
+  details:
+    関連ID:
+      - BL-194
+      - BL-196
+      - BL-200
+      - BL-201
+    変更内容: >-
+      メモ画面の見出し行に「えらんで消す」（BL-194）、お店チップの行の右端に送るアイコン（BL-196）が加わったため、memo の正解画像 24 枚を記録し直した。
+      比べる過程で、お店チップが標準の文字でも 2 行に折り返す回帰（BL-200 で修正）と、文字が最大のとき見出しが折り返す回帰（BL-201 で修正）を見つけ、直してから記録した。
+      記録後の差分は「えらんで消す」と送るアイコンだけで、見出しとお店チップは標準・大きい・とても大きいのいずれも 1 行に収まることを画像で確かめた。
+      BL-187〜189 は背景の写真があるときだけ見た目が変わり、スクリーンショットのテストは写真なしのため、calendar・reminder は比べるだけで一致した
+    変更ファイル:
+      - mobile/screenshots/memo/（24 枚）
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests -Proborazzi.test.record=true --tests "*MainScreensScreenshotTest.memo*" の後、
+      -Proborazzi.test.verify=true で memo・calendar・reminder を 1 画面ずつ
+    検証結果: >-
+      成功 - 記録し直した memo と、比べるだけの calendar・reminder がいずれも終了コード 0
+- date: 2026-11-15 14:23
   summary: 文字が「とても大きい」のとき、見出し「買い物メモ」が「買い物メ／モ」と 2 行に折り返す回帰を、「えらんで消す」の幅に上限を置いて直した
   details:
     関連ID:
@@ -24,7 +45,7 @@
       python scripts/quality-gates.py --quick --tests "*SelectModeScreenTest"
     検証結果: >-
       成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。スクリーンショットのテストは未実施
-- date: 2026-11-15 14:20
+- date: 2026-11-15 14:17
   summary: メモ画面で、送るアイコンを足した後に 1 行で収まる店名のお店チップが 2 行へ折り返す回帰を直した
   details:
     関連ID:
