@@ -109,7 +109,7 @@ fun MemoListContent(
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.OPEN_MEMO))),
     ) {
-        MemoHeader(state, colors, refreshing)
+        MemoHeader(state, colors, refreshing, wide)
         // 見出しの下の太めの線（メモ帳の上端）
         Rule(colors.primary, HEADER_RULE)
         when {
@@ -126,8 +126,11 @@ private fun MemoHeader(
     state: MemoWidgetState,
     colors: WidgetColors,
     refreshing: Boolean,
+    wide: Boolean,
 ) {
     val context = LocalContext.current
+    val dueSoon = state.dueSoonCount > 0
+    val dueSoonDescription = context.getString(R.string.widget_memo_due_soon_description, state.dueSoonCount)
     Row(
         modifier = GlanceModifier.fillMaxWidth().height(TAP_HEIGHT),
         verticalAlignment = Alignment.CenterVertically,
@@ -137,33 +140,54 @@ private fun MemoHeader(
             style = TextStyle(color = colors.onBackground, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
-        Spacer(GlanceModifier.width(8.dp))
-        Text(
-            context.getString(R.string.widget_memo_count, state.items.size),
-            style = TextStyle(color = colors.onBackground),
-            maxLines = 1,
-        )
-        if (state.dueSoonCount > 0) {
+        // 幅が狭いとき（2 マス）は短い表記にし、期限が近い件があるときは件数の表記を省いて、
+        // 期限が近い件数を優先して見せる（BL-203）
+        if (wide || !dueSoon) {
+            Spacer(GlanceModifier.width(if (wide) 8.dp else 4.dp))
+            MemoCount(context, state.items.size, wide, colors)
+        }
+        if (dueSoon) {
             Box(
                 // 幅が狭いときは、この見出しの文字だけを縮めて更新ボタンを残す（BL-186）
                 modifier =
                     GlanceModifier
                         .defaultWeight()
                         .height(TAP_HEIGHT)
-                        .padding(start = 8.dp)
-                        .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.TAB_REMINDER))),
+                        .padding(start = if (wide) 8.dp else 4.dp)
+                        .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.TAB_REMINDER)))
+                        .semantics { contentDescription = dueSoonDescription },
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Text(
-                    context.getString(R.string.widget_memo_due_soon, state.dueSoonCount),
+                    context.getString(
+                        if (wide) R.string.widget_memo_due_soon else R.string.widget_memo_due_soon_short,
+                        state.dueSoonCount,
+                    ),
                     style = TextStyle(color = colors.primary, fontWeight = FontWeight.Medium),
                     maxLines = 1,
                 )
             }
         }
-        if (state.dueSoonCount <= 0) Spacer(GlanceModifier.defaultWeight())
+        if (!dueSoon) Spacer(GlanceModifier.defaultWeight())
         RefreshButton(colors, refreshing)
     }
+}
+
+/** 見出しのメモの件数。幅が狭いときは「🛒N」と短くし、読み上げは「メモ N件」にする。 */
+@Composable
+private fun MemoCount(
+    context: Context,
+    count: Int,
+    wide: Boolean,
+    colors: WidgetColors,
+) {
+    val description = context.getString(R.string.widget_memo_count_description, count)
+    Text(
+        context.getString(if (wide) R.string.widget_memo_count else R.string.widget_memo_count_short, count),
+        style = TextStyle(color = colors.onBackground),
+        maxLines = 1,
+        modifier = GlanceModifier.semantics { contentDescription = description },
+    )
 }
 
 /** 更新ボタン。メモを足した直後に反映されないときのため、押すとその場で描き直す。 */

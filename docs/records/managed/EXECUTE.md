@@ -5,6 +5,28 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 15:38
+  summary: 幅 2 マスのメモ一覧ウィジェットで、期限が近い件数を「🔔N」と短くして見えるようにした
+  details:
+    関連ID:
+      - BL-203
+    変更内容: >-
+      MemoListWidget.kt の MemoHeader に wide（LocalSize の幅が SMALL 以上か）を渡し、狭いときは期限が近い件数を「🔔N」、メモの件数を「🛒N」と短くした。
+      幅が狭く期限が近い件があるときは、メモの件数を省いて「🔔N」を優先する（既定値。件数は下の品名の並びでも分かるため）。
+      期限が近い件の欄は contentDescription で「期限が近い N件」、メモの件数は「メモ N件」と読み上げる。更新ボタンは残したまま。
+      幅の広い表示の文言は変えていない。単体テストで狭いサイズの表記と読み上げを確かめた。実機確認は BL-106 に残した。
+      ウィジェットは Roborazzi の対象外のため、記録し直す正解画像は無い
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・実機確認は流していない
 - date: 2026-11-15 15:28
   summary: 背景の写真とペンの色があるとき、メモが空のときの「使い方を見る」をペンの色で描くようにした
   details:

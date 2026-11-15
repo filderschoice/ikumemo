@@ -320,6 +320,10 @@
     <string name="widget_memo_title">いくメモ</string>
     <string name="widget_memo_count">🛒メモ %1$d件</string>
     <string name="widget_memo_due_soon">🔔期限が近い %1$d件</string>
+    <string name="widget_memo_count_short">🛒%1$d</string>
+    <string name="widget_memo_count_description">メモ %1$d件</string>
+    <string name="widget_memo_due_soon_short">🔔%1$d</string>
+    <string name="widget_memo_due_soon_description">期限が近い %1$d件</string>
     <string name="widget_memo_store">🏪 %1$s で買う</string>
     <string name="widget_memo_more">ほか%1$d件</string>
     <string name="widget_memo_refresh">メモ一覧を更新</string>
