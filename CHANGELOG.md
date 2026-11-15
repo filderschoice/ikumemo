@@ -667,3 +667,11 @@ main...HEAD の点検で出た指摘を直しました。アプリのコード�
 - `site/README.md` の配色の説明をアイコンのコーラル系に、`site/index.html` の meta description を短い説明・`app.json` の tagline（記録のカレンダーで振り返り）に合わせた
 - `CLOSED_TEST.md` の「通信はありません」を「アプリは通信しません」に、`DESIGN.md` の進捗にフィーチャーグラフィックの案（BL-215）を足した
 - BL-222（94ffaf0）の EXECUTE への記録漏れを 1 件足した
+
+## 2026-11-15（BL-226 のデータセーフティの再確認）
+
+オーナーが、ご意見フォームのボタンを押した時点で版・Android の版・機種名が外部ブラウザ経由で GitHub と Google に届く事実を踏まえ、
+データセーフティを「データの収集なし・共有なし」のままとすることを確かめ直しました（2026-11-15）。
+
+- BL-226 を完了として BACKLOG から外し、BL-087 の依存からも外した
+- `docs/store/STORE_LISTING.md` と `docs/records/managed/DESIGN.md` の「再確認は BL-226」を、再確認済みの書き方に直した
