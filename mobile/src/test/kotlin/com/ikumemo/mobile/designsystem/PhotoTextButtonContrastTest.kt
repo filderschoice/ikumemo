@@ -28,8 +28,7 @@ class PhotoTextButtonContrastTest {
         levels: List<Float>,
         photos: List<Float>,
     ): List<String> =
-        // あか（InkColor.RED）は暗い写真＋既定の濃さで約 3.7 対 1 になる。完了条件の対象（くろ・あお）の外のため別項目で扱う
-        InkColor.entries.filter { it != InkColor.RED }.flatMap { ink ->
+        InkColor.entries.flatMap { ink ->
             darkThemes.flatMap { palette ->
                 val text = resolvePhotoInk(ink.textColor, Color(palette.primary))
                 val scrim = ink.scrimColor ?: Color(palette.background)

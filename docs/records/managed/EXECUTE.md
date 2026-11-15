@@ -5,6 +5,31 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 14:10
+  summary: 暗い写真の上で、ペンの色あか・あおの文字が背景の灰色に埋もれないよう、あかを暗い赤にし、明るいテーマの膜を少し濃くした
+  details:
+    関連ID:
+      - BL-189
+    変更内容: >-
+      InkColor.RED の文字色を #B3261E から #851812 に変えた（青 #1A3FA0 は据え置き）。BackgroundScrim に LIGHT_BOOST（0.1）を足し、明るいテーマでも膜の実際の濃さを選んだ濃さ＋0.1
+      にした（既定 0.6 は 0.7。上限 MAX_EFFECTIVE 0.95 は共通）。暗いテーマは従来どおり 0.15 を足す。単体テスト InkOnPhotoContrastTest を足し、暗い写真（灰色 0.1）と明るい写真（0.9）、
+      明るい・暗いテーマ、膜の濃さ（既定・最大）、くろ・あお・あか・しろの組み合わせで、文字と膜を重ねた背景の比が 4.5 対 1 以上であることを確かめた（しろ＋明るい写真は従来から対象外）。
+      PhotoTextButtonContrastTest のあかの除外を外し、BL-187 の SystemBarIconsTest・BL-188・BL-108 の InkColorTest・PhotoInkTest も通ることを確かめた。AppearanceViewModelTest の明るいテーマの膜の期待値を 0.7 に直した。
+      膜の濃さのスライダーが最小（0.3）で暗い写真のときは 4.5 対 1 を保証しない（既定と最大が対象）。実機の確認は BL-199 に足した。
+      見た目が変わるのは写真を置いた画面（明るいテーマの膜が濃くなる、あかの文字が暗くなる）。スクリーンショットのテストは写真なしの見込みで、記録し直しは要らない見込み（流していない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/BackgroundScrim.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/InkColor.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/InkOnPhotoContrastTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoTextButtonContrastTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/AppearanceViewModelTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*InkOnPhotoContrastTest" --tests "*PhotoTextButtonContrastTest" --tests "*SystemBarIconsTest" --tests "*InkColorTest" --tests "*PhotoInkTest" --tests "*AppearanceViewModelTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機の確認は未実施（BL-199）
 - date: 2026-11-15 14:03
   summary: 暗いテーマで背景の写真を置いたとき、メモ画面の「文字で追加」の文字色をペンの色にして読めるようにした
   details:

@@ -16,14 +16,16 @@ import java.io.File
 /**
  * 背景画像の上に敷く半透明の膜（F-61）。膜はテーマの背景色で、濃さは利用者がスライダーで選ぶ。
  * 暗い画面では写真の明るい部分で文字が読みにくくならないよう、選んだ濃さに [DARK_BOOST] を足す。
+ * 明るい画面でも、暗い写真の上で赤・青のペンの文字が灰色に埋もれないよう [LIGHT_BOOST] を足す（BL-189）。
  */
 object BackgroundScrim {
     const val MIN = 0.3f
     const val MAX = 0.9f
     const val DEFAULT = 0.6f
     const val DARK_BOOST = 0.15f
+    const val LIGHT_BOOST = 0.1f
 
-    /** 写真が少しは見えるよう、暗い画面で足しても膜は [MAX_EFFECTIVE] までにする。 */
+    /** 写真が少しは見えるよう、足しても膜は [MAX_EFFECTIVE] までにする。 */
     const val MAX_EFFECTIVE = 0.95f
 
     fun clamp(level: Float): Float = level.coerceIn(MIN, MAX)
@@ -32,7 +34,7 @@ object BackgroundScrim {
     fun effectiveAlpha(
         level: Float,
         darkTheme: Boolean,
-    ): Float = (clamp(level) + if (darkTheme) DARK_BOOST else 0f).coerceAtMost(MAX_EFFECTIVE)
+    ): Float = (clamp(level) + if (darkTheme) DARK_BOOST else LIGHT_BOOST).coerceAtMost(MAX_EFFECTIVE)
 }
 
 /**

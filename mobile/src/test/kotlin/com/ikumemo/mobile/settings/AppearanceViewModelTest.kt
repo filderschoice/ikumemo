@@ -212,11 +212,11 @@ class AppearanceViewModelTest {
 
     @Test
     fun scrimIsDarkerInDarkTheme() {
-        assertEquals(0.6f, BackgroundScrim.effectiveAlpha(0.6f, darkTheme = false), 0.0001f)
+        assertEquals(0.7f, BackgroundScrim.effectiveAlpha(0.6f, darkTheme = false), 0.0001f)
         assertEquals(0.75f, BackgroundScrim.effectiveAlpha(0.6f, darkTheme = true), 0.0001f)
         // 暗い画面で足しても写真が少し見える濃さまで
         assertEquals(BackgroundScrim.MAX_EFFECTIVE, BackgroundScrim.effectiveAlpha(BackgroundScrim.MAX, true), 0.0001f)
-        assertEquals(BackgroundScrim.MIN, BackgroundScrim.effectiveAlpha(0f, darkTheme = false), 0.0001f)
+        assertEquals(0.4f, BackgroundScrim.effectiveAlpha(0f, darkTheme = false), 0.0001f)
     }
 
     @Test
