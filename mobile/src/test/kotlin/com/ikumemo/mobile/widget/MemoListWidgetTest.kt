@@ -2,6 +2,7 @@ package com.ikumemo.mobile.widget
 
 import android.content.Context
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
 import androidx.glance.appwidget.testing.unit.hasStartActivityClickAction
 import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
@@ -105,6 +106,16 @@ class MemoListWidgetTest {
         }
         render(MemoWidgetState(), MemoListWidget.LARGE) {
             onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+        }
+    }
+
+    @Test
+    fun refreshButtonStaysAtTwoCellWidthWithDueSoon() {
+        // 幅 2 マス相当（BL-186）。期限が近い件数があっても更新ボタンと見出しは両方残る
+        val twoCells = DpSize(110.dp, 110.dp)
+        render(fiveItems, twoCells) {
+            onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+            onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
         }
     }
 

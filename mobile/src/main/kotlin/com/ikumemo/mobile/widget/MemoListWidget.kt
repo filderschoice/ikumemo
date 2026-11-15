@@ -145,8 +145,10 @@ private fun MemoHeader(
         )
         if (state.dueSoonCount > 0) {
             Box(
+                // 幅が狭いときは、この見出しの文字だけを縮めて更新ボタンを残す（BL-186）
                 modifier =
                     GlanceModifier
+                        .defaultWeight()
                         .height(TAP_HEIGHT)
                         .padding(start = 8.dp)
                         .clickable(actionStartActivity(MainActivity.intent(context, MainActivity.TAB_REMINDER))),
@@ -159,7 +161,7 @@ private fun MemoHeader(
                 )
             }
         }
-        Spacer(GlanceModifier.defaultWeight())
+        if (state.dueSoonCount <= 0) Spacer(GlanceModifier.defaultWeight())
         RefreshButton(colors, refreshing)
     }
 }

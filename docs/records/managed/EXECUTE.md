@@ -5,6 +5,25 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 13:55
+  summary: メモ一覧ウィジェットを幅 2 マスまで縮めても更新ボタンが欠けないよう、期限が近い件数の見出しだけを縮める作りにした
+  details:
+    関連ID:
+      - BL-186
+    変更内容: >-
+      見出しの行で、期限が近い件数の箱に重み（defaultWeight）を付け、残りの幅を受け持たせた。幅が足りないときは、この文字だけが省略され、
+      右端の更新ボタン（固定の 48dp）は常に残る。期限が近い件数が無いときは従来どおり空きの Spacer に重みを付ける。3 マス以上では収まるため見た目は変わらない。
+      単体テストに、幅 2 マス相当（110dp）で更新ボタンと期限が近い件数の見出しが両方あることを足した（Glance の単体テストは文字の省略まで測れないため、実機での確認は BL-106 に確認点として足した）。
+      見た目はウィジェットだけで、メモ・記録・期限の画面は変えていないためスクリーンショットの記録し直しは要らない
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト）と文書系ゲートが成功。実機での幅 2 マスの確認は未実施（BL-106）
 - date: 2026-11-15 13:05
   summary: LINE などで共有された文を共有シートの「いくメモに追加」から受け取り、チェック付きの一覧で確かめてメモへ取り込めるようにした
   details:
