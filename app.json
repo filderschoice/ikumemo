@@ -1,0 +1,18 @@
+{
+  "schema": "app-portfolio.v1",
+  "id": "ikumemo",
+  "name": "いくメモ",
+  "nameJa": "いくメモ",
+  "tagline": "話すだけ、いく前メモ。買ったらスワイプで記録、カレンダーで振り返り",
+  "platforms": ["Android"],
+  "status": "development",
+  "license": "Apache-2.0",
+  "tags": ["Android", "Kotlin", "Jetpack Compose", "Shopping List"],
+  "icon": "assets/icon.svg",
+  "page": "index.html",
+  "links": {
+    "homepage": "https://filderschoice.github.io/ikumemo/",
+    "repository": "https://github.com/filderschoice/ikumemo"
+  },
+  "updated": "2026-11-15"
+}
