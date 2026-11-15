@@ -5,6 +5,29 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 11:05
+  summary: メモの横スワイプを、速度だけでは確定せず幅の 40% 引いたときだけ確定にし、縦優勢は確定しない
+  details:
+    関連ID:
+      - BL-193
+    変更内容: >-
+      オーナーの指示（縦スクロールしようとすると削除のスワイプが検知される）への対応 A。material3 1.3.1 の SwipeToDismissBox は速度のしきい値を変えられず、
+      40% に届かなくても素早く払うと確定していた。確定の直前（confirmValueChange）に、行のずれが幅の 40% 以上かを確かめ、満たさなければ戻す。
+      あわせて指の動きの合計を Initial パスで観察（イベントは消費せず、一覧の縦スクロールは妨げない）し、縦が横より大きければ確定しない。実装の既定値は、
+      縦スクロールを奪わずに済む「確定の直前の判定」にした。確定の確認が続けて 2 回呼ばれるため、1 回の指の動きで 1 度だけ onBought・onDismissed を呼ぶ。
+      右へ買った・左へやめた・○・元に戻す・振動は変えていない。見た目は変わらない。DESIGN.md の R-05 の行へ反映。
+      C（えらんで消すモード）は BL-194 として起票。実機での誤操作の確認は BL-149 へ足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeGuard.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/shoppinglist/SwipeableItemRow.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/SwipeConfirmTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*SwipeConfirmTest" --tests "*ShoppingListScreenTest" --tests "*AccessibilityTest"、python scripts/validate-records.py
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。見た目は変わらない。実機は未確認）
 - date: 2026-11-15 10:45
   summary: 話して追加の確認カードに「追加して、つづけて話す」を足す（案 d）
   details:

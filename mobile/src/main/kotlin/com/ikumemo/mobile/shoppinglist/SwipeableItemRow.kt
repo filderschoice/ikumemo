@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -28,12 +29,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -45,9 +48,6 @@ import com.ikumemo.mobile.R
 import com.ikumemo.mobile.data.OperationSettings
 import com.ikumemo.mobile.data.db.ShoppingItemEntity
 
-/** スワイプで確定する距離（画面幅の 40%、R-05）。 */
-private const val SWIPE_THRESHOLD_FRACTION = 0.4f
-
 /** そうさの設定（○ の表示・振動）。メモ画面が渡す。 */
 val LocalOperationSettings = staticCompositionLocalOf { OperationSettings() }
 
@@ -56,6 +56,7 @@ val LocalBoughtButtonModifier = staticCompositionLocalOf<Modifier> { Modifier }
 
 /**
  * メモの 1 行。右へスワイプで「買った」、左へスワイプで「やめた」（D-4・F-10・F-11）。左の ○ を押しても「買った」（F-13）。
+ * しきい値（幅の 40%）に届いたときだけ確定し、速度だけでは確定しない（BL-193）。
  * しきい値を超えた瞬間に軽く振動させる（`performHapticFeedback` のため VIBRATE 権限は不要、R-05）。
  * ○ と振動は そうさ の設定で消せる（[LocalOperationSettings]）。
  */
@@ -71,18 +72,8 @@ fun SwipeableItemRow(
     val currentOnDismissed by rememberUpdatedState(onDismissed)
     val haptics = LocalHapticFeedback.current
     val vibration = LocalOperationSettings.current.vibration
-    val dismissState =
-        rememberSwipeToDismissBoxState(
-            confirmValueChange = { value ->
-                when (value) {
-                    SwipeToDismissBoxValue.StartToEnd -> currentOnBought()
-                    SwipeToDismissBoxValue.EndToStart -> currentOnDismissed()
-                    SwipeToDismissBoxValue.Settled -> Unit
-                }
-                value != SwipeToDismissBoxValue.Settled
-            },
-            positionalThreshold = { totalDistance -> totalDistance * SWIPE_THRESHOLD_FRACTION },
-        )
+    val guard = remember { SwipeGuard() }
+    val dismissState = rememberGuardedDismissState(guard, { currentOnBought() }, { currentOnDismissed() })
     LaunchedEffect(dismissState.targetValue) {
         if (vibration && dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -96,6 +87,8 @@ fun SwipeableItemRow(
         backgroundContent = { SwipeBackground(dismissState.dismissDirection) },
         modifier =
             Modifier
+                .onSizeChanged { guard.widthPx = it.width.toFloat() }
+                .then(guard.observe())
                 .semantics {
                     customActions =
                         listOf(
@@ -117,6 +110,35 @@ fun SwipeableItemRow(
             onBoughtClick = onBought,
         )
     }
+}
+
+/** 確定の直前に [SwipeGuard] で位置と縦横を確かめる状態（BL-193）。確定したときだけ [onBought]・[onDismissed] を呼ぶ。 */
+@Composable
+private fun rememberGuardedDismissState(
+    guard: SwipeGuard,
+    onBought: () -> Unit,
+    onDismissed: () -> Unit,
+): SwipeToDismissBoxState {
+    val stateHolder = remember { arrayOfNulls<SwipeToDismissBoxState>(1) }
+    val state =
+        rememberSwipeToDismissBoxState(
+            confirmValueChange = { value ->
+                // 素早く払っただけでは確定しない。幅の 40% 以上で、縦より横の動きが大きいときだけ決める（BL-193）
+                val offset = stateHolder[0]?.let { runCatching { it.requireOffset() }.getOrNull() } ?: 0f
+                val confirmed = value == SwipeToDismissBoxValue.Settled || guard.allows(offset)
+                if (confirmed && value != SwipeToDismissBoxValue.Settled && guard.firstConfirmation()) {
+                    when (value) {
+                        SwipeToDismissBoxValue.StartToEnd -> onBought()
+                        SwipeToDismissBoxValue.EndToStart -> onDismissed()
+                        SwipeToDismissBoxValue.Settled -> Unit
+                    }
+                }
+                confirmed && value != SwipeToDismissBoxValue.Settled
+            },
+            positionalThreshold = { totalDistance -> totalDistance * SWIPE_THRESHOLD_FRACTION },
+        )
+    stateHolder[0] = state
+    return state
 }
 
 @Composable
