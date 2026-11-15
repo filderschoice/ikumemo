@@ -76,6 +76,19 @@ class VoiceInputContentTest {
         check(runBlocking { repository.observeItems().first() }.map { it.displayName } == listOf("牛乳"))
     }
 
+    /** BL-195。「追加して、つづけて話す」の後に聞き取り画面へ件数が出る。続けて話し始める（Start）と消える。 */
+    @Test
+    fun addedCountIsShownAfterAddAndContinue() {
+        engine.autoResults = listOf("牛乳とたまご")
+        composeRule.runOnIdle { viewModel.onEvent(VoiceInputEvent.Start) }
+        composeRule.awaitTag(VoiceTestTags.card(1))
+        engine.autoResults = null // 次の聞き取りで結果が自動で返らないようにする
+        composeRule.onNodeWithTag(VoiceTestTags.ADD_AND_CONTINUE).performClick()
+
+        composeRule.awaitTag(VoiceTestTags.ADDED_COUNT)
+        composeRule.onNodeWithTag(VoiceTestTags.ADDED_COUNT).assertTextEquals("2件追加しました")
+    }
+
     @Test
     fun twoCardsAreShownAndAdded() {
         engine.autoResults = listOf("牛乳2本とたまご")

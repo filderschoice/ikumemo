@@ -12,6 +12,7 @@
     <string name="common_done">できた</string>
     <string name="common_decide">決める</string>
     <string name="voice_listening">聞いています</string>
+    <string name="voice_added_continue">%1$d件追加しました</string>
     <string name="voice_partial">「%1$s」</string>
     <string name="voice_add_all">追加する</string>
     <string name="voice_add_and_continue">追加して、つづけて話す</string>

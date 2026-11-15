@@ -25,9 +25,10 @@ data class VoiceCard(
 sealed interface VoiceInputState {
     data object Idle : VoiceInputState
 
-    /** 聞いている。認識中の文字をそのまま見せる。 */
+    /** 聞いている。認識中の文字をそのまま見せる。[addedCount] は「追加して、つづけて話す」で直前に入れた件数（0 なら出さない、BL-195）。 */
     data class Listening(
         val partialText: String = "",
+        val addedCount: Int = 0,
     ) : VoiceInputState
 
     data class Confirm(
@@ -122,12 +123,12 @@ class VoiceInputViewModel(
         }
     }
 
-    private fun start() {
+    private fun start(addedCount: Int = 0) {
         if (!engine.isAvailable) {
             mutableState.value = VoiceInputState.Unavailable
             return
         }
-        mutableState.value = VoiceInputState.Listening()
+        mutableState.value = VoiceInputState.Listening(addedCount = addedCount)
         // 何も話さなければ 5 秒で止めて「聞き取れませんでした」を出す（R-31）。結果がすぐ返っても取り消せるよう、
         // 認識を始める前に仕掛ける
         silenceJob?.cancel()
@@ -184,7 +185,7 @@ class VoiceInputViewModel(
                 confirm.cards
                     .filter { it.included && it.name.isNotBlank() }
                     .count { repository.addItem(it.name, it.quantity) is AddItemResult.Added }
-            if (continueListening) start() else mutableState.value = VoiceInputState.Added(added)
+            if (continueListening) start(added) else mutableState.value = VoiceInputState.Added(added)
         }
     }
 

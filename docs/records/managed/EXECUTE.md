@@ -5,6 +5,31 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 12:11
+  summary: 話して追加の「追加して、つづけて話す」の後、聞き取り画面に追加した件数を出し、読み上げでも伝える
+  details:
+    関連ID:
+      - BL-195
+    変更内容: >-
+      VoiceInputState.Listening に addedCount を足し、AddAllAndContinue で追加した件数を次の Listening へ渡す（Start では 0）。
+      聞き取り画面は件数が 1 以上のとき「N件追加しました」を liveRegion（Polite）付きで出す。ウィジェットのシート（VoiceSheetActivity）も同じ VoiceInputSheet を使うため同じに出る。
+      「追加する」で閉じたときの知らせ（Added、Toast とメモ画面）は変えていない。使い方（voice.md、USER_GUIDE.md）と DESIGN.md を反映。
+      見た目が変わるため、スクリーンショットの記録し直しが要るか確認が必要（既存の正解画像は聞き取り画面を含まない見込みだが未確認）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModel.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/voice/VoiceInputSheet.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/voice.md
+      - docs/USER_GUIDE.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/voice/VoiceInputViewModelTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/voice/VoiceInputContentTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*VoiceInputViewModelTest" --tests "*VoiceInputContentTest" --tests "*VoiceInputSheetRepeatTest" --tests "*VoiceSheetActivityTest"
+    検証結果: >-
+      成功 - 軽い検証がすべて成功（フル検証・Android Lint・assembleDebug・スクリーンショットは未実施。実機は未確認）
 - date: 2026-11-15 11:05
   summary: メモの横スワイプを、速度だけでは確定せず幅の 40% 引いたときだけ確定にし、縦優勢は確定しない
   details:
