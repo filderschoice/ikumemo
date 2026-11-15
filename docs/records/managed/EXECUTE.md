@@ -5,6 +5,34 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 21:11
+  summary: ご意見・ご要望の画面にご意見フォームで送るボタンを足し、GitHub を従にした
+  details:
+    関連ID:
+      - BL-206
+    変更内容: >-
+      ご意見・ご要望の画面で、フォームで送るボタンを先に目立つ形（Button）で置き、GitHub で送るは下の OutlinedButton にした。画面の説明文はフォームと GitHub それぞれに合う文へ分けた。
+      ボタンは転送ページ https://filderschoice.github.io/ikumemo/feedback/ にクエリ info（版・Android の版・機種名）を Uri.Builder でエンコードして付け、外部のブラウザで開く。
+      URL の組み立ては feedbackFormUrl に分けた。Google フォームの URL と entry 番号はアプリに書かず、INTERNET 権限も足していない。
+      使い方（help/feedback.md）・docs/USER_GUIDE.md・SUPPORT.md・FEEDBACK.md を新しいボタンに合わせた。公開前は 404 になる（BL-207 で公開）。
+      見た目が変わったため、スクリーンショットテストにご意見画面があれば記録し直しが要る（本タスクでは記録し直していない）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/ExternalLink.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/settings/FeedbackScreen.kt
+      - mobile/src/main/res/values/strings.xml
+      - mobile/src/main/assets/help/feedback.md
+      - mobile/src/test/kotlin/com/ikumemo/mobile/settings/ExternalLinkTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/settings/AboutContentTest.kt
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/shoppinglist/AccessibilityTest.kt
+      - docs/USER_GUIDE.md
+      - docs/SUPPORT.md
+      - docs/FEEDBACK.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests AboutContentTest --tests AccessibilityTest --tests ExternalLinkTest
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定 3 クラスのテスト・markdownlint・記録ファイル・使い方の Web 版・秘密情報スキャンが成功。Android Lint・全テスト・assembleDebug・スクリーンショットテストは流していない（軽い検証）
 - date: 2026-11-15 21:10
   summary: アプリ紹介ページ（site/）とご意見フォームへの転送ページ（site/feedback/）を作った
   details:

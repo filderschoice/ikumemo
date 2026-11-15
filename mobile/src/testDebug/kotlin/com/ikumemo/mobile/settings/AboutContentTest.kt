@@ -86,12 +86,18 @@ class AboutContentTest {
     }
 
     @Test
-    fun faqOpensAnswerAndGitHubButtonIsSent() {
+    fun faqOpensAnswerAndSendButtonsWork() {
+        var form = 0
         var github = 0
         var copied = 0
         composeRule.setContent {
             IkumemoTheme {
-                FeedbackContent(deviceInfo = "アプリの版 1.0", onCopyDeviceInfo = { copied++ }, onOpenGitHub = { github++ })
+                FeedbackContent(
+                    deviceInfo = "アプリの版 1.0",
+                    onCopyDeviceInfo = { copied++ },
+                    onOpenForm = { form++ },
+                    onOpenGitHub = { github++ },
+                )
             }
         }
 
@@ -99,9 +105,11 @@ class AboutContentTest {
         composeRule.onNodeWithTag(FeedbackTestTags.faq(0)).performClick()
         composeRule.onNodeWithTag(FeedbackTestTags.answer(0), useUnmergedTree = true).assertExists()
         composeRule.onNodeWithTag(FeedbackTestTags.COPY).performScrollTo().performClick()
+        composeRule.onNodeWithTag(FeedbackTestTags.FORM).performScrollTo().performClick()
         composeRule.onNodeWithTag(FeedbackTestTags.GITHUB).performScrollTo().performClick()
 
         assertEquals(1, copied)
+        assertEquals(1, form)
         assertEquals(1, github)
     }
 }

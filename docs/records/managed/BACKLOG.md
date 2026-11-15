@@ -18,29 +18,8 @@
   状態: 未着手
   担当: ユーザー
   完了条件: 紹介ページと転送ページが公開され、アプリのボタンからフォームが開いて版・Android の版・機種名が自動で入っている
-  依存:
-    - BL-206
-  根拠: GitHub Pages の公開には gh-pages への push とリポジトリ設定の変更が要り、エージェントには許されていないため（guardrails 12.2）
-- id: BL-206
-  区分: 機能追加
-  タスク内容: >-
-    せってい の「ご意見・ご要望」画面（mobile/.../settings/FeedbackScreen.kt）に、ご意見フォームで送るボタンを足す（PLAN F-77・§7.3、D-20・D-21）。
-    いまは「GitHub で送る」（ExternalLink.GITHUB_ISSUE）しか無い。F-77 のとおり、送る方法の主をフォーム、GitHub を従にする（フォームのボタンを先に、目立つ形で置く）。
-    ボタンは転送ページ https://filderschoice.github.io/ikumemo/feedback/ を外部のブラウザで開き、クエリ `info` に feedbackDeviceInfo()（「アプリの版 X ／ Android Y ／ 機種 Z」）を
-    URL エンコードして付ける（例 `.../feedback/?info=<エンコードした文字列>`）。Google フォームの URL はアプリに書かない（PLAN §7.3「URL の持ち方」。転送ページ側 BL-086 が持つ）。
-    URL の組み立ては純粋な関数にして単体テストで確かめる（日本語・「／」・空白・& などがエンコードされること）。INTERNET 権限は足さない（ブラウザに任せるため）。
-    使い方の正本（mobile/src/main/assets/help/feedback.md など、送る方法を説明している箇所）を新しいボタンに合わせて直し、`python scripts/make-user-guide.py` で docs/USER_GUIDE.md を作り直す。
-    docs/SUPPORT.md・docs/FEEDBACK.md の窓口の説明に、アプリのボタンからフォームを開けることを反映する（公開前のため、使えるのは BL-207 の公開後である旨を添える）
-  優先度: P2
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    ご意見・ご要望の画面にフォームで送るボタンがあり、押すと転送ページの URL に版・Android の版・機種名をエンコードして付けて外部のブラウザで開く。
-    URL の組み立ての単体テストと画面のテストがあり、使い方と docs/USER_GUIDE.md・SUPPORT.md・FEEDBACK.md が新しいボタンに合っている
   依存: []
-  根拠: >-
-    オーナー指示（2026-11-15「アプリから遷移できるようにオーケストレーションして。自律ループで。」）。
-    クエリ名 `info` は BL-086 の転送ページと合わせるためにオーケストレータが決めた（Google フォームの entry 番号をアプリに持たせないため、転送ページで entry.10635078 へ移し替える）
+  根拠: GitHub Pages の公開には gh-pages への push とリポジトリ設定の変更が要り、エージェントには許されていないため（guardrails 12.2）
 - id: BL-150
   区分: 人手検証
   タスク内容: >-

@@ -261,9 +261,11 @@
     <string name="faq_widget_q">ホーム画面に置くには</string>
     <string name="faq_widget_a">ホーム画面の何もないところを長押しし、「ウィジェット」から「いくメモ」を選びます。「話して追加」と「メモ一覧」の 2 種類があります。</string>
     <string name="feedback_send_title">ご意見を送る</string>
-    <string name="feedback_send_detail">GitHub（開発の記録を公開している場所）で送れます。お名前やメールアドレスなど、ご本人が分かることは書かないでください。下の情報を添えていただくと、原因を調べやすくなります。</string>
+    <string name="feedback_send_detail">ご意見フォームで送れます。ボタンを押すとブラウザが開き、アプリの版・Android の版・機種名が自動で入ります。お名前やメールアドレスなど、ご本人が分かることは書かないでください。</string>
+    <string name="feedback_github_detail">GitHub（開発の記録を公開している場所）でも送れます。だれでも見られる場所です。下の情報をコピーして貼っていただくと、原因を調べやすくなります。</string>
     <string name="feedback_device_info">アプリの版 %1$s ／ Android %2$s ／ 機種 %3$s</string>
     <string name="feedback_copy_device_info">この情報をコピー</string>
+    <string name="feedback_open_form">ご意見フォームで送る</string>
     <string name="feedback_open_github">GitHub で送る</string>
     <string name="stores_empty">お店はまだありません。メモ画面のお店のボタンから足せます</string>
     <string name="stores_archive">使わない</string>

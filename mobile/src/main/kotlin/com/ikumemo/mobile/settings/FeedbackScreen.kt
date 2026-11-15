@@ -41,8 +41,8 @@ private val FAQ =
     )
 
 /**
- * ご意見・ご要望（F-77）。①よくある質問 → ②送る方法。送る方法は当面 GitHub だけ（ご意見フォームは site/ の転送ページができたら足す）。
- * 版・Android の版・機種名は画面に出し、コピーして貼れるようにする（GitHub の Issue には自動で入れられないため）。
+ * ご意見・ご要望（F-77）。①よくある質問 → ②送る方法。送る方法はフォーム（主）と GitHub（従、BL-206）。
+ * フォームは転送ページ経由で、版・Android の版・機種名が自動で入る。GitHub の Issue には自動で入れられないため、画面に出してコピーできるようにする。
  */
 @Composable
 fun FeedbackScreen(onBack: () -> Unit) {
@@ -53,6 +53,7 @@ fun FeedbackScreen(onBack: () -> Unit) {
         FeedbackContent(
             deviceInfo = deviceInfo,
             onCopyDeviceInfo = { clipboard.setText(AnnotatedString(deviceInfo)) },
+            onOpenForm = { context.openFeedbackForm() },
             onOpenGitHub = { context.openExternal(ExternalLink.GITHUB_ISSUE) },
         )
     }
@@ -62,6 +63,7 @@ fun FeedbackScreen(onBack: () -> Unit) {
 fun FeedbackContent(
     deviceInfo: String,
     onCopyDeviceInfo: () -> Unit,
+    onOpenForm: () -> Unit,
     onOpenGitHub: () -> Unit,
 ) {
     var opened by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -94,23 +96,45 @@ fun FeedbackContent(
             HorizontalDivider()
         }
         SectionTitle(R.string.feedback_send_title)
-        Column(Modifier.padding(horizontal = 16.dp)) {
-            Text(stringResource(R.string.feedback_send_detail), style = MaterialTheme.typography.bodyMedium)
-            Text(
-                deviceInfo,
-                style = MaterialTheme.typography.bodyMedium,
-                color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-            OutlinedButton(onClick = onCopyDeviceInfo, modifier = Modifier.testTag(FeedbackTestTags.COPY)) {
-                Text(stringResource(R.string.feedback_copy_device_info))
-            }
-            Button(
-                onClick = onOpenGitHub,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp).testTag(FeedbackTestTags.GITHUB),
-            ) {
-                Text(stringResource(R.string.feedback_open_github))
-            }
+        SendMethods(deviceInfo, onCopyDeviceInfo, onOpenForm, onOpenGitHub)
+    }
+}
+
+/** 送る方法。フォームを主（先・目立つ形）、GitHub を従にする（F-77）。 */
+@Composable
+private fun SendMethods(
+    deviceInfo: String,
+    onCopyDeviceInfo: () -> Unit,
+    onOpenForm: () -> Unit,
+    onOpenGitHub: () -> Unit,
+) {
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        Text(stringResource(R.string.feedback_send_detail), style = MaterialTheme.typography.bodyMedium)
+        Button(
+            onClick = onOpenForm,
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp).testTag(FeedbackTestTags.FORM),
+        ) {
+            Text(stringResource(R.string.feedback_open_form))
+        }
+        Text(
+            stringResource(R.string.feedback_github_detail),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 24.dp),
+        )
+        Text(
+            deviceInfo,
+            style = MaterialTheme.typography.bodyMedium,
+            color = photoInk(MaterialTheme.colorScheme.onSurfaceVariant),
+            modifier = Modifier.padding(vertical = 8.dp),
+        )
+        OutlinedButton(onClick = onCopyDeviceInfo, modifier = Modifier.testTag(FeedbackTestTags.COPY)) {
+            Text(stringResource(R.string.feedback_copy_device_info))
+        }
+        OutlinedButton(
+            onClick = onOpenGitHub,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp).testTag(FeedbackTestTags.GITHUB),
+        ) {
+            Text(stringResource(R.string.feedback_open_github))
         }
     }
 }
@@ -126,6 +150,7 @@ private fun SectionTitle(title: Int) {
 }
 
 object FeedbackTestTags {
+    const val FORM = "feedback_form"
     const val COPY = "feedback_copy"
     const val GITHUB = "feedback_github"
 
