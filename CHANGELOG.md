@@ -531,3 +531,16 @@ Pixel 8 Pro（Android 17、ac7b659 後のデバッグ版）で、BL-204・205 �
 - BL-086（紹介ページと転送ページ）: フォームの URL が決まったため BL-087 への依存を外し、優先度を P2 へ上げた。転送ページはクエリ `info` をフォームの版の欄へ移す
 - BL-206（機能追加）: ご意見・ご要望の画面にフォームで送るボタンを足し、転送ページを `info` 付きで開く
 - BL-207（人手検証）: site/ を GitHub Pages で公開し（gh-pages への push は人が行う）、アプリからフォームまで遷移できるか実機で確かめる
+
+## 2026-11-15（リポジトリの公開と GitHub の設定、BL-009 の完了）
+
+オーナーがリポジトリを公開したのに合わせ、オーナーの指示でエージェントが GitHub の設定を API で入れました。sesami-wear の設定に合わせています。コードは変えていません。
+
+- 公開の前に、公開される全コミット（PR の分を含む 202 件）を秘密情報スキャンにかけ、検出なしを確かめた
+- Secret scanning・Push protection・Private vulnerability reporting を有効にした
+- ルールセット `protect-main`（既定のブランチの削除と強制 push の禁止、PR 必須・承認 0・会話の解決必須）と `protect-release-tags`（`v*` タグの削除と書き換えの禁止）を作った
+- Issue のラベル（`type:`・`from:`・`status:` の 9 つ）を作った
+- リポジトリの説明・トップページ（GitHub Pages）・トピックを入れ、Projects をオフ、「Update branch」をオンにした
+- GitHub Pages を `gh-pages` の `/` で公開した（BL-207 は実機の確認が残るため進行中）
+- Dependabot の脆弱性アラートとセキュリティ更新を、sesami-wear と同じく有効にした（オーナー判断）。依存グラフが Gradle の依存を読めていないため、sesami-wear と同じく実質は動いていない。定期の版上げ（`dependabot.yml`）は引き続き入れない。`DESIGN.md` の運用制約も合わせた
+- BL-009 は完了として BACKLOG から外した

@@ -14,8 +14,11 @@
     公開後、ブラウザで https://filderschoice.github.io/ikumemo/ と https://filderschoice.github.io/ikumemo/feedback/?info=TEST を開き、
     後者がご意見フォームへ移って「アプリの版・Android の版・機種名」に TEST が入ること、ログインを求められないことを確かめる。
     さらに BL-206 を入れた版の実機で「ご意見・ご要望」→ フォームで送るボタンを押し、ブラウザでフォームが開いて版・Android の版・機種名が入ることを確かめる
+    2026-11-15 にオーナーがリポジトリを公開し、gh-pages へ subtree push した。エージェントが API で Pages（gh-pages の /）を有効にし、
+    https://filderschoice.github.io/ikumemo/ が 200 を返すこと、転送ページに entry.10635078 があることを確かめた。
+    残りは、ブラウザで ?info=TEST を開いてフォームへ移り欄に TEST が入ることと、新しい版の実機でボタンからフォームが開くこと
   優先度: P2
-  状態: 未着手
+  状態: 進行中
   担当: ユーザー
   完了条件: 紹介ページと転送ページが公開され、アプリのボタンからフォームが開いて版・Android の版・機種名が自動で入っている
   依存: []
@@ -119,15 +122,6 @@
   担当: ユーザー
   完了条件: 複数機種の認識結果の文字列が記録され、テストケースへ反映する依頼が出ている
   依存: []
-- id: BL-009
-  区分: 人手検証
-  タスク内容: GitHub リポジトリの設定（main 保護と PR 必須、Secret scanning と Push protection の有効化、Private vulnerability reporting の有効化、Issue テンプレートが使うラベル「type 要望／不具合／質問」「from フォーム／レビュー／GitHub」「status 検討中／対応予定／見送り」の作成）（PLAN §7・§7.3）
-  優先度: P3
-  状態: 未着手
-  担当: ユーザー
-  完了条件: 各設定が GitHub 上で有効になり、.github/ISSUE_TEMPLATE/ のラベル（type：不具合 等。表記は半角コロンと空白を含むテンプレートの記載どおり）が存在する
-  依存: []
-  根拠: GitHub 上の設定変更は外部操作でエージェントが実行できないため。CI（GitHub Actions）と Dependabot はオーナー指示により sesami-wear に合わせて導入しない（2026-10-24）
 - id: BL-008
   区分: 人手検証
   タスク内容: >-
