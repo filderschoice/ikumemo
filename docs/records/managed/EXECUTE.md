@@ -5,6 +5,30 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 22:35
+  summary: ストア用フィーチャーグラフィック（1024 × 500 の PNG）の案を書き出すテストを足し、feature-graphic.png を作った
+  details:
+    関連ID:
+      - BL-215
+    変更内容: >-
+      Robolectric のテスト StoreFeatureGraphicExportTest（遅いテスト扱い）で、ポップのテーマの背景色の地に、角を丸めたアプリのアイコン、
+      アプリ名「いくメモ」、キャッチコピー「話すだけ、いく前メモ。」を置いて docs/store/images/feature-graphic.png へ書き出す。
+      文字はテスト環境の既定のフォントで、新しい依存や外部の素材は足していない。文字の右端が余白を超えないことと文字が描かれたことをテストで確かめる。
+      タスクには緑の地とあったがポップのテーマの色はコーラルのため、アイコンと紹介ページに合わせて淡い桃色の地（#FFF4EC）にした。
+      STORE_LISTING.md のフィーチャーグラフィック欄を案の作成済みにして再実行の手順を書き、README の構成表も合わせた
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/StoreFeatureGraphicExportTest.kt
+      - docs/store/images/feature-graphic.png
+      - docs/store/STORE_LISTING.md
+      - README.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreFeatureGraphicExportTest*"、python scripts/quality-gates.py --quick --tests "*StoreFeatureGraphicExportTest*"
+    検証結果: >-
+      成功 - 書き出しのテストは成功し、出力画像を目視で確かめた（文字は切れずに読める）。1 回目は副題の文字が余白を超えて失敗し、文字の大きさを下げて直した。
+      軽い検証は ktlint・detekt・コンパイル・markdownlint・記録・秘密情報スキャンが成功し、test は遅いテスト（-PslowTests 無しでは除外）のため
+      「No tests found」で失敗した（想定どおり）。Android Lint・全テスト・assembleDebug は流していない
 - date: 2026-11-15 22:12
   summary: ストア用アプリアイコン（512 × 512 の PNG）をアダプティブアイコンから書き出すテストを足し、icon-512.png を作った
   details:

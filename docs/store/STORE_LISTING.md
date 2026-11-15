@@ -91,7 +91,11 @@ Play Console で直した場合は、このファイルも同じ内容に直し�
 
 ## フィーチャーグラフィック
 
-1024 × 500 の PNG。案は `docs/store/images/feature-graphic.png` へ書き出す（BL-215、採否は BL-218。未作成）。
+1024 × 500 の PNG。案を作成済み（`docs/store/images/feature-graphic.png`、採否は BL-218）。
+ポップのテーマの背景色（`#FFF4EC`）の地に、アプリのアイコン・アプリ名「いくメモ」・キャッチコピー「話すだけ、いく前メモ。」を置いた。
+文字はテスト環境の既定のフォントで、外部のフォントや素材は使っていない。
+再作成は Robolectric のテスト `StoreFeatureGraphicExportTest`（遅いテスト扱い）で、
+`./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreFeatureGraphicExportTest*"` を流す。
 
 ## スクリーンショット
 
