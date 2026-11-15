@@ -62,11 +62,12 @@ fun AppThemeHost(
                 // ペンの色は、写真の上に直接置く文字（LocalContentColor）だけに効かせる（BL-170）。
                 // テーマの surface と background は同じ色のため、onBackground を差し替えると
                 // Surface の既定の文字色（contentColorFor）が先に background に当たり、面の中の文字までペンの色になる。
-                // 面の中の文字は ReadablePanel などが onSurface を明示して戻す
+                // 面の中の文字は ReadablePanel などが onSurface を明示して戻す。
+                // おまかせ（ink が null）のときは、ここに面が無く既定の黒になるため onBackground を渡す（BL-204）
                 CompositionLocalProvider(
                     LocalHasBackgroundImage provides true,
                     LocalPhotoInk provides ink,
-                    LocalContentColor provides (ink ?: LocalContentColor.current),
+                    LocalContentColor provides resolvePhotoInk(ink, MaterialTheme.colorScheme.onBackground),
                     content = content,
                 )
             }

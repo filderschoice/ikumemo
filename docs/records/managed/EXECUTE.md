@@ -5,6 +5,26 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 17:33
+  summary: 暗いテーマで背景の写真を置いたおまかせ（ペンの色なし）のとき、写真の上に直接置いた文字が黒になる不具合を直した
+  details:
+    関連ID:
+      - BL-204
+    変更内容: >-
+      AppThemeHost.kt の写真ありの分岐で、LocalContentColor を ink が null のとき onBackground にした（resolvePhotoInk を再利用）。
+      従来は既定の黒のままで、暗い膜の上の案内文・お店チップ・設定の項目名が読めなかった。
+      面の中の文字は ReadablePanel などが onSurface を明示しているため変わらず、ペンの色ありの見え方も変えていない。
+      明るいテーマ × おまかせでも onBackground になる（明るいテーマの onBackground は暗い色のため、見え方の差は黒から暗い色への微差。実機確認は BL-199 の残りで人手検証）。
+      テストは、全テーマ・明暗で onBackground が background に対し 4.5:1 以上であり、おまかせでは onBackground が選ばれることを足した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/AppThemeHost.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/designsystem/PhotoInkTest.kt
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*PhotoInkTest" --tests "*PhotoTextButtonColorsTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・スクリーンショットテスト・実機確認は流していない
 - date: 2026-11-15 15:45
   summary: 幅 3 マスのメモ一覧ウィジェットを従来の全文の見出しに戻し、短い表記は幅 2 マス相当だけにした（BL-203 の点検の指摘）
   details:

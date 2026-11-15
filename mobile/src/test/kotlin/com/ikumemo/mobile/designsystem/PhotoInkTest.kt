@@ -18,6 +18,25 @@ class PhotoInkTest {
         }
     }
 
+    /** BL-204。おまかせの写真の上の文字（LocalContentColor）は onBackground になり、テーマの背景（膜）の上で読める。 */
+    @Test
+    fun autoInkFallsBackToOnBackgroundAndIsReadableOnTheThemeBackground() {
+        ThemePreset.entries.forEach { preset ->
+            listOf(false, true).forEach { dark ->
+                val palette = preset.palette(dark)
+                val onBackground = Color(palette.onBackground)
+                assertEquals(onBackground, resolvePhotoInk(InkColor.AUTO.textColor, onBackground))
+                val ratio =
+                    ContrastRatio.of(
+                        onBackground.toArgb().toLong() and 0xFFFFFFFFL,
+                        Color(palette.background).toArgb().toLong() and 0xFFFFFFFFL,
+                    )
+                val label = "${preset.storageKey} dark=$dark は $ratio"
+                assertTrue(label, ratio >= ContrastRatio.MIN_TEXT_RATIO)
+            }
+        }
+    }
+
     @Test
     fun penColorReplacesTheThemeColorAndIsReadableOnItsScrim() {
         InkColor.entries.filter { it != InkColor.AUTO }.forEach { ink ->
