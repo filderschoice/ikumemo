@@ -58,7 +58,9 @@ import kotlinx.coroutines.delay
  */
 class MemoListWidget : GlanceAppWidget() {
     override val sizeMode =
-        SizeMode.Responsive(setOf(TWO_CELL_SMALL, NARROW_SMALL, SMALL, TWO_CELL_LARGE, NARROW_LARGE, LARGE))
+        SizeMode.Responsive(
+            setOf(TWO_CELL_SMALL, NARROW_SMALL, SMALL, WIDE_SMALL, TWO_CELL_LARGE, NARROW_LARGE, LARGE, WIDE_LARGE),
+        )
 
     override suspend fun provideGlance(
         context: Context,
@@ -82,6 +84,15 @@ class MemoListWidget : GlanceAppWidget() {
         private val TWO_CELL_WIDTH = 120.dp
         val COMPACT_BELOW = 150.dp
 
+        /** 期限が近い件があるとき、見出しを全文で出す最小の幅（幅 4 マス相当）。 */
+        private val FULL_HEADER_MIN = 350.dp
+
+        /** 見出しを短い表記にするか。幅 2 マス相当は常に、期限が近い件があるときは幅 4 マス未満も短くする（BL-203・205）。 */
+        fun compactHeader(
+            width: Dp,
+            dueSoon: Boolean,
+        ): Boolean = width < COMPACT_BELOW || (dueSoon && width < FULL_HEADER_MIN)
+
         /** 幅 2 マス相当（BL-203）。見出しだけを短い表記にする判定用で、行の並べ方は NARROW_* と同じ。 */
         val TWO_CELL_SMALL = DpSize(TWO_CELL_WIDTH, 110.dp)
         val TWO_CELL_LARGE = DpSize(TWO_CELL_WIDTH, 180.dp)
@@ -89,6 +100,13 @@ class MemoListWidget : GlanceAppWidget() {
         val SMALL = DpSize(250.dp, 110.dp)
         val NARROW_LARGE = DpSize(180.dp, 180.dp)
         val LARGE = DpSize(250.dp, 180.dp)
+
+        /**
+         * 幅 4 マス相当の候補（BL-205）。幅 3 マス（約 300dp）は SMALL/LARGE が選ばれ、4 マス（約 410dp）は
+         * これが選ばれる。期限が近い件があるとき、これ未満の幅では見出しを短い表記にして件数を見せる。
+         */
+        val WIDE_SMALL = DpSize(FULL_HEADER_MIN, 110.dp)
+        val WIDE_LARGE = DpSize(FULL_HEADER_MIN, 180.dp)
 
         /** 小さい表示で横に並べる品名の数（幅が狭いときは減らす）。 */
         fun namesInRow(wide: Boolean): Int = if (wide) WIDE_NAMES else NARROW_NAMES
@@ -107,7 +125,7 @@ fun MemoListContent(
     val context = LocalContext.current
     val size = LocalSize.current
     val wide = size.width >= MemoListWidget.SMALL.width
-    val compact = size.width < MemoListWidget.COMPACT_BELOW
+    val compact = MemoListWidget.compactHeader(size.width, state.dueSoonCount > 0)
     val large = size.height >= MemoListWidget.LARGE.height
     Column(
         modifier =

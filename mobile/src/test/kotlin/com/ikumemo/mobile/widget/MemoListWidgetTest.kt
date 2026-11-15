@@ -51,7 +51,7 @@ class MemoListWidgetTest {
 
     @Test
     fun smallShowsHeaderAndFirstNamesInARow() =
-        render(fiveItems, MemoListWidget.SMALL) {
+        render(fiveItems, MemoListWidget.WIDE_SMALL) {
             onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
             onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
             onNode(hasTextEqualTo("・牛乳 2本　・たまご 1パック　・食パン")).assertExists()
@@ -79,7 +79,7 @@ class MemoListWidgetTest {
 
     @Test
     fun rowOpensThatItemAndDueSoonOpensReminders() =
-        render(fiveItems, MemoListWidget.LARGE) {
+        render(fiveItems, MemoListWidget.WIDE_LARGE) {
             onNode(hasStartActivityClickAction(MainActivity.itemIntent(context, 2))).assertExists()
             onNode(
                 hasStartActivityClickAction(MainActivity.intent(context, MainActivity.TAB_REMINDER))
@@ -133,13 +133,34 @@ class MemoListWidgetTest {
     }
 
     @Test
-    fun threeCellWidthKeepsTheFullHeaderText() {
-        // 幅 3 マス相当（180・200dp）と 250dp では従来の全文のまま（BL-203 の点検で直した）
+    fun threeCellWidthShowsShortDueSoonCountWithRefresh() {
+        // 幅 2・3 マス相当（180・200・250dp）。期限が近い件数の数字が欠けず、更新ボタンも残る（BL-205）
         listOf(MemoListWidget.NARROW_SMALL, DpSize(200.dp, 110.dp), MemoListWidget.SMALL).forEach { size ->
             render(fiveItems, size) {
+                onNode(hasTextEqualTo("🔔2")).assertExists()
+                onNode(hasContentDescriptionEqualTo("期限が近い 2件")).assertExists()
+                onNode(hasContentDescriptionEqualTo("メモ一覧を更新")).assertExists()
+                onAllNodes(hasText("期限が近い")).assertCountEquals(0)
+            }
+        }
+    }
+
+    @Test
+    fun fourCellWidthKeepsTheFullHeaderText() {
+        render(fiveItems, MemoListWidget.WIDE_SMALL) {
+            onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
+            onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
+            onAllNodes(hasTextEqualTo("🔔2")).assertCountEquals(0)
+        }
+    }
+
+    @Test
+    fun threeCellWidthKeepsTheFullCountWhenNothingIsDueSoon() {
+        // 期限が近い件が無いときの表示は変えない（150dp 以上は全文）
+        val noDue = fiveItems.copy(dueSoonCount = 0)
+        listOf(MemoListWidget.NARROW_SMALL, MemoListWidget.SMALL).forEach { size ->
+            render(noDue, size) {
                 onNode(hasTextEqualTo("🛒メモ 5件")).assertExists()
-                onNode(hasTextEqualTo("🔔期限が近い 2件")).assertExists()
-                onAllNodes(hasTextEqualTo("🔔2")).assertCountEquals(0)
             }
         }
     }

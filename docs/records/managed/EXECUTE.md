@@ -5,6 +5,28 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 17:40
+  summary: メモ一覧ウィジェットで、期限が近い件があるとき幅 2・3 マスでも期限が近い件数が見えるようにした
+  details:
+    関連ID:
+      - BL-205
+    変更内容: >-
+      実機で幅 2 マス（約 205dp）は NARROW（180dp）が選ばれて短い表記に入らず、幅 3 マス（約 300dp）は SMALL（250dp）で件数の数字が切れていた。
+      Responsive の候補へ幅 350dp の WIDE_SMALL・WIDE_LARGE を足して幅 4 マス（約 410dp）と区別し、見出しを短い表記にする判定を
+      compactHeader(width, dueSoon) にした。幅 150dp 未満は従来どおり常に短く、期限が近い件があるときは幅 350dp 未満も「🔔N」にする（メモの件数は省く）。
+      期限が近い件が無いときの表示と幅 4 マスの全文は変えていない。DESIGN.md の W-02 行を実装に合わせて直した。
+      単体テストで、幅 180・200・250dp で「🔔2」と更新ボタンが残ること、350dp で全文、期限が近い件が無いと 180・250dp は全文のままを確かめた。
+      スクリーンショットテストは流していない（ウィジェットは対象外とみられるが未確認）。実機確認は BL-106 の残りに追記した
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/widget/MemoListWidget.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/widget/MemoListWidgetTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      python scripts/quality-gates.py --quick --tests "*MemoListWidgetTest"
+    検証結果: >-
+      成功 - ktlint・detekt・コンパイル・指定テストと文書系ゲートが成功。Android Lint・全テスト・assembleDebug・スクリーンショットテスト・実機確認は流していない
 - date: 2026-11-15 17:33
   summary: 暗いテーマで背景の写真を置いたおまかせ（ペンの色なし）のとき、写真の上に直接置いた文字が黒になる不具合を直した
   details:
