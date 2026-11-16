@@ -61,3 +61,15 @@ h2 { font-size: 1.6rem; margin: 0 0 8px; }
 .site-footer { border-top: 1px solid var(--border); padding: 24px 0 40px; color: var(--muted); font-size: 0.9rem; }
 .site-footer a { margin-right: 16px; }
 .narrow { max-width: 36em; padding: 56px 0; }
+
+/* スクリーンショット（assets/screenshots/、BL-227）。画像は幅に収め、はみ出さない。 */
+img { max-width: 100%; height: auto; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 260px); gap: 32px; align-items: center; }
+.hero-shot { justify-self: center; width: 100%; max-width: 260px; }
+.shot { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.card .shot { margin-top: 14px; }
+.card:has(.shot[src*="themes"]) .shot { max-width: 220px; margin-inline: auto; }
+@media (max-width: 640px) {
+  .hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .hero-shot { max-width: 220px; }
+}
