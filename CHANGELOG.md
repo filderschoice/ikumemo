@@ -735,3 +735,10 @@ BL-227 の時点で未撮影だった「話して追加」の確認カード（B
 - `scripts/make-site-screenshots.py` の対象に `screenshot-1-voice.png` を足し、`site/assets/screenshots/voice.webp`（540x960、約 12KB）を作った
 - `site/index.html` の「話す」のカードに、代替テキスト付き・`loading="lazy"` で添えた。`gh-pages` への反映はオーナーが行う
 
+## 2026-11-16（BL-230 のクローズドテストの案内にスクリーンショット）
+
+テスターの方が入れる前にアプリの姿をつかめるよう、オーナーが承認した計画の C を実施しました。BL-230 は起票と完了が同じコミットのため、BACKLOG には残していません。
+
+- `docs/CLOSED_TEST.md`「いくメモとは」に、話して追加・スワイプで買った・記録のカレンダーの 3 枚を表で並べた
+- 画像は紹介ページと同じ `site/assets/screenshots/*.webp`（幅 540px）を相対パスで参照し、ストア用の大きな PNG は使っていない
+
