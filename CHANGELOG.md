@@ -728,3 +728,10 @@ PR #15 のマージ後、オーナーが `git subtree push --prefix site origin 
 - 画像は `docs/store/images/feature-graphic.png` の写しを `site/assets/og-image.png` に置いた。X など WebP を読まない SNS があるため PNG にした
 - フィーチャーグラフィックは案の段階で、採否は BL-218。差し替えたら写し直す（`site/README.md` に追記）。`gh-pages` への反映はオーナーが行う
 
+## 2026-11-16（BL-229 の紹介ページの「話す」に確認カードの画像）
+
+BL-227 の時点で未撮影だった「話して追加」の確認カード（BL-217 の 1 枚目）を、紹介ページの「話す」のカードに添えました。BL-229 は起票と完了が同じコミットのため、BACKLOG には残していません。
+
+- `scripts/make-site-screenshots.py` の対象に `screenshot-1-voice.png` を足し、`site/assets/screenshots/voice.webp`（540x960、約 12KB）を作った
+- `site/index.html` の「話す」のカードに、代替テキスト付き・`loading="lazy"` で添えた。`gh-pages` への反映はオーナーが行う
+

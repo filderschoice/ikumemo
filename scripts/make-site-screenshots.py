@@ -23,6 +23,7 @@ TOLERANCE = 6
 
 # 出力名 -> 元画像。5-widget はステータスバーのぼかしの箱が目立つため使わない。
 TARGETS = {
+    "voice": "screenshot-1-voice.png",
     "swipe": "screenshot-2-swipe.png",
     "calendar": "screenshot-3-calendar.png",
     "notification": "screenshot-4-notification.png",
