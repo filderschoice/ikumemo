@@ -3,11 +3,14 @@ package com.ikumemo.mobile.data.backup
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.ikumemo.core.reminder.ReminderSettings
+import com.ikumemo.core.text.ProductNameNormalizer
+import com.ikumemo.mobile.data.AddItemResult
 import com.ikumemo.mobile.data.AppSettings
 import com.ikumemo.mobile.data.AppearancePrefs
 import com.ikumemo.mobile.data.OperationPrefs
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.ReminderPrefs
+import com.ikumemo.mobile.data.ShoppingRepository
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import com.ikumemo.mobile.data.db.ProductEntity
 import com.ikumemo.mobile.data.db.PurchaseRecordEntity
@@ -171,6 +174,46 @@ class BackupRoundTripTest {
             assertEquals("牛乳", dao.products().single().name)
             assertNull(appearance.appearance.first().backgroundImage)
             assertEquals(ThemePreset.COOL, appearance.appearance.first().theme)
+        }
+
+    @Test
+    fun importedProductsAreFoundInMemoByTheCurrentNormalization() =
+        runTest {
+            // BL-236: ファイルの正規化名が今の正規化と違っても（手で作ったファイル・辞書が変わる前のファイル）、
+            // 読み込んだメモの品名は取り込みシート・確認カードで「メモにあります」になる
+            val products =
+                """[{"id":1,"name":"牛乳","normalizedName":"牛乳","createdAt":0},""" +
+                    """{"id":2,"name":"バナナ","normalizedName":"バナナ","createdAt":0}]"""
+            val items =
+                """[{"id":1,"productId":1,"displayName":"牛乳","sortOrder":0,"createdAt":0},""" +
+                    """{"id":2,"productId":2,"displayName":"バナナ","sortOrder":1,"createdAt":0}]"""
+            val data =
+                """{"format":"ikumemo-backup","version":1,"exportedAt":0,"products":$products,"items":$items}"""
+
+            assertEquals(ImportResult.Success, importer().import(ByteArrayInputStream(data.toByteArray())))
+
+            val shopping = ShoppingRepository(db, ProductNameNormalizer(), fixedClock())
+            assertEquals(1L, shopping.findInMemo("牛乳")?.id)
+            assertEquals(2L, shopping.findInMemo("ばなな")?.id)
+            assertEquals(AddItemResult.AlreadyInMemo(1, "牛乳"), shopping.addItem("牛乳"))
+            assertEquals(2, db.backupReadDao().products().size)
+        }
+
+    @Test
+    fun clashingNamesAfterRenormalizingKeepTheFileValues() =
+        runTest {
+            // BL-236: 作り直すと同じ名前になる品目どうし（辞書が変わる前に別の品目だった「卵」と「玉子」など）は、
+            // 一意の制約を破らないようファイルの正規化名のまま入れる。ほかの品目は作り直す
+            val products =
+                """[{"id":1,"name":"卵","normalizedName":"卵","createdAt":0},""" +
+                    """{"id":2,"name":"玉子","normalizedName":"玉子","createdAt":0},""" +
+                    """{"id":3,"name":"牛乳","normalizedName":"牛乳","createdAt":0}]"""
+            val data = """{"format":"ikumemo-backup","version":1,"exportedAt":0,"products":$products}"""
+
+            assertEquals(ImportResult.Success, importer().import(ByteArrayInputStream(data.toByteArray())))
+
+            val names = db.backupReadDao().products().associate { it.id to it.normalizedName }
+            assertEquals(mapOf(1L to "卵", 2L to "玉子", 3L to "ぎゅうにゅう"), names)
         }
 
     @Test

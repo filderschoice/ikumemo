@@ -76,6 +76,22 @@ class ShareImportViewModelTest {
         }
 
     @Test
+    fun plainTextWithMilkInMemoMarksMilk() =
+        runTest {
+            // BL-236: メモで足した「牛乳」は、空白区切りの文の中でも「メモにあります」・チェックなしになる
+            repository.addItem("牛乳")
+            repository.addItem("卵")
+            viewModel.load("豆乳 2本 ごぼう 牛乳 1本 ネギ")
+
+            val review = awaitState { it is ShareImportState.Review } as ShareImportState.Review
+
+            val milk = review.rows.single { it.name == "牛乳" }
+            assertEquals(true, milk.alreadyInMemo)
+            assertEquals(false, milk.included)
+            assertEquals(listOf(false), review.rows.filter { it.name != "牛乳" }.map { it.alreadyInMemo }.distinct())
+        }
+
+    @Test
     fun uncheckedRowsAreNotAdded() =
         runTest {
             viewModel.load("🛒いくメモ\n・牛乳 2本\n・パン\n・バナナ 1房")

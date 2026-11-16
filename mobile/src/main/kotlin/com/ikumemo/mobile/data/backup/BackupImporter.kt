@@ -2,6 +2,7 @@ package com.ikumemo.mobile.data.backup
 
 import android.content.Context
 import androidx.room.withTransaction
+import com.ikumemo.core.text.ProductNameNormalizer
 import com.ikumemo.mobile.data.PhotoStore
 import com.ikumemo.mobile.data.db.IkumemoDatabase
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +41,9 @@ class BackupImporter(
     private val onImported: suspend () -> Unit,
 ) {
     private val workRoot = File(context.applicationContext.cacheDir, WORK_DIR)
+
+    /** 品目の正規化名の作り直しに使う（BL-236）。AppContainer の normalizer と同じ既定の辞書。 */
+    private val normalizer = ProductNameNormalizer()
 
     suspend fun import(input: InputStream): ImportResult =
         withContext(Dispatchers.IO) {
@@ -179,7 +183,7 @@ class BackupImporter(
         database.withTransaction {
             delete.deleteAll()
             insert.insertStores(data.stores.map { it.toEntity() })
-            insert.insertProducts(data.products.map { it.toEntity() })
+            insert.insertProducts(renormalized(data.products, normalizer).map { it.toEntity() })
             insert.insertItems(data.items.map { it.toEntity() })
             insert.insertTrips(data.trips.map { it.toEntity() })
             insert.insertRecords(data.records.map { it.toEntity() })
