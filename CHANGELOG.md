@@ -719,3 +719,12 @@ PR #15 のマージ後、オーナーが `git subtree push --prefix site origin 
   `scripts/make-store-screenshots.py` でぼかし、`docs/store/images/screenshot-1-voice.png`（1080x1920）に置いた
 - 縮小画像でステータスバーが判読できないこと、検証用データ以外が写っていないことを確かめた
 - 6 枚が揃ったため BL-217 を完了として BACKLOG から外し、BL-218 の依存からも外した。`docs/store/STORE_LISTING.md` の表記を合わせた
+
+## 2026-11-16（BL-228 の SNS 共有用の画像）
+
+紹介ページを SNS で共有したときに画像付きで表示されるよう、オーナーが承認した計画の B を実施しました。BL-228 は起票と完了が同じコミットのため、BACKLOG には残していません。
+
+- `site/index.html` に `og:image`（幅 1024・高さ 500・代替テキスト付き）・`og:locale`・`og:site_name`・`twitter:card`（`summary_large_image`）を足した
+- 画像は `docs/store/images/feature-graphic.png` の写しを `site/assets/og-image.png` に置いた。X など WebP を読まない SNS があるため PNG にした
+- フィーチャーグラフィックは案の段階で、採否は BL-218。差し替えたら写し直す（`site/README.md` に追記）。`gh-pages` への反映はオーナーが行う
+
