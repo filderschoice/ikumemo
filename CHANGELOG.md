@@ -712,3 +712,10 @@ PR #15 のマージ後、オーナーが `git subtree push --prefix site origin 
 - 画像は `scripts/make-site-screenshots.py` で `docs/store/images/` から作る（上下の単色の余白を切り落として幅 540px の WebP。1 枚 5〜17KB）。ウィジェットの画像は、ステータスバーのぼかしの箱が目立つため使っていない。1 枚目の「話して追加」の確認カードは未撮影のため無い
 - `site/style.css` で、スマホ幅（360px）で横にはみ出さず、PC 幅では冒頭が 2 列になるようにした。ダーク配色でも崩れないことをヘッドレス Chrome で確かめた
 - `site/README.md` に画像の出どころと作り直し方を追記した。OGP などのメタは別タスク（BL-228）。`gh-pages` への反映はオーナーが行う
+
+## 2026-11-16（BL-217 の 1 枚目の撮影と完了）
+
+- オーナーが実機の release 版で「牛乳」「卵」を話して確認カードを出し、オーケストレータが撮影した。ステータスバーを
+  `scripts/make-store-screenshots.py` でぼかし、`docs/store/images/screenshot-1-voice.png`（1080x1920）に置いた
+- 縮小画像でステータスバーが判読できないこと、検証用データ以外が写っていないことを確かめた
+- 6 枚が揃ったため BL-217 を完了として BACKLOG から外し、BL-218 の依存からも外した。`docs/store/STORE_LISTING.md` の表記を合わせた
