@@ -3,7 +3,7 @@
   "id": "ikumemo",
   "name": "いくメモ",
   "nameJa": "いくメモ",
-  "tagline": "話すだけ、いく前メモ。買ったらスワイプで記録、カレンダーで振り返り",
+  "tagline": "話すだけ、いく前メモ。買ったらスワイプで記録、記録のカレンダーで振り返り、期限をお知らせ",
   "platforms": ["Android"],
   "status": "development",
   "license": "Apache-2.0",

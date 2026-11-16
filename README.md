@@ -10,9 +10,9 @@
 | --- | --- |
 | `index.html` | 紹介ページ。文言は `docs/store/STORE_LISTING.md` と PLAN §1.2 から取っている |
 | `feedback/index.html` | ご意見フォームへの転送ページ |
-| `style.css` | 共通のスタイル（色はアプリの緑） |
+| `style.css` | 共通のスタイル（色はアプリのアイコンのコーラル系） |
 | `app.json` | アプリの概要（`schema: app-portfolio.v1`、sesami-wear と同じ形式） |
-| `assets/icon.svg` | 仮のアイコン（吹き出しとかご）。正式なアイコンができたら差し替える |
+| `assets/icon.svg` | アプリのアイコン（吹き出しとかご）。`ic_launcher_foreground.xml` のパスと背景色（`ic_launcher_background.xml`）を写したもの。アイコンを変えたら合わせて直す |
 | `.nojekyll` | GitHub Pages に Jekyll の変換をさせないための空ファイル |
 
 ## 方針
@@ -41,9 +41,11 @@
 `site/` の中身だけを `gh-pages` ブランチへ切り出して配信します（sesami-wear と同じ方法）。
 `git push` は人が実行します（エージェントは実行しません）。
 
-### 初回の設定（1 回だけ）
+### 初回の設定（実施済み）
 
-1. `site/` の変更を `main` へマージしたあと、`main` を最新にして `gh-pages` ブランチを作って push する。
+公開済みです。次は最初に行った手順の記録で、通常は「更新するとき」だけを使います。
+
+1. `site/` の変更を `main` へマージしたあと、`main` を最新にして `gh-pages` ブランチを作って push した。
 
    ```bash
    git checkout main
