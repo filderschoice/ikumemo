@@ -72,13 +72,13 @@ img { max-width: 100%; height: auto; }
 @media (max-width: 900px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .features { grid-template-columns: minmax(0, 1fr); } }
 
-/* 画面ギャラリー: 同じ縦横比の画像を PC は 4 列で 1 行、スマホは 1.5 枚ほど見せて横スクロール（scroll-snap）。 */
-.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
-.gallery li { text-align: center; color: var(--muted); font-size: 0.9rem; font-weight: 700; }
-.gallery .shot { max-width: 200px; margin: 0 auto 8px; }
+/* 画面ギャラリー: 同じ縦横比の画像を小さめ（PC 160px・スマホ 150px）にそろえ、PC は 4 列で 1 行、スマホは 2 列 x 2 行（BL-239）。 */
+.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 160px)); justify-content: center; gap: 24px; margin: 0; padding: 0; list-style: none; }
+.gallery li { text-align: center; color: var(--muted); font-size: 0.85rem; font-weight: 700; }
+.gallery .shot { max-width: 160px; margin: 0 auto 8px; }
 @media (max-width: 640px) {
-  .gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
-  .gallery li { flex: 0 0 62%; scroll-snap-align: start; }
+  .gallery { grid-template-columns: repeat(2, minmax(0, 150px)); gap: 16px 12px; }
+  .gallery .shot { max-width: 150px; }
 }
 
 /* 使い方の流れ: 3 枚を矢印でつなぐ。狭い画面では横スクロール（scroll-snap）にせず縦に並べる。 */
