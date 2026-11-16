@@ -826,3 +826,13 @@ BL-239 は起票と完了が同じコミットのため、BACKLOG には残し�
 - 画面を出さずに動かした Chrome で、360px 幅（iframe）は 150x265、1100px 幅は 160x283 で表示され、どちらも横はみ出しが無いことを確かめた
 - `site/README.md` の構成の説明を合わせた。使い方の流れと冒頭の画像は変えていない。`gh-pages` への反映はオーナーが行う
 
+
+## 2026-11-17（BL-240 の紹介ページの冒頭の画像をメモ画面にする）
+
+オーナーの指示（「siteの一番最初の画像がデザイン切り替えの画像だけど、メモ画面を押したほうがよくない？」）で、紹介ページの冒頭の画像を 4 テーマの並びからメモ画面 1 枚へ替えました。
+BL-240 は起票と完了が同じコミットのため、BACKLOG には残していません。
+
+- 実機の release 版（ポップのテーマ、架空の検証用データ）で、メモのタブを操作していない状態で撮り、`docs/store/images/site-memo.png`（1080x1920）と `site/assets/screenshots/memo.webp`（540x960）を作った。`scripts/make-store-screenshots.py` の説明に元画像と指定を追記
+- `scripts/make-site-screenshots.py` の対象へ memo を足し、themes を外した。`site/assets/screenshots/themes.webp` は削除（ストア用 `screenshot-6-themes.png` は残す）
+- `site/index.html` の冒頭の画像を memo.webp（540x960、alt は日本語、lazy にしない）へ替え、`site/README.md` の構成の説明を合わせた。冒頭の表示幅は変えていない
+- 撮り終えたあと release 版はメモのタブのまま。端末の設定・データは変えていない
