@@ -788,3 +788,9 @@ BL-233 は起票と完了が同じコミットのため、BACKLOG には残し�
 - 「画面」のギャラリーを新設し、縦横比が同じ（540x960）の due・import・data・look を並べた。PC は 4 列で 1 行、幅 640px 以下は 1.5 枚ほど見せる横スクロール（scroll-snap）。各画像の下に 1 行の説明
 - 縦横比の違う widget・notification は使わず、`site/assets/screenshots/` と `scripts/make-site-screenshots.py` の対象から外した（`docs/store/images/` の元画像は残す）。機能の文でウィジェットと通知に触れている
 - 冒頭（themes）と使い方の流れ（voice・swipe・calendar）は変えていない。`site/README.md` に構成を追記した
+
+## 2026-11-16（BL-236 の起票）
+
+- 紹介ページの撮影（BL-217・BL-234）で、メモにある品名が取り込みシートと話して追加の確認カードで「メモにあります」と出ない食い違いに気づいたため、
+  BL-236（不具合・P2）として起票した。読み込んだデータでだけ起きるのかの切り分けから始める
+
