@@ -26,15 +26,15 @@ TARGETS = {
     "voice": "screenshot-1-voice.png",
     "swipe": "screenshot-2-swipe.png",
     "calendar": "screenshot-3-calendar.png",
-    "themes": "screenshot-6-themes.png",
     # 1 画面の素の画像（BL-234）。縦横比を揃えるため余白の切り落としはしない（FULL_SCREEN）
+    "memo": "site-memo.png",
     "due": "site-due.png",
     "import": "site-import.png",
     "data": "site-data.png",
     "look": "site-look.png",
 }
 
-FULL_SCREEN = {"due", "import", "data", "look"}
+FULL_SCREEN = {"memo", "due", "import", "data", "look"}
 
 
 def trim_flat_rows(img: Image.Image) -> Image.Image:
