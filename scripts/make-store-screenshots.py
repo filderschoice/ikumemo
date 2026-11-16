@@ -22,8 +22,8 @@ Play の規格に合わせて 1080x1920（9:16）の PNG にする。実機の�
   2x2 の指定。5-widget は widget.png に上の「部品だけ」の指定。4-notification は通知カードの切り出し。
 
 2026-11-16 の紹介ページ用の 4 枚（BL-234、docs/store/images/site-*.png。Play には使わない）: いずれも 1 画面の指定
-  （--crop 0,140,1344,2992）で、元画像は site-due=due.png（期限のタブ）・site-import=share.png（共有された文の取り込みシート）・
-  site-data=data.png（設定のデータ）・site-look=look.png（着せ替え）。取り込みシートは adb の ACTION_SEND（架空の文）で出した。
+  （--crop 0,140,1344,2992）で、元画像は site-due=due_pop.png（期限のタブ）・site-import=share.png（共有された文の取り込みシート）・
+  site-data=data_pop.png（設定のデータ）・site-look=look_pop.png（着せ替え）。取り込みシートは adb の ACTION_SEND（架空の文）で出した。
 
 依存は Pillow。ぼかしは判読できない強さ（半径 40 を 2 回）にする。
 """
