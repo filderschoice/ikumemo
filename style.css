@@ -51,8 +51,8 @@ a { color: var(--accent-strong); }
 section { padding: 32px 0; }
 h2 { font-size: 1.6rem; margin: 0 0 8px; }
 .section-lead { color: var(--muted); margin: 0 0 20px; }
-.features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.card { height: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
 .card h3 { margin: 4px 0 8px; font-size: 1.05rem; }
 .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 .tag { font-size: 0.75rem; font-weight: 700; color: var(--accent-strong); }
@@ -67,8 +67,19 @@ img { max-width: 100%; height: auto; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 240px); gap: 32px; align-items: center; }
 .hero-shot { justify-self: center; width: 100%; max-width: 240px; }
 .shot { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
-.card .shot { width: min(100%, 200px); margin: 14px auto 0; }
-.card .shot[src*="notification"] { width: 100%; max-width: 320px; }
+
+/* 機能は文だけのカード（PC 4 列 x 2 行、中間 2 列、スマホ 1 列）。画面はギャラリーに分ける。 */
+@media (max-width: 900px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .features { grid-template-columns: minmax(0, 1fr); } }
+
+/* 画面ギャラリー: 同じ縦横比の画像を PC は 4 列で 1 行、スマホは 1.5 枚ほど見せて横スクロール（scroll-snap）。 */
+.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.gallery li { text-align: center; color: var(--muted); font-size: 0.9rem; font-weight: 700; }
+.gallery .shot { max-width: 200px; margin: 0 auto 8px; }
+@media (max-width: 640px) {
+  .gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
+  .gallery li { flex: 0 0 62%; scroll-snap-align: start; }
+}
 
 /* 使い方の流れ: 3 枚を矢印でつなぐ。狭い画面では横スクロール（scroll-snap）にせず縦に並べる。 */
 .flow-row { display: flex; align-items: flex-start; justify-content: center; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }

@@ -22,7 +22,11 @@
 - スクリーンショット（`assets/screenshots/*.webp`、幅 540px）は `docs/store/images/` のストア用画像から
   `python scripts/make-site-screenshots.py` で作る（上下の余白を切り落として縮小。
   ストア用画像を作り直したら流し直す）。
-  表示は CSS で 200〜240px に抑える（`index.html` の冒頭と「使い方の流れ」、機能のカードは `style.css` 末尾）。
+  表示は CSS で 200〜240px に抑える（`style.css` 末尾）。
+- ページの構成は上から、冒頭（themes）→ 使い方の流れ（voice・swipe・calendar、矢印でつなぐ）→ 機能（文だけのカード 8 枚。PC 4 列、
+  中間 2 列、スマホ 1 列）→ 画面（縦横比 540x960 の due・import・data・look を並べたギャラリー。PC 4 列、スマホは横スクロール）→
+  プライバシー → ご意見。機能に画像は付けない（画像の有無で空白が出るため）。ウィジェット・通知の画像は縦横比が違うため使わず、機能の文で触れる。
+  画像を足すときは、ギャラリーは同じ縦横比（540x960）のものだけにする。
 - SNS で共有したときの画像（`assets/og-image.png`）は `docs/store/images/feature-graphic.png` の写し。
   フィーチャーグラフィックを差し替えたら、同じファイルを写し直す。
 - リンクは相対パスか GitHub の絶対 URL にし、`site/` の外を相対で参照しない。
