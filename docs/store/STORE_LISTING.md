@@ -103,7 +103,8 @@ Play Console で直した場合は、このファイルも同じ内容に直し�
 
 ## スクリーンショット
 
-次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、Play Console への入力は BL-218。未作成）。画像は `docs/store/images/` に置く。
+次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、Play Console への入力は BL-218。6 枚とも撮影済みで説明文は未入力）。画像は `docs/store/images/`
+（`screenshot-1-voice.png` 〜 `screenshot-6-themes.png`、1080x1920）に置く。加工は `scripts/make-store-screenshots.py`。
 
 | 順 | 画面 | 入れる文（案） |
 | --- | --- | --- |

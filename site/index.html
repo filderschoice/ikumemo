@@ -15,6 +15,14 @@
   <link rel="canonical" href="https://filderschoice.github.io/ikumemo/">
   <meta property="og:title" content="いくメモ">
   <meta property="og:description" content="話すだけ、いく前メモ。いく前に話して、買ったらスワイプ。（Android）">
+  <!-- 共有時の画像はストアのフィーチャーグラフィック（docs/store/images/feature-graphic.png の写し）。X など WebP を読まない SNS があるため PNG -->
+  <meta property="og:image" content="https://filderschoice.github.io/ikumemo/assets/og-image.png">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="500">
+  <meta property="og:image:alt" content="いくメモ — 話すだけ、いく前メモ。">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:site_name" content="いくメモ">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -30,7 +38,8 @@
 
   <main id="top">
     <section class="hero">
-      <div class="container">
+      <div class="container hero-grid">
+        <div class="hero-text">
         <span class="eyebrow">Android アプリ</span>
         <h1>話すだけ、<br>いく前メモ。</h1>
         <p class="lead">
@@ -43,6 +52,10 @@
           <a class="button" href="feedback/">ご意見・ご要望</a>
         </div>
         <p class="meta">Android ・ Apache License 2.0 ・ 広告なし ・ アカウント登録なし</p>
+        </div>
+        <div class="hero-shot">
+          <img class="shot" src="assets/screenshots/swipe.webp" alt="買い物メモの画面。牛乳やたまごなどの品が並び、「買った」へスワイプした行と、下に「話して追加」ボタンがある" width="540" height="935">
+        </div>
       </div>
     </section>
 
@@ -55,6 +68,7 @@
             <span class="tag">話す</span>
             <h3>話すだけでメモ</h3>
             <p>「牛乳とたまご」と話すと、2つに分かれて入ります。「牛乳 2 本」のように数も入ります。文字でも入れられ、前に入れた物が候補に出ます。</p>
+            <img class="shot" src="assets/screenshots/voice.webp" alt="「牛乳」と「卵」の2つに分かれた話して追加の確認カード" width="540" height="934" loading="lazy">
           </li>
           <li class="card">
             <span class="tag">スワイプ</span>
@@ -65,11 +79,13 @@
             <span class="tag">記録</span>
             <h3>買った物が日付ごとに残る</h3>
             <p>「記録」のカレンダーで、「牛乳 いつ買った？」も品名で探せます。いつものお店を選べば、どこで買ったかも残ります。</p>
+            <img class="shot" src="assets/screenshots/calendar.webp" alt="買った日に印が付いた記録のカレンダーと、選んだ日に買った物の一覧" width="540" height="935" loading="lazy">
           </li>
           <li class="card">
             <span class="tag">期限</span>
             <h3>期限の前の日にお知らせ</h3>
             <p>使い切りたい物は、期限を決めておけば前の日に通知します。</p>
+            <img class="shot" src="assets/screenshots/notification.webp" alt="「牛乳 ほか1つの期限が明日です」という期限のお知らせの通知" width="540" height="122" loading="lazy">
           </li>
           <li class="card">
             <span class="tag">送る・取り込む</span>
@@ -85,11 +101,13 @@
             <span class="tag">ウィジェット</span>
             <h3>ホーム画面から</h3>
             <p>「話して追加」と「メモ一覧」の2つのウィジェットを置けます。写真を付けて、銘柄の買い間違いも防げます。</p>
+            <img class="shot" src="assets/screenshots/widget.webp" alt="ホーム画面に置いた「話して追加」のボタンと、メモの一覧のウィジェット" width="540" height="624" loading="lazy">
           </li>
           <li class="card">
             <span class="tag">見た目</span>
             <h3>自分好みの見た目</h3>
             <p>4つのテーマ、背景の写真、文字の大きさ、暗い画面を選べます。</p>
+            <img class="shot" src="assets/screenshots/themes.webp" alt="4つのテーマで見た目を変えた買い物メモの画面を2列2段に並べたもの" width="540" height="916" loading="lazy">
           </li>
         </ul>
       </div>
