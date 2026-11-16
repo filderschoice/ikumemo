@@ -26,8 +26,6 @@ TARGETS = {
     "voice": "screenshot-1-voice.png",
     "swipe": "screenshot-2-swipe.png",
     "calendar": "screenshot-3-calendar.png",
-    "notification": "screenshot-4-notification.png",
-    "widget": "screenshot-5-widget.png",
     "themes": "screenshot-6-themes.png",
     # 1 画面の素の画像（BL-234）。縦横比を揃えるため余白の切り落としはしない（FULL_SCREEN）
     "due": "site-due.png",

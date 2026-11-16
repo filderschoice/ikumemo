@@ -779,3 +779,12 @@ BL-233 は起票と完了が同じコミットのため、BACKLOG には残し�
 - `scripts/make-site-screenshots.py` の対象へ足し、`site/assets/screenshots/` に WebP（540x960）を作った。この 4 枚は縦横比を揃えるため余白を切り落とさない。`site/index.html` は変えていない（BL-235）
 - 撮らなかった画面は、記録の検索（adb の `input text` が日本語を打てず、品名を入れた結果が撮れない）とお店を選ぶシート（上半分が暗転して見栄えが弱い）
 - 端末には release 版の画面を操作した以外の変更はない（データ・設定は変えていない。取り込みシートは「やめる」で閉じた）
+
+## 2026-11-16（BL-235 の紹介ページの構成の見直し）
+
+オーナーの指示（紹介ページの構成が微妙で、画像の有無で空白が目立つ。機能と画像は分けて説明してよい）で、`site/` の構成を作り直しました。
+
+- 機能のカードから画像を外し、文だけのカード 8 枚にした（PC 4 列 x 2 行、幅 900px 以下は 2 列、520px 以下は 1 列。高さは行ごとに揃う）
+- 「画面」のギャラリーを新設し、縦横比が同じ（540x960）の due・import・data・look を並べた。PC は 4 列で 1 行、幅 640px 以下は 1.5 枚ほど見せる横スクロール（scroll-snap）。各画像の下に 1 行の説明
+- 縦横比の違う widget・notification は使わず、`site/assets/screenshots/` と `scripts/make-site-screenshots.py` の対象から外した（`docs/store/images/` の元画像は残す）。機能の文でウィジェットと通知に触れている
+- 冒頭（themes）と使い方の流れ（voice・swipe・calendar）は変えていない。`site/README.md` に構成を追記した
