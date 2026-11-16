@@ -18,8 +18,12 @@ Play の規格に合わせて 1080x1920（9:16）の PNG にする。実機の�
              （ホーム画面のウィジェットなど。各範囲を角丸で切り抜き、元の左右の位置を保って単色の上に縦に並べる）
 
 2026-11-16 の 6 枚の元画像と指定（元画像は scratchpad にだけ置き、リポジトリへは入れない）:
-  1-voice voice.png / 2-swipe c1.png / 3-calendar d2.png は 1 画面の指定。6-themes は th_pop・th_gentle・th_cool・th_simple の順に
+  1-voice voice3.png（2026-11-17 に撮り直し）/ 2-swipe c1.png / 3-calendar d2.png は 1 画面の指定。6-themes は th_pop・th_gentle・th_cool・th_simple の順に
   2x2 の指定。5-widget は widget.png に上の「部品だけ」の指定。4-notification は通知カードの切り出し。
+
+2026-11-16 の紹介ページ用の 4 枚（BL-234、docs/store/images/site-*.png。Play には使わない）: いずれも 1 画面の指定
+  （--crop 0,140,1344,2992）で、元画像は site-due=due_pop.png（期限のタブ）・site-import=share.png（共有された文の取り込みシート）・
+  site-data=data_pop.png（設定のデータ）・site-look=look_pop.png（着せ替え）。取り込みシートは adb の ACTION_SEND（架空の文）で出した。
 
 依存は Pillow。ぼかしは判読できない強さ（半径 40 を 2 回）にする。
 """

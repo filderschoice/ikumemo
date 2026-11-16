@@ -5,6 +5,31 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-16 23:35
+  summary: 読み込んだ品目の正規化名を品名から作り直し、読み込んだメモの品名も「メモにあります」になるようにした
+  details:
+    関連ID:
+      - BL-236
+    変更内容: >-
+      原因は読み込み（F-72）がファイルの normalizedName をそのまま DB へ入れていたこと。撮影用のデータは normalizedName が品名と同じ
+      （「牛乳」のまま。今の正規化では「ぎゅうにゅう」）だったため、ShoppingRepository.findInMemo が品目を見つけられず、
+      取り込みシートと確認カードで「メモにあります」が出なかった。アプリで足した品名では起きない（同じ文で単体テストを足して確かめた）。
+      BackupImporter は品目を入れる前に、新しい BackupNormalizedNames.kt の renormalized で品名から今の正規化で作り直す。
+      作り直すと同じ名前になる品目どうしと、ファイルの値のまま入れる品目と重なる品目は、一意の制約を破らないようファイルの値のまま入れる
+      （品目はまとめない）。書き出しファイルの形と DB スキーマは変えていない。正規化は既定の辞書の ProductNameNormalizer を
+      BackupImporter の中で作って使う（コンストラクタの引数を足すと detekt の LongParameterList の上限を超えるため）
+    変更ファイル:
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupNormalizedNames.kt
+      - mobile/src/main/kotlin/com/ikumemo/mobile/data/backup/BackupImporter.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/data/backup/BackupRoundTripTest.kt
+      - mobile/src/test/kotlin/com/ikumemo/mobile/share/ShareImportViewModelTest.kt
+      - docs/records/managed/DESIGN.md
+      - docs/records/managed/BACKLOG.md
+    検証コマンド: python scripts/quality-gates.py --quick --tests "*BackupRoundTripTest" --tests "*ShareImportViewModelTest" --tests "*DataViewModelTest"
+    検証結果: >-
+      成功 - 軽い検証（ktlint・detekt・コンパイル・指定したテスト・markdownlint・記録・使い方の Web 版・秘密情報）がすべて OK。
+      足したテストは修正前に 2 件（読み込みの経路）が失敗して再現し、修正後に合格した。1 回目は detekt の LongParameterList で失敗し、
+      コンストラクタの引数を足さない形に直して合格。Android Lint・全テスト・assembleDebug は流していない。実機は未確認（BL-237）
 - date: 2026-11-15 22:55
   summary: UI デザイン設計書の生成スクリプトを直して UI_DESIGN.html を作り直した（94ffaf0 の記録の追記）
   details:

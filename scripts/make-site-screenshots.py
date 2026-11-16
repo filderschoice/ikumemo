@@ -26,10 +26,15 @@ TARGETS = {
     "voice": "screenshot-1-voice.png",
     "swipe": "screenshot-2-swipe.png",
     "calendar": "screenshot-3-calendar.png",
-    "notification": "screenshot-4-notification.png",
-    "widget": "screenshot-5-widget.png",
     "themes": "screenshot-6-themes.png",
+    # 1 画面の素の画像（BL-234）。縦横比を揃えるため余白の切り落としはしない（FULL_SCREEN）
+    "due": "site-due.png",
+    "import": "site-import.png",
+    "data": "site-data.png",
+    "look": "site-look.png",
 }
+
+FULL_SCREEN = {"due", "import", "data", "look"}
 
 
 def trim_flat_rows(img: Image.Image) -> Image.Image:
@@ -45,7 +50,9 @@ def trim_flat_rows(img: Image.Image) -> Image.Image:
 def main() -> None:
     DST.mkdir(parents=True, exist_ok=True)
     for name, src in TARGETS.items():
-        img = trim_flat_rows(Image.open(SRC / src).convert("RGB"))
+        img = Image.open(SRC / src).convert("RGB")
+        if name not in FULL_SCREEN:
+            img = trim_flat_rows(img)
         height = round(img.height * WIDTH / img.width)
         img = img.resize((WIDTH, height), Image.LANCZOS)
         out = DST / f"{name}.webp"
