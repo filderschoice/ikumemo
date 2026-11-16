@@ -62,14 +62,24 @@ h2 { font-size: 1.6rem; margin: 0 0 8px; }
 .site-footer a { margin-right: 16px; }
 .narrow { max-width: 36em; padding: 56px 0; }
 
-/* スクリーンショット（assets/screenshots/、BL-227）。画像は幅に収め、はみ出さない。 */
+/* スクリーンショット（assets/screenshots/、BL-227・BL-233）。幅 540px の画像を 2 倍の解像度として使い、表示は 200〜240px に抑える。 */
 img { max-width: 100%; height: auto; }
-.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 260px); gap: 32px; align-items: center; }
-.hero-shot { justify-self: center; width: 100%; max-width: 260px; }
-.shot { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.card .shot { margin-top: 14px; }
-.card:has(.shot[src*="themes"]) .shot { max-width: 220px; margin-inline: auto; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 240px); gap: 32px; align-items: center; }
+.hero-shot { justify-self: center; width: 100%; max-width: 240px; }
+.shot { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.card .shot { width: min(100%, 200px); margin: 14px auto 0; }
+.card .shot[src*="notification"] { width: 100%; max-width: 320px; }
+
+/* 使い方の流れ: 3 枚を矢印でつなぐ。狭い画面では横スクロール（scroll-snap）にせず縦に並べる。 */
+.flow-row { display: flex; align-items: flex-start; justify-content: center; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.flow-row li { flex: 0 1 200px; text-align: center; color: var(--muted); font-size: 0.9rem; font-weight: 700; }
+.flow-row li.arrow { flex: 0 0 auto; align-self: center; font-size: 1.6rem; color: var(--accent-strong); }
+.flow-row .shot { margin: 0 auto 8px; }
+.flow-row b { display: inline-block; min-width: 1.5em; margin-right: 4px; border-radius: 999px; background: var(--accent); color: var(--on-accent); }
 @media (max-width: 640px) {
   .hero-grid { grid-template-columns: minmax(0, 1fr); }
-  .hero-shot { max-width: 220px; }
+  .hero-shot { max-width: 200px; }
+  .flow-row { flex-direction: column; align-items: center; }
+  .flow-row li { flex-basis: auto; width: min(100%, 200px); }
+  .flow-row li.arrow { transform: rotate(90deg); }
 }
