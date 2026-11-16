@@ -675,3 +675,12 @@ main...HEAD の点検で出た指摘を直しました。アプリのコード�
 
 - BL-226 を完了として BACKLOG から外し、BL-087 の依存からも外した
 - `docs/store/STORE_LISTING.md` と `docs/records/managed/DESIGN.md` の「再確認は BL-226」を、再確認済みの書き方に直した
+
+## 2026-11-16（BL-219 の紹介ページの公開）
+
+PR #15 のマージ後、オーナーが `git subtree push --prefix site origin gh-pages` で紹介ページを公開しました（gh-pages d941b20）。
+
+- GitHub Pages のビルドの完了を確かめ、公開中の `style.css` が新しい配色（#c4443a）、`index.html` の theme-color が #FF7A6B であることを確認した
+- オーナーがブラウザで表示（機能の説明・アイコン・配色）を確認した
+- 転送ページ `feedback/` は公開中で、事前入力の欄（entry.10635078）は BL-207 で動作を確かめた時と変わっていない
+- BL-219 を完了として BACKLOG から外した
