@@ -21,12 +21,13 @@ WIDTH = 540
 QUALITY = 80
 TOLERANCE = 6
 
-# 出力名 -> 元画像。5-widget はステータスバーのぼかしの箱が目立つため使わない。
+# 出力名 -> 元画像。
 TARGETS = {
     "voice": "screenshot-1-voice.png",
     "swipe": "screenshot-2-swipe.png",
     "calendar": "screenshot-3-calendar.png",
     "notification": "screenshot-4-notification.png",
+    "widget": "screenshot-5-widget.png",
     "themes": "screenshot-6-themes.png",
 }
 

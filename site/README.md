@@ -21,7 +21,7 @@
 - ストアのリンクは公開前のため「準備中」の表示だけにしている。公開したら `index.html` のボタンを Play の URL へ変え、`app.json` の `status` と `links` も直す。
 - スクリーンショット（`assets/screenshots/*.webp`、幅 540px）は `docs/store/images/` のストア用画像から
   `python scripts/make-site-screenshots.py` で作る（上下の余白を切り落として縮小。
-  ウィジェットの画像は使わない）。ストア用画像を作り直したら流し直す。
+  ストア用画像を作り直したら流し直す）。
 - SNS で共有したときの画像（`assets/og-image.png`）は `docs/store/images/feature-graphic.png` の写し。
   フィーチャーグラフィックを差し替えたら、同じファイルを写し直す。
 - リンクは相対パスか GitHub の絶対 URL にし、`site/` の外を相対で参照しない。

@@ -752,3 +752,11 @@ BL-227 の時点で未撮影だった「話して追加」の確認カード（B
   6 枚の元画像の名前と指定を説明に残した。切り落とせない領域だけ `--blur`・`--fill` を使う方針にした
 - 紹介ページ用の画像（`site/assets/screenshots/*.webp`）を `scripts/make-site-screenshots.py` で作り直し、`site/index.html` の高さの指定を合わせた
 
+## 2026-11-16（BL-232 の紹介ページの「ウィジェット」に画像）
+
+BL-231 でウィジェットの 1 枚からぼかしが無くなったため、BL-227 で見送った紹介ページの「ウィジェット」のカードにも画像を添えました
+（オーナーの指示「取得したスクショは…siteなどで使用できる部分は使用して」の範囲）。BL-232 は起票と完了が同じコミットのため、BACKLOG には残していません。
+
+- `scripts/make-site-screenshots.py` の対象に `screenshot-5-widget.png` を足し、`site/assets/screenshots/widget.webp`（540x624、約 9KB）を作った
+- `site/index.html` の「ウィジェット」のカードに代替テキスト付き・`loading="lazy"` で添え、`site/README.md` の「ウィジェットの画像は使わない」を外した
+
