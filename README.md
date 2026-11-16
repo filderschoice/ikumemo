@@ -11,8 +11,11 @@
 
 ## 開発の状況
 
-開発中です。アプリの機能（メモ・音声入力・カレンダー・お知らせ・着せ替え・ウィジェット・初めての案内と使い方）は
-実装済みで、公開に向けた準備の段階です。Google Play では未公開です。
+アプリの機能（メモ・音声入力・カレンダー・お知らせ・着せ替え・ウィジェット・初めての案内と使い方）は実装済みです。
+リポジトリは公開済みで、ご意見フォームでご意見・ご要望を受け付けています。
+Google Play ではクローズドテストの準備中で、まだ公開していません。
+紹介ページ: <https://filderschoice.github.io/ikumemo/>
+
 要件と判断の背景は [PLAN.md](PLAN.md)、今後のタスクは
 [docs/records/managed/BACKLOG.md](docs/records/managed/BACKLOG.md) を参照してください。
 
@@ -99,6 +102,8 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 | `mobile/src/main/assets/help/` | アプリ内の使い方の正本（Markdown）。`docs/USER_GUIDE.md` の元 |
 | `mobile/screenshots/` | スクリーンショットテスト（Roborazzi）の正解画像 |
 | `mobile/src/main/baseline-prof.txt` | Baseline Profile（起動の高速化） |
+| `baselineprofile/` | Baseline Profile を作るモジュール（手順は `docs/BASELINE_PROFILE.md`） |
+| `site/` | 紹介ページ（GitHub Pages）とご意見フォームへの転送ページ（`site/README.md`） |
 | `config/detekt/` | detekt の設定 |
 | `scripts/` | バージョン管理・リリースビルド・記録ファイルの検証・使い方の Web 版の生成・UI デザイン設計書の生成 |
 | `docs/records/` | 設計書・実施記録・未対応事項（AI エージェントが更新する記録ファイル） |
@@ -114,6 +119,8 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 - [CONTRIBUTING.local.md](CONTRIBUTING.local.md): 報告の受け付け方針（Issue は受付、外部の Pull Request は非受付）と
   本リポジトリ固有の開発プロセス（共通規約は [CONTRIBUTING.md](CONTRIBUTING.md)）
 - [SECURITY.md](SECURITY.md): 脆弱性の報告方法
+- [site/README.md](site/README.md): 紹介ページと転送ページの構成・公開の手順
+- [docs/BASELINE_PROFILE.md](docs/BASELINE_PROFILE.md): Baseline Profile の作り方
 - [docs/USER_GUIDE.md](docs/USER_GUIDE.md): 使い方（アプリ内の使い方 `mobile/src/main/assets/help/` から
   `scripts/make-user-guide.py` で作る）
 - [docs/SUPPORT.md](docs/SUPPORT.md): よくある質問・ご意見の送り方（利用者向け）
@@ -122,6 +129,8 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 - [docs/FEEDBACK.md](docs/FEEDBACK.md): ご意見の受け付けと運用の手順（オーナー向け）
 - [docs/store/PRIVACY_POLICY.md](docs/store/PRIVACY_POLICY.md) / [docs/store/STORE_LISTING.md](docs/store/STORE_LISTING.md):
   プライバシーポリシー（公開版）とストア掲載文の正本
+- [docs/store/images/](docs/store/images/): ストア掲載用の画像（`icon-512.png`・`feature-graphic.png` はテスト `StoreIconExportTest`・
+  `StoreFeatureGraphicExportTest` で書き出す。手順は STORE_LISTING.md）
 - [CHANGELOG.md](CHANGELOG.md): リポジトリの運用ルール・ドキュメントの変更履歴
 - [CLAUDE.md](CLAUDE.md) / [.github/copilot-instructions.md](.github/copilot-instructions.md): AI エージェントの実行ルール
 

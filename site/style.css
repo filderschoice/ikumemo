@@ -1,12 +1,13 @@
 /* いくメモ紹介ページの共通スタイル。外部フォント・外部スクリプトは読み込まない。 */
 :root {
-  --accent: #2e7d32;
-  --accent-strong: #1b5e20;
-  --bg: #f7f9f7;
+  --accent: #c4443a;
+  --accent-strong: #a8281e;
+  --on-accent: #ffffff;
+  --bg: #fff8f6;
   --surface: #ffffff;
-  --text: #1b2321;
-  --muted: #55645e;
-  --border: #dde5e0;
+  --text: #2a1b19;
+  --muted: #6b524e;
+  --border: #f0dcd8;
   --radius: 16px;
   --max: 960px;
   --font: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;
@@ -15,13 +16,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --accent: #66bb6a;
-    --accent-strong: #81c784;
-    --bg: #0f1411;
-    --surface: #171e1a;
-    --text: #e8f0ec;
-    --muted: #a2b5ab;
-    --border: #2a3830;
+    --accent: #ff8f82;
+    --accent-strong: #ffb3aa;
+    --on-accent: #1a1211;
+    --bg: #1a1211;
+    --surface: #231918;
+    --text: #f5ebe9;
+    --muted: #c4aca8;
+    --border: #3d2b28;
   }
 }
 
@@ -42,7 +44,7 @@ a { color: var(--accent-strong); }
 .lead { font-size: 1.1rem; color: var(--muted); max-width: 40em; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 8px; }
 .button { display: inline-block; padding: 10px 20px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); text-decoration: none; font-weight: 600; }
-.button.primary { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+.button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .button[aria-disabled="true"] { opacity: 0.7; cursor: default; }
 .meta { font-size: 0.85rem; color: var(--muted); }
 

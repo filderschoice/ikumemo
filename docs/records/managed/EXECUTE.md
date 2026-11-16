@@ -5,6 +5,72 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
+- date: 2026-11-15 22:55
+  summary: UI デザイン設計書の生成スクリプトを直して UI_DESIGN.html を作り直した（94ffaf0 の記録の追記）
+  details:
+    関連ID:
+      - BL-222
+    変更内容: >-
+      コミット 94ffaf0 で、生成スクリプト scripts/ui-doc/gen_ui_doc.py を現状の実装に合わせて直し、docs/design/UI_DESIGN.html を再生成した。
+      下タブ名（メモ・記録・期限）、設定の並びと説明、えらんで消す、メモを送る、共有された文から追加、確認カードの外す・戻す・つづけて話す、
+      記録の今日ボタン、期限の時刻ボタン・期限なし・日付つきチップ、データの 3 区切り、ご意見フォーム、見本の色・文字の色・おまかせ、
+      ウィジェットの更新ボタンを反映した。アプリのコードは変えていない。
+      スクリプトの変更を伴うのに EXECUTE への記録が漏れていたため、点検の指摘（BL-225）で後から 1 件足した（日時は追記した時刻）
+    変更ファイル:
+      - scripts/ui-doc/gen_ui_doc.py
+      - docs/design/UI_DESIGN.html
+      - CHANGELOG.md
+      - docs/records/managed/BACKLOG.md
+    検証コマンド: python scripts/quality-gates.py --skip-gradle
+    検証結果: >-
+      成功 - 94ffaf0 の時点で markdownlint・記録ファイル・使い方の Web 版・秘密情報スキャンがすべて成功した。
+      見た目はヘッドレスブラウザでの目視（縮小した画像）のみで、実機は未確認
+- date: 2026-11-15 22:35
+  summary: ストア用フィーチャーグラフィック（1024 × 500 の PNG）の案を書き出すテストを足し、feature-graphic.png を作った
+  details:
+    関連ID:
+      - BL-215
+    変更内容: >-
+      Robolectric のテスト StoreFeatureGraphicExportTest（遅いテスト扱い）で、ポップのテーマの背景色の地に、角を丸めたアプリのアイコン、
+      アプリ名「いくメモ」、キャッチコピー「話すだけ、いく前メモ。」を置いて docs/store/images/feature-graphic.png へ書き出す。
+      文字はテスト環境の既定のフォントで、新しい依存や外部の素材は足していない。文字の右端が余白を超えないことと文字が描かれたことをテストで確かめる。
+      タスクには緑の地とあったがポップのテーマの色はコーラルのため、アイコンと紹介ページに合わせて淡い桃色の地（#FFF4EC）にした。
+      STORE_LISTING.md のフィーチャーグラフィック欄を案の作成済みにして再実行の手順を書き、README の構成表も合わせた
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/StoreFeatureGraphicExportTest.kt
+      - docs/store/images/feature-graphic.png
+      - docs/store/STORE_LISTING.md
+      - README.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreFeatureGraphicExportTest*"、python scripts/quality-gates.py --quick --tests "*StoreFeatureGraphicExportTest*"
+    検証結果: >-
+      成功 - 書き出しのテストは成功し、出力画像を目視で確かめた（文字は切れずに読める）。1 回目は副題の文字が余白を超えて失敗し、文字の大きさを下げて直した。
+      軽い検証は ktlint・detekt・コンパイル・markdownlint・記録・秘密情報スキャンが成功し、test は遅いテスト（-PslowTests 無しでは除外）のため
+      「No tests found」で失敗した（想定どおり）。Android Lint・全テスト・assembleDebug は流していない
+- date: 2026-11-15 22:12
+  summary: ストア用アプリアイコン（512 × 512 の PNG）をアダプティブアイコンから書き出すテストを足し、icon-512.png を作った
+  details:
+    関連ID:
+      - BL-214
+    変更内容: >-
+      Robolectric のテスト StoreIconExportTest（遅いテスト扱い）で、背景色 ic_launcher_background の上に ic_launcher_foreground を重ね、
+      ランチャーで見える中央 72dp を 512px に拡大して docs/store/images/icon-512.png へ書き出す。新しい依存は足していない。
+      四隅が背景色であること（角の丸めは Play が行う）と吹き出しの白をテストで確かめる。
+      STORE_LISTING.md のアイコン欄に書き出し方と再実行のコマンドを書き、README の構成表に docs/store/images/ を足した
+    変更ファイル:
+      - mobile/src/testDebug/kotlin/com/ikumemo/mobile/screenshot/StoreIconExportTest.kt
+      - docs/store/images/icon-512.png
+      - docs/store/STORE_LISTING.md
+      - README.md
+      - docs/records/managed/BACKLOG.md
+      - docs/records/managed/EXECUTE.md
+    検証コマンド: >-
+      ./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreIconExportTest*"、python scripts/quality-gates.py --quick --tests "*StoreIconExportTest*"
+    検証結果: >-
+      成功 - 書き出しのテストは成功し、出力画像を目視で確かめた（吹き出しとかごが中央、四隅は背景色）。軽い検証は ktlint・detekt・コンパイルが成功し、test は遅いテスト（-PslowTests 無しでは除外）のため「No tests found」で失敗した（想定どおり）。
+      Android Lint・全テスト・assembleDebug は流していない
 - date: 2026-11-15 21:13
   summary: 転送ページのフォームの URL を、リンクの href の 1 か所にまとめた（BL-086 の点検の指摘への対応）
   details:

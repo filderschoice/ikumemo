@@ -18,8 +18,13 @@
 - 対象: 話して追加・スワイプで記録・カレンダーで振り返り・期限のお知らせを持つ買い物メモアプリ（Google Play で配布、
   ソースは GitHub で Apache-2.0 公開）
 - 進捗: マイルストーン M0〜M8（準備・メモ・音声入力・候補とお店・カレンダーと写真・お知らせ・着せ替え・ウィジェットと
-  ショートカット・初めての案内と使い方・スクリーンショットテスト・公開用ドキュメント）を実装済み。公開前の外部作業
-  （Google フォーム・Play Console の申告・実機での確認・クローズドテスト）と site/ は `BACKLOG.md` を参照する。
+  ショートカット・初めての案内と使い方・スクリーンショットテスト・公開用ドキュメント）を実装済み。
+  公開用ドキュメント（プライバシーポリシー `docs/store/PRIVACY_POLICY.md`・ストア掲載文 `docs/store/STORE_LISTING.md`・README・UI デザイン設計書 `docs/design/UI_DESIGN.html`）と
+  紹介ページ `site/`（GitHub Pages、<https://filderschoice.github.io/ikumemo/>。ご意見フォームの転送ページ `site/feedback/`・アイコン SVG を含む。
+  配色はアプリのアイコンのコーラル `#FF7A6B` に合わせ、文字と組む色は WCAG AA を満たす `#c4443a`・暗い画面は `#ff8f82`）、
+  ストア用アイコン `docs/store/images/icon-512.png`（Robolectric の遅いテスト `StoreIconExportTest` で書き出す）も現状に揃えた。
+  ストア用フィーチャーグラフィックの案 `docs/store/images/feature-graphic.png`（遅いテスト `StoreFeatureGraphicExportTest` で書き出す）も作成済み。
+  公開前の外部作業（Play Console の申告・実機での確認・クローズドテスト）は `BACKLOG.md` を参照する。
   書き出し・読み込み（F-72）と「データをすべて消す」（F-76）まで実装済みで、M0〜M8 の機能は出そろった。ほかの実装済みの要件は下の表のとおり
 - 前提環境: JDK 17、Android SDK（compileSdk / targetSdk 36、minSdk 26）、Gradle 8.13（Wrapper 同梱）
 
@@ -80,7 +85,7 @@
 | F-60（見本の色） | 見本の色から 1 色選ぶ（BL-177）。`SeedSwatch`（10 色、読み上げ用に身近なものの名前）を着せ替えのテーマのカードの下に丸い見本（押せる大きさ 52dp、選んだ色は枠とチェック）で並べ、押すと `ThemeChoice.Seed(argb)` を選ぶ。保存値は `seed:#RRGGBB`（`appearance_theme` と書き出しの `theme`。形が壊れていれば既定のポップ、見本に無い色でも形が正しければ読む）。配色は `SeedPalette` が種の色の色相から主・副（彩度を落とす）・第三（色相 +60 度）・中間色・中間色の変種の 5 系統を作り、Material 3 と同じ役割ごとの明るさ（CIELAB の L*）で `IkumemoPalette` の全項目を埋める。sRGB に収まらない色は明るさを保って彩度だけ下げるため、どの種でも文字と面の色の比 4.5:1 以上（依存は足さない）。全 OS で選べ、角の丸みは標準。アプリ本体・ウィジェット・写真の上のペンの色は `ThemeChoice.palette` を通して同じ配色に従う | `designsystem/SeedPalette.kt`、`SeedSwatch.kt`、`ThemeChoice.kt`、`settings/SeedColorPicker.kt` |
 | F-61 | 背景の写真（着せ替えの「写真を選ぶ」「外す」、Photo Picker）。`filesDir/background/` へ写真と同じ形（長辺 1600px・Exif 無し）で取り込み、差し替え・解除で前の画像を消す。画面いっぱいに写真を描き、その上にテーマの背景色の半透明の膜（濃さ 0.3〜0.9、既定 0.6。スライダーを離すと保存）を敷く。暗い画面では膜を 0.15、明るい画面では 0.1 濃くする（BL-189。上限 0.95）。メモの行・上部のバー・下タブは不透明のまま写真を覆う。音声入力シート（他アプリの上に出す）とウィジェットには描かない。**ペンの色（BL-108）**：背景の写真があるときだけ、文字の色を おまかせ（テーマの色）・くろ・あお・あか・しろ から選べる（`InkColor`、保存キー `appearance_ink`、書き出しの設定にも入れる）。選ぶと写真の上に直接置く文字（`onBackground` と `LocalContentColor`）をその色にし、膜の色も合わせる（くろ・あお・あかは明るい膜 #FFFBFF（あかの文字は #851812）、しろは暗い膜 #1C1B1F。いずれも文字との比が 4.5:1 以上）。メモの行・バー・下タブなどテーマの面の上の文字は変えない。写真の上に直接置くメモの「文字で追加」と、メモが空のときの「使い方を見る」（空の状態と音声入力の無い端末向けの 2 つ。BL-202）も、ペンの色を選んでいるときはその色で描く（BL-188、`photoTextButtonColors`。おまかせのときはテーマの色のまま）。**一覧の面（BL-130）**：背景の写真があるときだけ、記録（カレンダー）の月の表（`MonthHeader`・`MonthGrid`）、日の詳細（見出し・記録の行・「買った物を記録する」）、検索の欄と結果、期限（おしらせ）の各セクションの行（期限が近い順・最近買った物と「ほか N 件を見る」・空のときの案内・「おしらせが届かないとき」）に、テーマの surface を不透明に敷く（`ReadablePanel`。LazyColumn の行ごとに先頭・途中・末尾の角を分けて 1 枚に見せる。左右 8dp・角 12dp）。面の中の文字は onSurface に戻るため、ペンの色に関わらず CalendarColors・onSurfaceVariant・error・primary をテーマの面の上と同じに読める。期限のセクションの見出しは写真の上に残す。写真が無いときは面を敷かず見た目を変えない。**状態バーのアイコン（BL-187）**：メイン画面（`showBackground`）では、状態バー・ナビゲーションバーのアイコンの明暗をアプリの見た目で決める（`SystemBarIcons`・`SystemBarIconsEffect`）。背景の写真があるときは、膜の色と実際の濃さ（`effectiveAlpha`）を中間の灰色（0.5）の写真の上に重ねた背景の相対輝度が 0.179 より明るければ暗いアイコン、そうでなければ白。写真が無いときは暗いテーマなら白、明るいテーマなら暗いアイコン。写真の中身は読まない | `designsystem/BackgroundScrim.kt`、`designsystem/ReadablePanel.kt`、`AppThemeHost`、`AppearanceViewModel` |
 | PLAN §3（一部） | メモ・記録・期限の 3 つのタブの上部のバーの右に「⚙ 設定」（文字付き、共通の `SettingsButton`。記録は「探す」の右）。項目は 8 つ（BL-143）。一番上の「使い方」は見出し無しで置き（H-01）、残りは見出し（`semantics` の heading）で区切る。「見た目と操作」に「着せ替え」「操作とお知らせ」「ホーム画面に置く」、「登録したもの」に「お店の管理」「よく買う物の管理」「データ」、「このアプリ」に「このアプリについて」。使い方以外の各行の下に 1 行の説明（onSurfaceVariant の bodyMedium、例「テーマ・文字の大きさ・背景の写真」）を出す。区切りは `SettingsSection`、説明は `SettingsItem.detail`（BL-139） | `settings/SettingsScreen.kt`、`settings/SettingsNavigation.kt`、`IkumemoApp.kt` |
-| F-77（GitHub のみ） | ご意見・ご要望: 「このアプリについて」の中の行から開く（設定の一覧には置かない。使い方の「やってみる」からも開く）。よくある質問 4 つ（押すと答え）→ GitHub の Issue を開く。アプリの版・Android の版・機種名を画面に出しコピーできる。ご意見フォームは site/ の転送ページができるまで置かない（オーナー判断） | `settings/FeedbackScreen.kt` |
+| F-77 | ご意見・ご要望: 「このアプリについて」の中の行から開く（設定の一覧には置かない。使い方の「やってみる」からも開く）。よくある質問 4 つ（押すと答え）→ GitHub の Issue を開く。アプリの版・Android の版・機種名を画面に出しコピーできる。画面に「ご意見フォームで送る」ボタンがあり、`site/feedback/` の転送ページ（GitHub Pages）経由で Google フォームを開く。アプリの版・Android の版・機種名は転送ページが事前入力へ渡す（ご意見フォーム・GitHub のどちらも利用者が押した時だけ開く） | `settings/FeedbackScreen.kt` |
 | PLAN §3・§5・§7 | このアプリについて: 版・名前の由来・ご意見・ご要望・ライセンス一覧（AboutLibraries）・プライバシーポリシー・GitHub・ストアのページ（評価のお願い） | `settings/AboutScreen.kt`、`settings/LicensesScreen.kt`、`settings/ExternalLink.kt` |
 | F-13・R-05・PLAN §3 操作 | 「操作とお知らせ」の 1 画面に、○ の表示と振動のオン/オフ（初期値はどちらもオン）、続けてお知らせの 2 行を並べる。ViewModel は操作とお知らせで分けたまま、DataStore のキーも変えない。○ を消した行は左に余白を取る | `settings/OperationScreen.kt`、`data/OperationPrefs.kt`、`shoppinglist/SwipeableItemRow.kt` |
 | R-20・R-21・PLAN §3 お知らせ | 通知の時刻（時計の形で選ぶ、24 時間表示）と期限当日のお知らせのオン/オフ（「操作とお知らせ」の中の行）。保存したら次の通知を予約し直す。期限の画面の一覧の上（通知オフの帯の下）に「🕘 お知らせの時刻 9:00」（設定値）を出し、押すと「操作とお知らせ」を開く | `settings/ReminderSettingsScreen.kt`（`ReminderSettingsRows`）、`reminder/ReminderScreen.kt` |
@@ -299,6 +304,13 @@
 - GitHub 側の Dependabot の脆弱性アラートとセキュリティ更新は、リポジトリの公開時に sesami-wear と同じく有効にした
   （オーナー判断、2026-11-15）。ただし GitHub の依存グラフは Gradle の依存を読めておらず（sesami-wear も同じ）、実質は動いていない。
   アラートが届いたら Skill `dependabot-alert-triage` で扱う
+- プライバシーポリシー（`docs/store/PRIVACY_POLICY.md`）は、アプリ自体は通信せず、利用者が押した時だけ外部のページが開くこと、
+  ご意見フォームのボタンを押すと版・Android の版・機種名がブラウザの開く URL に入って GitHub と Google に届き、ご意見の内容は
+  フォームで送信したときだけ届くこと、メモを送る・受け取る操作の扱いを書いている（BL-208・BL-225）
+- Play Console のデータセーフティは「データの収集なし・共有なし」と申告する（オーナー判断、2026-11-15。根拠は `STORE_LISTING.md`。
+  ボタンを押した時点で版などが届く事実を踏まえ、同日にオーナーが「収集なし」のままとすることを確かめ直した。BL-226）。
+  ストアのウェブサイトは紹介ページ <https://filderschoice.github.io/ikumemo/>。紹介ページとご意見フォームの転送ページは `site/` を
+  GitHub Pages で公開し、公開手順は `site/README.md`。アクセス解析・外部スクリプト・外部フォント・Cookie は使わない
 - 外部からの Pull Request は受け付けない（オーナー判断、`CONTRIBUTING.local.md`）
 - ライセンスは Apache-2.0。リポジトリ直下の `LICENSE` は apache.org 配布の本文と同一（付録の著作権行は雛形のまま）で、
   著作権表示は `NOTICE` に書く。各ソースファイル先頭へのライセンスヘッダーは付けない（PLAN §7）
