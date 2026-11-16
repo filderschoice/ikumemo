@@ -22,6 +22,7 @@
 - スクリーンショット（`assets/screenshots/*.webp`、幅 540px）は `docs/store/images/` のストア用画像から
   `python scripts/make-site-screenshots.py` で作る（上下の余白を切り落として縮小。
   ストア用画像を作り直したら流し直す）。
+  表示は CSS で 200〜240px に抑える（`index.html` の冒頭と「使い方の流れ」、機能のカードは `style.css` 末尾）。
 - SNS で共有したときの画像（`assets/og-image.png`）は `docs/store/images/feature-graphic.png` の写し。
   フィーチャーグラフィックを差し替えたら、同じファイルを写し直す。
 - リンクは相対パスか GitHub の絶対 URL にし、`site/` の外を相対で参照しない。
