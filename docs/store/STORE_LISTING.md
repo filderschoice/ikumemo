@@ -121,8 +121,11 @@ Play Console は、ストア掲載情報の画像・動画のうち AI で生成
 
 ## スクリーンショット
 
-次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、Play Console への入力は BL-218。6 枚とも撮影済みで説明文は未入力）。画像は `docs/store/images/`
-（`screenshot-1-voice.png` 〜 `screenshot-6-themes.png`、1080x1920）に置く。加工は `scripts/make-store-screenshots.py`。
+次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、説明の文の描き込みは BL-241、Play Console への入力は BL-218）。
+Play に上げるのは `docs/store/images/play/`（`screenshot-1-voice.png` 〜 `screenshot-6-themes.png`、1080x1920）の説明の文入りの 6 枚。
+作り方は `python scripts/caption-store-screenshots.py` で、文の正本は下の表の「入れる文（案）」（文を直したらスクリプトの文も合わせて作り直す）。
+元の `docs/store/images/screenshot-*.png` は文なしのままで、紹介ページ（`scripts/make-site-screenshots.py`）も使うため上書きしない。
+元画像の加工は `scripts/make-store-screenshots.py`。
 
 | 順 | 画面 | 入れる文（案） |
 | --- | --- | --- |
