@@ -60,15 +60,33 @@ Play Console で直した場合は、このファイルも同じ内容に直し�
 - ウェブサイト：<https://filderschoice.github.io/ikumemo/>（紹介ページ。ソースコードへのリンクもある）
 - プライバシーポリシー：<https://github.com/filderschoice/ikumemo/blob/main/docs/store/PRIVACY_POLICY.md>
 
-## Play Console の申告（BL-087 で入力）
+## Play Console の申告（BL-087 で入力済み）
 
-| 項目 | 申告する内容 | 根拠 |
+2026-11-18 に、オーナーが下の内容で Play Console の「アプリのコンテンツ」とストアの設定を入力し終えた（オーナーの報告）。
+
+| 項目 | 申告した内容 | 根拠 |
 | --- | --- | --- |
+| プライバシーポリシー | 上の「連絡先」の URL | — |
+| アプリへのアクセス | すべての機能を特別なアクセス権なしで利用できる（ログイン情報なし） | アカウント・ログインがない |
 | データセーフティ | データの収集なし・共有なし（オーナー判断、2026-11-15。同日に再確認） | 下の「データセーフティの根拠」のとおり |
 | 広告 | 広告なし | 広告 SDK を入れていない |
 | 対象年齢 | 13 歳以上 | 子ども向けファミリーポリシーの対象外にする（PLAN §6） |
-| コンテンツレーティング | IARC 質問票で全年齢想定 | 暴力・課金・利用者どうしのやり取りなし |
+| コンテンツレーティング | IARC 3+（全年齢） | 暴力・課金・利用者どうしのやり取りなし |
 | アカウント削除 | 対象外 | アカウントを持たない。端末内のデータはアンインストールで消える |
+| 政府・金融・健康・ニュース | いずれも該当しない | 買い物メモのアプリ |
+| AI 生成の素材 | アイコンとフィーチャーグラフィックは申告する。スクリーンショット 6 枚は申告しない | 下の「AI 生成の素材の申告」のとおり |
+
+### AI 生成の素材の申告
+
+Play Console は、ストア掲載情報の画像・動画のうち AI で生成・編集したものを、素材ごとのチェックボックスで申告させる
+（Play Console ヘルプ answer/17262077。申告した素材にはストアで AI のラベルが付き、アセット ライブラリで後から外せる）。
+ヘルプは「生成」「編集」の線引きを定めていないため、2026-11-18 にオーナーが次のとおり決めた。
+
+- アイコンとフィーチャーグラフィックは申告する。画像生成 AI は使っていないが、絵柄（ベクター画像の XML）と配置・コピーを
+  AI エージェントが作り、プログラムで書き出したため、慎重な側に倒した
+- スクリーンショット 6 枚は申告しない。実機の画面を撮り、`scripts/make-store-screenshots.py` で切り抜き・縮小・ぼかしただけで、
+  AI は画像を作っていない
+- 説明文などの文字は、ヘルプの対象（画像・動画）に含まれないため申告の欄はない
 
 ### データセーフティの根拠
 
@@ -88,14 +106,14 @@ Play Console で直した場合は、このファイルも同じ内容に直し�
 ## アプリアイコン
 
 512 × 512 の PNG。アダプティブアイコン（`mobile/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`）と同じ絵柄で
-`docs/store/images/icon-512.png` へ書き出し済み（採否は BL-218）。背景色（`ic_launcher_background`）の上に前景を重ね、
+`docs/store/images/icon-512.png` へ書き出し済みで、2026-11-18 に Play Console へ登録した（BL-218）。背景色（`ic_launcher_background`）の上に前景を重ね、
 ランチャーで見える中央 72dp を 512px に拡大した。四隅まで背景色で塗ってあり、角の丸めは Play が行う。
 再作成は Robolectric のテスト `StoreIconExportTest`（遅いテスト扱い）で、
 `./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreIconExportTest*"` を流す。
 
 ## フィーチャーグラフィック
 
-1024 × 500 の PNG。案を作成済み（`docs/store/images/feature-graphic.png`、採否は BL-218）。
+1024 × 500 の PNG。`docs/store/images/feature-graphic.png` を 2026-11-18 に Play Console へ登録した（BL-218）。
 ポップのテーマの背景色（`#FFF4EC`）の地に、アプリのアイコン・アプリ名「いくメモ」・キャッチコピー「話すだけ、いく前メモ。」を置いた。
 文字はテスト環境の既定のフォントで、外部のフォントや素材は使っていない。
 再作成は Robolectric のテスト `StoreFeatureGraphicExportTest`（遅いテスト扱い）で、
@@ -103,8 +121,11 @@ Play Console で直した場合は、このファイルも同じ内容に直し�
 
 ## スクリーンショット
 
-次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、Play Console への入力は BL-218。6 枚とも撮影済みで説明文は未入力）。画像は `docs/store/images/`
-（`screenshot-1-voice.png` 〜 `screenshot-6-themes.png`、1080x1920）に置く。加工は `scripts/make-store-screenshots.py`。
+次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、説明の文の描き込みは BL-241、Play Console への入力は BL-218。2026-11-18 に `play/` の 6 枚を登録した）。
+Play に上げるのは `docs/store/images/play/`（`screenshot-1-voice.png` 〜 `screenshot-6-themes.png`、1080x1920）の説明の文入りの 6 枚。
+作り方は `python scripts/caption-store-screenshots.py` で、文の正本は下の表の「入れる文（案）」（文を直したらスクリプトの文も合わせて作り直す）。
+元の `docs/store/images/screenshot-*.png` は文なしのままで、紹介ページ（`scripts/make-site-screenshots.py`）も使うため上書きしない。
+元画像の加工は `scripts/make-store-screenshots.py`。
 
 | 順 | 画面 | 入れる文（案） |
 | --- | --- | --- |
