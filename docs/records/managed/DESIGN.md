@@ -311,6 +311,7 @@
   ボタンを押した時点で版などが届く事実を踏まえ、同日にオーナーが「収集なし」のままとすることを確かめ直した。BL-226）。
   Play Console の申告（広告なし・対象年齢 13 歳以上・IARC 3+・AI 生成の素材はアイコンとフィーチャーグラフィックだけ申告など）は
   2026-11-18 にオーナーが入力し終えた（BL-087。内容と理由は `STORE_LISTING.md` の「Play Console の申告」）。
+  メインのストア掲載情報（文・アイコン・フィーチャーグラフィック・`docs/store/images/play/` の説明の文入りスクリーンショット 6 枚）も同日に保存済み（BL-218）。
   ストアのウェブサイトは紹介ページ <https://filderschoice.github.io/ikumemo/>。紹介ページとご意見フォームの転送ページは `site/` を
   GitHub Pages で公開し、公開手順は `site/README.md`。アクセス解析・外部スクリプト・外部フォント・Cookie は使わない
 - 外部からの Pull Request は受け付けない（オーナー判断、`CONTRIBUTING.local.md`）

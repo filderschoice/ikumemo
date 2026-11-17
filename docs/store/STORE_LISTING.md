@@ -106,14 +106,14 @@ Play Console は、ストア掲載情報の画像・動画のうち AI で生成
 ## アプリアイコン
 
 512 × 512 の PNG。アダプティブアイコン（`mobile/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`）と同じ絵柄で
-`docs/store/images/icon-512.png` へ書き出し済み（採否は BL-218）。背景色（`ic_launcher_background`）の上に前景を重ね、
+`docs/store/images/icon-512.png` へ書き出し済みで、2026-11-18 に Play Console へ登録した（BL-218）。背景色（`ic_launcher_background`）の上に前景を重ね、
 ランチャーで見える中央 72dp を 512px に拡大した。四隅まで背景色で塗ってあり、角の丸めは Play が行う。
 再作成は Robolectric のテスト `StoreIconExportTest`（遅いテスト扱い）で、
 `./gradlew :mobile:testDebugUnitTest -PslowTests --tests "*StoreIconExportTest*"` を流す。
 
 ## フィーチャーグラフィック
 
-1024 × 500 の PNG。案を作成済み（`docs/store/images/feature-graphic.png`、採否は BL-218）。
+1024 × 500 の PNG。`docs/store/images/feature-graphic.png` を 2026-11-18 に Play Console へ登録した（BL-218）。
 ポップのテーマの背景色（`#FFF4EC`）の地に、アプリのアイコン・アプリ名「いくメモ」・キャッチコピー「話すだけ、いく前メモ。」を置いた。
 文字はテスト環境の既定のフォントで、外部のフォントや素材は使っていない。
 再作成は Robolectric のテスト `StoreFeatureGraphicExportTest`（遅いテスト扱い）で、
@@ -121,7 +121,7 @@ Play Console は、ストア掲載情報の画像・動画のうち AI で生成
 
 ## スクリーンショット
 
-次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、説明の文の描き込みは BL-241、Play Console への入力は BL-218）。
+次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、説明の文の描き込みは BL-241、Play Console への入力は BL-218。2026-11-18 に `play/` の 6 枚を登録した）。
 Play に上げるのは `docs/store/images/play/`（`screenshot-1-voice.png` 〜 `screenshot-6-themes.png`、1080x1920）の説明の文入りの 6 枚。
 作り方は `python scripts/caption-store-screenshots.py` で、文の正本は下の表の「入れる文（案）」（文を直したらスクリプトの文も合わせて作り直す）。
 元の `docs/store/images/screenshot-*.png` は文なしのままで、紹介ページ（`scripts/make-site-screenshots.py`）も使うため上書きしない。
