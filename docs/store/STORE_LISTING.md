@@ -123,11 +123,11 @@ Play Console は、ストア掲載情報の画像・動画のうち AI で生成
 
 次の 6 枚を、1 枚ずつ短い説明の文を入れて作る（PLAN §6。撮影は BL-217、説明の文の描き込みは BL-241、Play Console への入力は BL-218。2026-11-18 に `play/` の 6 枚を登録した）。
 Play に上げるのは `docs/store/images/play/`（`screenshot-1-voice.png` 〜 `screenshot-6-themes.png`、1080x1920）の説明の文入りの 6 枚。
-作り方は `python scripts/caption-store-screenshots.py` で、文の正本は下の表の「入れる文（案）」（文を直したらスクリプトの文も合わせて作り直す）。
+作り方は `python scripts/caption-store-screenshots.py` で、文の正本は下の表の「入れる文」（文を直したらスクリプトの文も合わせて作り直す）。
 元の `docs/store/images/screenshot-*.png` は文なしのままで、紹介ページ（`scripts/make-site-screenshots.py`）も使うため上書きしない。
 元画像の加工は `scripts/make-store-screenshots.py`。
 
-| 順 | 画面 | 入れる文（案） |
+| 順 | 画面 | 入れる文 |
 | --- | --- | --- |
 | 1 | 話して追加 | 話すだけで、2つに分かれて入ります |
 | 2 | スワイプで買った | 買ったら右へ、やめたら左へ |
@@ -146,4 +146,4 @@ Play Console の上限は、短い説明 80 文字、詳細な説明 4000 文字
 | 項目 | 文字数 |
 | --- | --- |
 | 短い説明 | 54 |
-| 詳細な説明 | 982 |
+| 詳細な説明 | 1019 |
