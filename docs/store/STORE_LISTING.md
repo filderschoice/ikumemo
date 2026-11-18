@@ -50,7 +50,7 @@ Play Console で直した場合は、このファイルも同じ内容に直し�
 いくメモはオープンソース（Apache License 2.0）で、ソースコードを GitHub で公開しています。
 <https://github.com/filderschoice/ikumemo>
 
-## カテゴリ（案）
+## カテゴリ
 
 仕事効率化
 
