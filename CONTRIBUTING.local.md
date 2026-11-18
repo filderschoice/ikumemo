@@ -99,6 +99,7 @@ Pull Request をいただいても、内容を確認せずにクローズする�
 | `core/` / `mobile/` | アプリのソースコード | 構成は [README.md](README.md)「プロジェクト構成」 |
 | `config/detekt/` | detekt の設定 | sesami-wear から流用し、`@Preview` 関数を未使用の検出から除外 |
 | `scripts/version.properties` / `scripts/release-build.*` | バージョンの正本とリリースビルド | 使い方は [README.md](README.md)「リリースビルド」 |
+| `site/` / `docs/store/` / `docs/design/` / `docs/` 直下の利用者・オーナー向け文書 / `baselineprofile/` | 紹介ページ・ストア掲載・デザイン・利用者向け文書・Baseline Profile のモジュール | 一覧は [README.md](README.md)「プロジェクト構成」「関連ドキュメント」（ここへは個別に足さない） |
 
 ## その他の開発プロセス
 

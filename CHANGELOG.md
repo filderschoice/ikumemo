@@ -907,3 +907,10 @@ BL-240 は起票と完了が同じコミットのため、BACKLOG には残し�
 
 - `docs/records/managed/DESIGN.md` の F-08 の行の「N つ追加する」「N つ メモに入れました」を、`strings.xml`（`voice_add_count`・`widget_voice_added`）と
   件数表記のオーナー判断（2026-11-13、空白なしの「3つ」）に合わせて「Nつ追加する」「Nつ メモに入れました」に直した。BL-243 の申し送り。コード変更なし
+
+## 2026-11-19（BL-244 README.md と CONTRIBUTING.local.md の構成の記述を実ファイルに合わせる）
+
+- `README.md` の「プロジェクト構成」で、削除済みの `mobile/src/main/baseline-prof.txt` を実在する `mobile/src/release/generated/baselineProfiles/` へ直し、
+  `scripts/` の行に品質ゲートの一括実行・秘密情報のスキャン・ストア用と紹介ページ用のスクリーンショットの加工・git のフックを足した。
+  「開発の状況」の「クローズドテストの準備中」は時点表記を避け、BACKLOG（BL-090）を参照する形にした。
+  `CONTRIBUTING.local.md` の「ドキュメント構成（追加分）」には、個別に列挙せず README の 2 つの表を参照する行を足した。コード変更なし

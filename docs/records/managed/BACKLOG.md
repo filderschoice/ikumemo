@@ -22,29 +22,6 @@
   根拠: >-
     2026-11-19 のドキュメント点検（docs-consistency-review）で検出。脆弱性報告の受け付け範囲は安全性・外部への約束に関わる判断のため、
     エージェントで決めず要確認とした
-- id: BL-244
-  区分: 品質ゲート
-  タスク内容: >-
-    README.md と CONTRIBUTING.local.md の構成の記述を実ファイルに合わせる。
-    (1) README.md「プロジェクト構成」104 行目の mobile/src/main/baseline-prof.txt は削除済み（docs/BASELINE_PROFILE.md 12・24 行目）のため、
-    実在する mobile/src/release/generated/baselineProfiles/ へ直す。
-    (2) 同表の scripts/ の行（108 行目）に、品質ゲートの一括実行（quality-gates.py）・秘密情報スキャン（scan-secrets.py）・
-    git のフック（guard-git-hook.py）・ストア用と紹介ページ用のスクリーンショットの加工（make-store-screenshots.py・caption-store-screenshots.py・
-    make-site-screenshots.py）が無いので、用途の分類で足す（ファイル名の全列挙にはしない）。
-    (3) 「開発の状況」16 行目「Google Play ではクローズドテストの準備中」は、内部テスト版の配布とクローズドテストの審査への送信（2026-11-18、BL-090）
-    より古い。時点の情報を増やさず「製品版はまだ公開していない。テストの進み具合は BACKLOG（BL-090）」の形にする（公開後の書き換えは BL-221）。
-    (4) CONTRIBUTING.local.md「ドキュメント構成（追加分）」（92〜101 行目）に site/・docs/store/・docs/design/・docs/ 直下の利用者・オーナー向け文書・
-    baselineprofile/ が無い。個別に列挙せず、README.md「プロジェクト構成」「関連ドキュメント」を参照する 1 行へ寄せる
-  優先度: P3
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: >-
-    README.md に実在しないパスが残らず、scripts/ の行が実在するスクリプトの用途を覆い、「開発の状況」に「準備中」の時点表記が残らない。
-    CONTRIBUTING.local.md の追加分の表から README への参照で上記のディレクトリへたどれる。リンク切れが無く、Markdown の静的解析が合格する
-  依存: []
-  根拠: >-
-    2026-11-19 のドキュメント点検で検出。(4) は個別列挙を足すと次の追加でまた漏れるため、正本を README の 2 つの表に寄せる既定を選んだ
-    （docs-consistency-review 第4節）。BL-221 と同じ README の行を触るが、BL-221 は公開後の書き換えで内容が重ならない
 - id: BL-221
   区分: 品質ゲート
   タスク内容: >-
