@@ -13,7 +13,7 @@
 
 アプリの機能（メモ・音声入力・カレンダー・お知らせ・着せ替え・ウィジェット・初めての案内と使い方）は実装済みです。
 リポジトリは公開済みで、ご意見フォームでご意見・ご要望を受け付けています。
-Google Play ではクローズドテストの準備中で、まだ公開していません。
+製品版はまだ公開していません。Google Play でのテストの進み具合は BACKLOG（BL-090）を参照してください。
 紹介ページ: <https://filderschoice.github.io/ikumemo/>
 
 要件と判断の背景は [PLAN.md](PLAN.md)、今後のタスクは
@@ -101,11 +101,11 @@ scripts\release-build.bat -VersionCode 10 -VersionName 1.0.0
 | `mobile/src/main/kotlin/com/ikumemo/mobile/designsystem/` | テーマ 4 種（ポップ／やさしい／クール／シンプル）、配色、文字の大きさ |
 | `mobile/src/main/assets/help/` | アプリ内の使い方の正本（Markdown）。`docs/USER_GUIDE.md` の元 |
 | `mobile/screenshots/` | スクリーンショットテスト（Roborazzi）の正解画像 |
-| `mobile/src/main/baseline-prof.txt` | Baseline Profile（起動の高速化） |
+| `mobile/src/release/generated/baselineProfiles/` | 生成した Baseline Profile（起動の高速化） |
 | `baselineprofile/` | Baseline Profile を作るモジュール（手順は `docs/BASELINE_PROFILE.md`） |
 | `site/` | 紹介ページ（GitHub Pages）とご意見フォームへの転送ページ（`site/README.md`） |
 | `config/detekt/` | detekt の設定 |
-| `scripts/` | バージョン管理・リリースビルド・記録ファイルの検証・使い方の Web 版の生成・UI デザイン設計書の生成 |
+| `scripts/` | バージョン管理・リリースビルド・品質ゲートの一括実行・秘密情報のスキャン・記録ファイルの検証・使い方の Web 版の生成・UI デザイン設計書の生成・ストア用と紹介ページ用のスクリーンショットの加工・git のフック（`git push` などを止める） |
 | `docs/records/` | 設計書・実施記録・未対応事項（AI エージェントが更新する記録ファイル） |
 | `rules/` | AI エージェントのガードレール |
 
