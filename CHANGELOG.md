@@ -968,3 +968,8 @@ BL-240 は起票と完了が同じコミットのため、BACKLOG には残し�
 - `site/index.html` のボタンを「クローズドテストに参加する」（`docs/CLOSED_TEST.md`）にし、「いまはクローズドテスト中」の一文を足した。
   `site/app.json` は `status: beta`、`links.download` を `CLOSED_TEST.md` に（sesami-wear と同じ形）。`README.md`・`site/README.md` も合わせた
 - BL-221（製品版の公開後に Play のリンクへ変える）を `未着手` のまま BACKLOG へ戻した。BL-246 の根拠へ「審査は終了」を追記した。コード変更なし
+
+## 2026-11-21（BL-246 ストアの詳細な説明の表示確認が完了）
+
+- オーナーの報告（2026-11-21、審査は終わりクローズドテストとして公開済み。詳細な説明の表示確認も完了）を受け、BL-246 を完了にして BACKLOG から削除した。
+  ストアの詳細な説明は `docs/store/STORE_LISTING.md` のコードブロックの中身で貼り直し済み。コード変更なし
