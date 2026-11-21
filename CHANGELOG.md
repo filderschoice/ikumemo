@@ -960,3 +960,11 @@ BL-240 は起票と完了が同じコミットのため、BACKLOG には残し�
   「Google Play で入手」リンクにした。`site/app.json` は `status` を `released`、`links.download` に同じ URL を足した。
   `site/README.md` と `README.md` の「準備中」「未公開」の記述を直した。コード変更なし
 - URL は公開の報告に基づく。エージェントの環境からの取得は 404 だったため（地域や自動取得の制限の可能性）、ブラウザでの表示は人が確かめる
+
+## 2026-11-21（紹介ページの Play 表示をクローズドテストの実態に戻す）
+
+- オーナーの訂正（2026-11-21「審査は終わっていて、クローズドテストとして公開済み」）。直前の記録の「Play は公開済み」を製品版の公開と取り違え、
+  紹介ページを Play の製品版のページへのリンク・`status: released` にしていたため直した
+- `site/index.html` のボタンを「クローズドテストに参加する」（`docs/CLOSED_TEST.md`）にし、「いまはクローズドテスト中」の一文を足した。
+  `site/app.json` は `status: beta`、`links.download` を `CLOSED_TEST.md` に（sesami-wear と同じ形）。`README.md`・`site/README.md` も合わせた
+- BL-221（製品版の公開後に Play のリンクへ変える）を `未着手` のまま BACKLOG へ戻した。BL-246 の根拠へ「審査は終了」を追記した。コード変更なし

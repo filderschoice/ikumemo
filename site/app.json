@@ -5,7 +5,7 @@
   "nameJa": "いくメモ",
   "tagline": "話すだけ、いく前メモ。買ったらスワイプで記録、記録のカレンダーで振り返り、期限をお知らせ",
   "platforms": ["Android"],
-  "status": "released",
+  "status": "beta",
   "license": "Apache-2.0",
   "tags": ["Android", "Kotlin", "Jetpack Compose", "Shopping List"],
   "icon": "assets/icon.svg",
@@ -13,7 +13,7 @@
   "links": {
     "homepage": "https://filderschoice.github.io/ikumemo/",
     "repository": "https://github.com/filderschoice/ikumemo",
-    "download": "https://play.google.com/store/apps/details?id=com.ikumemo.mobile"
+    "download": "https://github.com/filderschoice/ikumemo/blob/main/docs/CLOSED_TEST.md"
   },
   "updated": "2026-11-21"
 }
