@@ -20,20 +20,6 @@
     2026-11-19 のオーナー指示で STORE_LISTING.md の書式を直した。Play Console への入力は外部サービスの操作のため人手検証とした
     2026-11-19、オーナーが詳細な説明を Play Console へ貼り直し、ストア掲載情報が審査中になった（オーナーの報告）。
     審査を通ってストアの表示が崩れていないことを確かめたら完了にする
-- id: BL-221
-  区分: 品質ゲート
-  タスク内容: >-
-    Google Play で製品版（またはクローズドテストの公開ページ）が公開された後に、公開前の表示を外す。
-    site/index.html の「Google Play（準備中）」ボタンを https://play.google.com/store/apps/details?id=com.ikumemo.mobile へのリンクにし、
-    site/app.json の status を公開済みの値にして links へ Google Play の URL を足し、site/README.md の「準備中」の方針を直す。
-    README.md「開発の状況」の「Google Play では未公開」も公開済みに直す
-  優先度: P3
-  状態: 未着手
-  担当: AIエージェント
-  完了条件: site/・README.md に「準備中」「未公開」の記述が残らず、Play のリンクが applicationId と一致し、Markdown の静的解析が合格する
-  依存:
-    - BL-091
-  根拠: 公開前にリンクを有効にすると 404 のページへ案内してしまうため、公開（BL-091）の後に回す
 - id: BL-150
   区分: 人手検証
   タスク内容: >-
