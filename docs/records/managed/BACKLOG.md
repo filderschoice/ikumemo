@@ -5,33 +5,23 @@
 
 <!-- COPILOT_RECORDS:BEGIN -->
 ```yaml
-- id: BL-246
-  区分: 人手検証
-  タスク内容: >-
-    Play Console の「メインのストア掲載情報」の詳細な説明を、docs/store/STORE_LISTING.md「詳細な説明」のコードブロックの中身で貼り直す。
-    以前の文は Markdown の記号（### や - や <URL>）を貼り替える時に崩れていたため、2026-11-19 に Play にそのまま貼れる書式（【】と「・」）へ直した
-  優先度: P3
-  状態: 未着手
-  担当: ユーザー
-  完了条件: >-
-    Play Console の詳細な説明がコードブロックの中身と一致し、ストアのプレビューで見出し・箇条書き・URL が崩れずに表示される
-  依存: []
-  根拠: >-
-    2026-11-19 のオーナー指示で STORE_LISTING.md の書式を直した。Play Console への入力は外部サービスの操作のため人手検証とした
 - id: BL-221
   区分: 品質ゲート
   タスク内容: >-
-    Google Play で製品版（またはクローズドテストの公開ページ）が公開された後に、公開前の表示を外す。
-    site/index.html の「Google Play（準備中）」ボタンを https://play.google.com/store/apps/details?id=com.ikumemo.mobile へのリンクにし、
-    site/app.json の status を公開済みの値にして links へ Google Play の URL を足し、site/README.md の「準備中」の方針を直す。
-    README.md「開発の状況」の「Google Play では未公開」も公開済みに直す
+    Google Play で製品版が公開された後に、紹介ページと README をクローズドテストの案内から製品版の案内へ直す。
+    site/index.html のボタン「クローズドテストに参加する」と「いまは Google Play のクローズドテスト中」の一文を、
+    https://play.google.com/store/apps/details?id=com.ikumemo.mobile へのリンク「Google Play で入手」へ変え、
+    site/app.json の status を released、links.download を Play の URL にし、site/README.md の方針と README.md「開発の状況」を直す
   優先度: P3
   状態: 未着手
   担当: AIエージェント
-  完了条件: site/・README.md に「準備中」「未公開」の記述が残らず、Play のリンクが applicationId と一致し、Markdown の静的解析が合格する
+  完了条件: >-
+    site/・README.md にクローズドテスト中の記述が残らず、Play のリンクが applicationId と一致し、Markdown の静的解析が合格する
   依存:
     - BL-091
-  根拠: 公開前にリンクを有効にすると 404 のページへ案内してしまうため、公開（BL-091）の後に回す
+  根拠: >-
+    製品版の公開ページは公開前は一般に開けない（404）ため、公開（BL-091）の後に回す。
+    2026-11-21 にクローズドテストの公開を製品版の公開と取り違えて一度 Play のリンクへ変えたが、同日に参加の案内へ戻した
 - id: BL-150
   区分: 人手検証
   タスク内容: >-

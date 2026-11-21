@@ -13,7 +13,7 @@
 
 アプリの機能（メモ・音声入力・カレンダー・お知らせ・着せ替え・ウィジェット・初めての案内と使い方）は実装済みです。
 リポジトリは公開済みで、ご意見フォームでご意見・ご要望を受け付けています。
-製品版はまだ公開していません。Google Play でのテストの進み具合は BACKLOG（BL-090）を参照してください。
+現在は Google Play のクローズドテスト中で、製品版はまだ公開していません。参加の案内は [docs/CLOSED_TEST.md](docs/CLOSED_TEST.md) を参照してください。
 紹介ページ: <https://filderschoice.github.io/ikumemo/>
 
 要件と判断の背景は [PLAN.md](PLAN.md)、今後のタスクは
