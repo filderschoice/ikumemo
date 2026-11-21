@@ -9,7 +9,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>いくメモ — 話すだけ、いく前メモ。</title>
   <meta name="description" content="話すだけで買い物メモ。買ったらスワイプで記録、記録のカレンダーで振り返り。使い切りたい物は、期限をお知らせ。Android アプリ。">
-  <meta name="theme-color" content="#FF7A6B">
+  <meta name="theme-color" content="#FFF1E7">
+  <meta name="color-scheme" content="light">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://filderschoice.github.io/ikumemo/">
   <link rel="canonical" href="https://filderschoice.github.io/ikumemo/">
@@ -33,6 +34,7 @@
         <img src="assets/icon.svg" alt="" width="32" height="32">
         <span>いくメモ</span>
       </a>
+      <a class="header-link" href="#features">できること</a>
     </div>
   </header>
 
@@ -41,7 +43,7 @@
       <div class="container hero-grid">
         <div class="hero-text">
         <span class="eyebrow">Android アプリ</span>
-        <h1>話すだけ、<br>いく前メモ。</h1>
+        <h1><em>話すだけ</em>、<br>いく前メモ。</h1>
         <p class="lead">
           買い物に「いく」ときの、いちばん身近な「メモ」。いく前に話して残す。買ったらスワイプで記録。
           その記録が、次にいくときの「いつもの」になります。
@@ -51,11 +53,37 @@
           <a class="button" href="https://github.com/filderschoice/ikumemo">ソースコード</a>
           <a class="button" href="feedback/">ご意見・ご要望</a>
         </div>
-        <p class="meta">Android ・ Apache License 2.0 ・ 広告なし ・ アカウント登録なし</p>
+        <ul class="chips">
+          <li>広告なし</li>
+          <li>アカウント登録なし</li>
+          <li>端末の中だけに保存</li>
+        </ul>
+        <p class="meta">Android ・ Apache License 2.0</p>
         </div>
         <div class="hero-shot">
           <img class="shot" src="assets/screenshots/memo.webp" alt="買い物メモの画面。牛乳・卵・食パンなどの品目が並び、下に「話して追加」のボタンがある" width="540" height="960">
         </div>
+      </div>
+    </section>
+
+    <section id="scenes">
+      <div class="container">
+        <h2>こんなとき、ありませんか？</h2>
+        <p class="section-lead">買い物の「あれ、なんだっけ」を、話すだけで減らします。</p>
+        <ul class="scenes">
+          <li class="scene">
+            <q>冷蔵庫を閉めてから思い出す</q>
+            <p>気づいた瞬間に「牛乳」と話すだけ。手がふさがっていても、メモが残ります。</p>
+          </li>
+          <li class="scene">
+            <q>お店で「何だっけ？」となる</q>
+            <p>メモは一覧で見やすく、買ったら右へスワイプ。買い忘れも、二重買いも減らせます。</p>
+          </li>
+          <li class="scene">
+            <q>それ、いつ買った？</q>
+            <p>買った日がカレンダーに残るから、品名で探して振り返れます。</p>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -134,7 +162,7 @@
     <section id="screens">
       <div class="container">
         <h2>画面</h2>
-        <p class="section-lead">実際の画面です。</p>
+        <p class="section-lead">実際の画面です。やさしい色合いで、見やすく作っています。</p>
         <ul class="gallery">
           <li>
             <img class="shot" src="assets/screenshots/due.webp" alt="期限のタブ。期限が近い物が日付つきで並んでいる" width="540" height="960">
@@ -156,24 +184,36 @@
       </div>
     </section>
 
-    <section id="privacy">
+    <section id="privacy" class="relief">
       <div class="container">
-        <h2>プライバシー</h2>
-        <ul class="plain-list">
-          <li>アカウントの登録はいりません。広告も、利用状況の解析もありません。</li>
-          <li>メモや記録は、お使いの端末の中にだけ保存します。アプリはインターネットに接続しません。</li>
-          <li>ご意見フォームは、ボタンを押すと外部のブラウザで開きます。開くときに、アプリの版・Android の版・機種名がページの URL に入ります。ご意見の内容は、自分で送信したときだけ届きます。</li>
-          <li>音声入力は端末の音声認識サービスを使います。</li>
+        <h2>安心して使えます</h2>
+        <p class="section-lead">アカウントも広告もありません。メモはあなたの端末の中だけにあります。</p>
+        <ul class="relief-list">
+          <li>アカウント登録はいりません</li>
+          <li>広告・利用状況の解析はありません</li>
+          <li>メモや記録は端末の中だけに保存します<small>アプリはインターネットに接続しません。</small></li>
+          <li>音声入力は端末の音声認識サービスを使います</li>
         </ul>
-        <p>詳しくは<a href="https://github.com/filderschoice/ikumemo/blob/main/docs/store/PRIVACY_POLICY.md">プライバシーポリシー</a>を参照してください。</p>
+        <div class="privacy-more">
+          <details>
+            <summary>ご意見フォームを開くときのこと</summary>
+            <p>ボタンを押すと外部のブラウザで開きます。開くときに、アプリの版・Android の版・機種名がページの URL に入ります。ご意見の内容は、自分で送信したときだけ届きます。</p>
+          </details>
+          <p>詳しくは<a href="https://github.com/filderschoice/ikumemo/blob/main/docs/store/PRIVACY_POLICY.md">プライバシーポリシー</a>を参照してください。</p>
+        </div>
       </div>
     </section>
 
-    <section id="feedback">
+    <section id="feedback" class="closing">
       <div class="container">
-        <h2>ご意見・ご要望</h2>
-        <p class="section-lead">どんなことでも大丈夫です。ログインは要らず、お名前や連絡先も受け取りません。</p>
-        <p><a class="button primary" href="feedback/">ご意見フォームを開く</a></p>
+        <div class="closing-box">
+          <h2>まずは気軽に、ひとつ話してみませんか</h2>
+          <p class="section-lead">使ってみての感想や「こうなったらうれしい」も、お待ちしています。ログインは要らず、お名前や連絡先も受け取りません。</p>
+          <div class="actions">
+            <a class="button primary" href="feedback/">ご意見フォームを開く</a>
+            <a class="button" href="https://github.com/filderschoice/ikumemo">ソースコード</a>
+          </div>
+        </div>
       </div>
     </section>
   </main>
