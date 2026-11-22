@@ -111,6 +111,16 @@ Pull Request をいただいても、内容を確認せずにクローズする�
   `docs/records/managed/DESIGN.md`
 - リポジトリのルール・ドキュメントのみの変更: `CHANGELOG.md`
 
+### GitHub Releases の登録（プレリリース運用）
+
+sesami-wear と同じく、クローズドテストなど製品版の公開前の断面でも、テスターへ出す版ごとに GitHub Releases を登録します
+（オーナー判断、2026-11-22）。
+
+- 公開前の版（`v0.x.y`）は**プレリリース**（`gh release create --prerelease`）で登録し、製品版（`v1.0.0`）だけを通常のリリースにする
+- タグは注釈付きで、PR のマージ後に規定ブランチのマージコミットへ打つ。本文は `docs/RELEASE_NOTES.md` の該当版から写す
+- 手順は Skill `github-release-publish`。タグ・ブランチの `git push` と PR のマージはユーザーが行う。
+  自律ループ実行モードではリモートへの公開（guardrails 12.2）に当たるため行わず、通常の対話で行う
+
 ### 品質ゲート
 
 本リポジトリには CI がなく（`.github/workflows/` を置いていません）、品質ゲートはローカル実行が唯一の
