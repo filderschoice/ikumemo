@@ -985,3 +985,10 @@ BL-240 は起票と完了が同じコミットのため、BACKLOG には残し�
 
 - オーナーの回答（2026-11-22、公開日は 11/18）を受け、`docs/RELEASE_NOTES.md` の見出しを「0.1.0（未公開）」から「0.1.0（2026-11-18）」へ直した。
   BL-247 で GitHub Release の本文へ写す前の下ごしらえ。コード変更なし
+
+## 2026-11-22（BL-247 v0.1.0 のタグとプレリリースを公開）
+
+- 注釈付きタグ `v0.1.0`（`a258332`、PR #27 のマージコミット）を打ち、GitHub Release をプレリリースで公開した
+  （https://github.com/filderschoice/ikumemo/releases/tag/v0.1.0）。本文は `docs/RELEASE_NOTES.md` の 0.1.0 から写した
+- タグの位置は、Play へ上げた AAB のビルド元コミットが記録に無いため `main` の先端にした（`mobile/src/main` と `core` は `f0c8809` 以降変わっていない）
+- BL-247 を完了にして BACKLOG から削除し、BL-091 の記述を運用の参照に直した。コード変更なし
